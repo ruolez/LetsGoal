@@ -1417,8 +1417,6 @@ async function handleGoalUpdate() {
 // Enhanced filtering and sorting functionality
 function setupFiltersAndSorting() {
     const searchInput = document.getElementById('goal-search');
-    const filterSelect = document.getElementById('goal-filter');
-    const sortSelect = document.getElementById('goal-sort');
     
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -1427,21 +1425,15 @@ function setupFiltersAndSorting() {
         });
     }
     
-    if (filterSelect) {
-        filterSelect.addEventListener('change', (e) => {
-            currentFilter = e.target.value;
-            currentPage = 0;
-            renderGoals();
-        });
-    }
-    
-    if (sortSelect) {
-        sortSelect.addEventListener('change', (e) => {
-            currentSort = e.target.value;
-            currentPage = 0;
-            renderGoals();
-        });
-    }
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#filter-dropdown-btn') && !e.target.closest('#filter-dropdown')) {
+            closeFilterDropdown();
+        }
+        if (!e.target.closest('#sort-dropdown-btn') && !e.target.closest('#sort-dropdown')) {
+            closeSortDropdown();
+        }
+    });
 }
 
 function applyFiltersAndSort() {
@@ -1484,7 +1476,98 @@ function applyFiltersAndSort() {
     filteredGoals = filtered;
 }
 
-// View mode management
+// Modern dropdown functionality
+window.toggleFilterDropdown = function() {
+    const dropdown = document.getElementById('filter-dropdown');
+    const btn = document.getElementById('filter-dropdown-btn');
+    const chevron = document.getElementById('filter-chevron');
+    
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        btn.classList.add('active');
+        chevron.style.transform = 'rotate(180deg)';
+        closeSortDropdown(); // Close other dropdown
+    } else {
+        closeFilterDropdown();
+    }
+}
+
+window.toggleSortDropdown = function() {
+    const dropdown = document.getElementById('sort-dropdown');
+    const btn = document.getElementById('sort-dropdown-btn');
+    const chevron = document.getElementById('sort-chevron');
+    
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        btn.classList.add('active');
+        chevron.style.transform = 'rotate(180deg)';
+        closeFilterDropdown(); // Close other dropdown
+    } else {
+        closeSortDropdown();
+    }
+}
+
+function closeFilterDropdown() {
+    const dropdown = document.getElementById('filter-dropdown');
+    const btn = document.getElementById('filter-dropdown-btn');
+    const chevron = document.getElementById('filter-chevron');
+    
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        btn.classList.remove('active');
+        chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+function closeSortDropdown() {
+    const dropdown = document.getElementById('sort-dropdown');
+    const btn = document.getElementById('sort-dropdown-btn');
+    const chevron = document.getElementById('sort-chevron');
+    
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        btn.classList.remove('active');
+        chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+window.setFilter = function(filterValue) {
+    currentFilter = filterValue;
+    currentPage = 0;
+    
+    // Update label
+    const label = document.getElementById('filter-label');
+    const filterLabels = {
+        'all': 'All Goals',
+        'in_progress': 'In Progress',
+        'pending': 'Pending',
+        'achieved': 'Achieved'
+    };
+    label.textContent = filterLabels[filterValue];
+    
+    closeFilterDropdown();
+    renderGoals();
+}
+
+window.setSort = function(sortValue) {
+    currentSort = sortValue;
+    currentPage = 0;
+    
+    // Update label
+    const label = document.getElementById('sort-label');
+    const sortLabels = {
+        'recent': 'Recently Updated',
+        'target': 'Target Date',
+        'progress': 'Progress',
+        'name': 'Name'
+    };
+    label.textContent = sortLabels[sortValue];
+    
+    closeSortDropdown();
+    renderGoals();
+}
+
+// Enhanced view mode management
 window.setViewMode = function(mode) {
     currentViewMode = mode;
     
@@ -1492,16 +1575,18 @@ window.setViewMode = function(mode) {
     const gridBtn = document.getElementById('grid-view-btn');
     const listBtn = document.getElementById('list-view-btn');
     
+    // Remove active class from both
+    gridBtn.classList.remove('active', 'bg-white', 'text-gray-700', 'shadow-sm');
+    listBtn.classList.remove('active', 'bg-white', 'text-gray-700', 'shadow-sm');
+    gridBtn.classList.add('text-gray-500');
+    listBtn.classList.add('text-gray-500');
+    
     if (mode === 'grid') {
-        gridBtn.classList.add('bg-white', 'text-gray-700', 'shadow-sm');
+        gridBtn.classList.add('active', 'bg-white', 'text-gray-700', 'shadow-sm');
         gridBtn.classList.remove('text-gray-500');
-        listBtn.classList.remove('bg-white', 'text-gray-700', 'shadow-sm');
-        listBtn.classList.add('text-gray-500');
     } else {
-        listBtn.classList.add('bg-white', 'text-gray-700', 'shadow-sm');
+        listBtn.classList.add('active', 'bg-white', 'text-gray-700', 'shadow-sm');
         listBtn.classList.remove('text-gray-500');
-        gridBtn.classList.remove('bg-white', 'text-gray-700', 'shadow-sm');
-        gridBtn.classList.add('text-gray-500');
     }
     
     renderGoals();
