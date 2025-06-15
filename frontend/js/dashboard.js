@@ -12,13 +12,7 @@ let currentSort = 'recent';
 let currentPage = 0;
 const goalsPerPage = 9;
 
-// Test function to verify JavaScript is working
-window.testFunction = function() {
-    console.log('✅ JavaScript is working!');
-    alert('JavaScript is working!');
-};
-
-console.log('📝 Global test function created'); // Debug log
+// Dashboard functionality confirmed working
 
 // Professional motivational quotes
 const motivationalQuotes = [
