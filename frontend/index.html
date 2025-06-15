@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LetsGoal - Achieve Your Dreams</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+    </style>
+</head>
+<body class="modern-bg">
+    <div class="container mx-auto px-6 py-12">
+        <div class="max-w-6xl mx-auto">
+            <!-- Hero Section -->
+            <div class="text-center mb-16 fade-in">
+                <h1 class="heading-primary mb-6">
+                    Goal Achievement Platform
+                </h1>
+                <p class="text-xl text-muted max-w-2xl mx-auto mb-8">
+                    Transform your aspirations into structured, achievable goals with intelligent progress tracking and professional insights.
+                </p>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                    <button onclick="window.location.href='/login'" class="btn-primary px-8 py-3">
+                        <i class="fas fa-arrow-right mr-2"></i>
+                        Get Started
+                    </button>
+                    
+                    <button onclick="showDemo()" class="btn-secondary px-8 py-3">
+                        <i class="fas fa-play mr-2"></i>
+                        Learn More
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <div class="modern-card p-8 rounded-xl slide-in" style="animation-delay: 0.1s;">
+                    <div class="w-12 h-12 gradient-primary rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-bullseye text-white text-xl"></i>
+                    </div>
+                    <h3 class="heading-secondary text-lg mb-4">Strategic Planning</h3>
+                    <p class="text-muted">Break down complex objectives into manageable milestones with clear timelines and dependencies.</p>
+                </div>
+                
+                <div class="modern-card p-8 rounded-xl slide-in" style="animation-delay: 0.2s;">
+                    <div class="w-12 h-12 gradient-info rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <h3 class="heading-secondary text-lg mb-4">Progress Analytics</h3>
+                    <p class="text-muted">Monitor advancement with detailed metrics, trend analysis, and performance insights.</p>
+                </div>
+                
+                <div class="modern-card p-8 rounded-xl slide-in" style="animation-delay: 0.3s;">
+                    <div class="w-12 h-12 gradient-success rounded-lg flex items-center justify-center mb-6">
+                        <i class="fas fa-trophy text-white text-xl"></i>
+                    </div>
+                    <h3 class="heading-secondary text-lg mb-4">Achievement Tracking</h3>
+                    <p class="text-muted">Celebrate successes and maintain motivation with comprehensive achievement records.</p>
+                </div>
+            </div>
+
+            <!-- Quote Section -->
+            <div class="quote-box mb-16 fade-in">
+                <p class="text-lg">
+                    "Success is the progressive realization of a worthy goal or ideal."
+                </p>
+                <cite class="text-sm text-muted">— Earl Nightingale</cite>
+            </div>
+
+            <!-- Demo Features -->
+            <div id="demo-section" class="hidden">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="modern-card p-8 rounded-xl">
+                        <h3 class="heading-secondary text-xl mb-6">
+                            <i class="fas fa-cogs text-indigo-500 mr-3"></i>
+                            Professional Tools
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                <span>Hierarchical goal structure</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                <span>Timeline management</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                <span>Progress quantification</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                <span>Performance reporting</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="modern-card p-8 rounded-xl">
+                        <h3 class="heading-secondary text-xl mb-6">
+                            <i class="fas fa-chart-bar text-blue-500 mr-3"></i>
+                            Analytics Dashboard
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-center">
+                                <i class="fas fa-chart-pie text-blue-500 mr-3"></i>
+                                <span>Visual progress indicators</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-chart-pie text-blue-500 mr-3"></i>
+                                <span>Completion rate metrics</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-chart-pie text-blue-500 mr-3"></i>
+                                <span>Timeline analysis</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-chart-pie text-blue-500 mr-3"></i>
+                                <span>Strategic insights</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Messages -->
+    <div id="success-message" class="fixed top-4 right-4 hidden bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="success-text"></span>
+    </div>
+
+    <!-- Error Messages -->
+    <div id="error-message" class="fixed top-4 right-4 hidden bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span id="error-text"></span>
+    </div>
+
+    <script>
+        function showDemo() {
+            const demoSection = document.getElementById('demo-section');
+            demoSection.classList.toggle('hidden');
+            
+            if (!demoSection.classList.contains('hidden')) {
+                demoSection.classList.add('bounce-in');
+                showSuccessMessage("Check out these amazing features!");
+            }
+        }
+
+        function showSuccessMessage(message) {
+            const successDiv = document.getElementById('success-message');
+            const successText = document.getElementById('success-text');
+            successText.textContent = message;
+            successDiv.classList.remove('hidden');
+            successDiv.classList.add('bounce-in');
+            
+            setTimeout(() => {
+                successDiv.classList.add('hidden');
+                successDiv.classList.remove('bounce-in');
+            }, 3000);
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            errorDiv.classList.add('bounce-in');
+            
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+                errorDiv.classList.remove('bounce-in');
+            }, 3000);
+        }
+
+        // Check if user is already logged in
+        window.addEventListener('load', async function() {
+            try {
+                const response = await fetch('/api/auth/check');
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    window.location.href = '/dashboard';
+                }
+            } catch (error) {
+                console.log('Not authenticated');
+            }
+        });
+    </script>
+</body>
+</html>

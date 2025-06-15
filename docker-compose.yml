@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: letsgoal-backend
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - ./database:/app/database
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=backend/app.py
+      - DATABASE_URL=sqlite:////app/database/letsgoal.db
+    command: python -m flask run --host=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

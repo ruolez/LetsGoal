@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - LetsGoal</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        Goal Platform
+                    </h1>
+                </div>
+                
+                <div class="flex items-center space-x-6">
+                    <button onclick="testFunction()" class="bg-red-500 text-white px-2 py-1 text-xs rounded">
+                        TEST JS
+                    </button>
+                    <span id="user-welcome" class="text-gray-600 font-medium">
+                        Welcome back!
+                    </span>
+                    <button onclick="authUtils.logout()" class="text-gray-500 hover:text-gray-700 transition-colors">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="modern-card p-6 rounded-xl text-center fade-in">
+                <div class="w-12 h-12 gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-bullseye text-white text-xl"></i>
+                </div>
+                <div class="text-3xl font-bold text-gray-800 mb-1" id="total-goals">0</div>
+                <div class="text-sm text-gray-500">Total Goals</div>
+            </div>
+            
+            <div class="modern-card p-6 rounded-xl text-center fade-in" style="animation-delay: 0.1s;">
+                <div class="w-12 h-12 gradient-success rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trophy text-white text-xl"></i>
+                </div>
+                <div class="text-3xl font-bold text-gray-800 mb-1" id="achieved-goals">0</div>
+                <div class="text-sm text-gray-500">Completed</div>
+            </div>
+            
+            <div class="modern-card p-6 rounded-xl text-center fade-in" style="animation-delay: 0.2s;">
+                <div class="w-12 h-12 gradient-info rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-clock text-white text-xl"></i>
+                </div>
+                <div class="text-3xl font-bold text-gray-800 mb-1" id="active-goals">0</div>
+                <div class="text-sm text-gray-500">In Progress</div>
+            </div>
+            
+            <div class="modern-card p-6 rounded-xl text-center fade-in" style="animation-delay: 0.3s;">
+                <div class="w-12 h-12 gradient-warning rounded-lg flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+                <div class="text-3xl font-bold text-gray-800 mb-1" id="achievement-rate">0%</div>
+                <div class="text-sm text-gray-500">Success Rate</div>
+            </div>
+        </div>
+
+        <!-- Professional Quote -->
+        <div class="quote-box mb-8 text-center">
+            <p class="text-lg" id="daily-quote">
+                "The successful person has the habit of doing the things failures don't like to do."
+            </p>
+            <cite class="text-sm text-gray-500">— E.M. Gray</cite>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Goals List -->
+            <div class="lg:col-span-2">
+                <div class="modern-card rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="heading-secondary">
+                            Goals
+                        </h2>
+                        <button onclick="showCreateGoalModal()" class="btn-primary">
+                            New Goal
+                        </button>
+                    </div>
+                    
+                    <div id="goals-container" class="space-y-4">
+                        <div class="text-center text-gray-500 py-12">
+                            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-target text-2xl text-gray-400"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-700 mb-2">No goals yet</h3>
+                            <p class="text-gray-500 mb-4">Start by creating your first goal to track your progress</p>
+                            <button onclick="showCreateGoalModal()" class="btn-primary px-6 py-2">
+                                <i class="fas fa-plus mr-2"></i>
+                                Create First Goal
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Chart & Quick Actions -->
+            <div class="space-y-6">
+                <!-- Progress Chart -->
+                <div class="modern-card rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        Recent Progress (7 Days)
+                    </h3>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="progress-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="modern-card rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        Quick Actions
+                    </h3>
+                    <div class="space-y-3">
+                        <button onclick="showCreateGoalModal()" class="w-full btn-primary text-left justify-start">
+                            Create New Goal
+                        </button>
+                        <button onclick="viewHistory()" class="w-full btn-secondary text-left justify-start">
+                            View History
+                        </button>
+                        <button onclick="generateReport()" class="w-full btn-secondary text-left justify-start">
+                            Progress Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Goal Modal -->
+    <div id="create-goal-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="modern-card p-8 rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <h3 class="heading-secondary text-xl mb-6">
+                Create New Goal
+            </h3>
+            
+            <form id="create-goal-form" class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Goal Title</label>
+                    <input type="text" id="goal-title" class="input-field w-full" placeholder="Enter goal title" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Description</label>
+                    <textarea id="goal-description" rows="3" class="input-field w-full" placeholder="Describe your goal and success criteria"></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Target Date</label>
+                    <input type="date" id="goal-target-date" class="input-field w-full">
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        Create Goal
+                    </button>
+                    <button type="button" onclick="closeCreateGoalModal()" class="btn-secondary px-6 py-3">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Goal Modal -->
+    <div id="edit-goal-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+        <div class="modern-card rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b">
+                <h3 class="heading-secondary text-xl">
+                    Edit Goal
+                </h3>
+            </div>
+            
+            <form id="edit-goal-form" class="flex flex-col h-full">
+                <input type="hidden" id="edit-goal-id">
+                
+                <div class="flex flex-1 overflow-hidden">
+                    <!-- Left Panel - Goal Details -->
+                    <div class="w-1/2 border-r border-gray-200 flex flex-col">
+                        <div class="p-6 pb-4 border-b border-gray-200">
+                            <h4 class="text-lg font-semibold text-gray-800">Goal Details</h4>
+                        </div>
+                        <div class="p-6 modal-scroll-container">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Goal Title</label>
+                                    <input type="text" id="edit-goal-title" class="input-field w-full" required>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Description</label>
+                                    <textarea id="edit-goal-description" rows="3" class="input-field w-full"></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Target Date</label>
+                                    <input type="date" id="edit-goal-target-date" class="input-field w-full">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2">Status</label>
+                                    <select id="edit-goal-status" class="input-field w-full">
+                                        <option value="pending">Pending</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="achieved">Achieved</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Panel - Subgoals -->
+                    <div class="w-1/2 flex flex-col">
+                        <div class="p-6 pb-4 border-b border-gray-200">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-lg font-semibold text-gray-800">Sub-goals</h4>
+                                <div class="flex space-x-2">
+                                    <button type="button" onclick="toggleInlineSubgoalForm()" class="btn-primary text-sm px-4 py-2" id="add-subgoal-btn">
+                                        <i class="fas fa-plus mr-1"></i>
+                                        Add Sub-goal
+                                    </button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-1">Break your goal into manageable steps</p>
+                        </div>
+                        
+                        <div class="flex-1 p-6 subgoals-scroll-area">
+                            <!-- Inline Subgoal Form -->
+                            <div id="inline-subgoal-form" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 hidden">
+                                <h5 class="text-sm font-semibold text-gray-800 mb-3">
+                                    <i class="fas fa-plus-circle mr-2 text-blue-600"></i>
+                                    New Sub-goal
+                                </h5>
+                                <div class="space-y-3">
+                                    <div>
+                                        <input type="text" id="inline-subgoal-title" class="input-field w-full text-sm" placeholder="Sub-goal title *">
+                                    </div>
+                                    <div>
+                                        <textarea id="inline-subgoal-description" rows="1" class="input-field w-full text-sm" placeholder="Description (optional)"></textarea>
+                                    </div>
+                                    <div>
+                                        <input type="date" id="inline-subgoal-target-date" class="input-field w-full text-sm">
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button type="button" onclick="addInlineSubgoal()" class="btn-primary text-sm px-3 py-1 flex-1">
+                                            <i class="fas fa-check mr-1"></i>
+                                            Add
+                                        </button>
+                                        <button type="button" onclick="cancelInlineSubgoal()" class="btn-secondary text-sm px-3 py-1">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="subgoals-container" class="space-y-3">
+                                <!-- Subgoals will be dynamically added here -->
+                            </div>
+                            
+                            <!-- Empty state -->
+                            <div id="subgoals-empty-state" class="text-center py-8 hidden">
+                                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <i class="fas fa-list text-gray-400"></i>
+                                </div>
+                                <p class="text-gray-500 text-sm mb-3">No sub-goals yet</p>
+                                <button type="button" onclick="toggleInlineSubgoalForm()" class="text-blue-600 hover:text-blue-800 text-sm">
+                                    Create your first sub-goal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t p-6">
+                    <div class="flex space-x-3">
+                        <button type="submit" id="update-goal-btn" class="btn-primary flex-1" onclick="handleGoalUpdateDirect()">
+                            <i class="fas fa-save mr-2"></i>
+                            Update Goal
+                        </button>
+                        <button type="button" onclick="window.closeEditGoalModal()" class="btn-secondary px-6 py-3">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Subgoal Creator Modal -->
+    <div id="subgoal-creator-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden z-[70]">
+        <div class="modern-card rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <div class="p-6 border-b">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-plus-circle mr-2 text-blue-600"></i>
+                    Add New Sub-goal
+                </h3>
+            </div>
+            
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Sub-goal Title *</label>
+                        <input type="text" id="new-subgoal-title" class="input-field w-full" placeholder="Enter sub-goal title" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Description</label>
+                        <textarea id="new-subgoal-description" rows="2" class="input-field w-full" placeholder="Optional description"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Target Date</label>
+                        <input type="date" id="new-subgoal-target-date" class="input-field w-full">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t p-6">
+                <div class="flex space-x-3">
+                    <button type="button" onclick="addNewSubgoal()" class="btn-primary flex-1">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add Sub-goal
+                    </button>
+                    <button type="button" onclick="closeSubgoalCreator()" class="btn-secondary px-6 py-3">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Messages -->
+    <div id="success-message" class="fixed top-4 right-4 hidden bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+        <i class="fas fa-check-circle mr-2"></i>
+        <span id="success-text"></span>
+    </div>
+
+    <!-- Error Messages -->
+    <div id="error-message" class="fixed top-4 right-4 hidden bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span id="error-text"></span>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p class="text-center mt-4 font-medium">Loading...</p>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    
+    <script>
+        // Inline Subgoal Form Functions - make globally accessible
+        window.toggleInlineSubgoalForm = function() {
+            const form = document.getElementById('inline-subgoal-form');
+            const btn = document.getElementById('add-subgoal-btn');
+            
+            if (form.classList.contains('hidden')) {
+                // Show form
+                form.classList.remove('hidden');
+                btn.innerHTML = '<i class="fas fa-times mr-1"></i> Cancel';
+                btn.onclick = cancelInlineSubgoal;
+                
+                // Focus on title input
+                setTimeout(() => {
+                    document.getElementById('inline-subgoal-title').focus();
+                }, 100);
+            } else {
+                // Hide form
+                cancelInlineSubgoal();
+            }
+        }
+        
+        window.cancelInlineSubgoal = function() {
+            const form = document.getElementById('inline-subgoal-form');
+            const btn = document.getElementById('add-subgoal-btn');
+            
+            form.classList.add('hidden');
+            btn.innerHTML = '<i class="fas fa-plus mr-1"></i> Add Sub-goal';
+            btn.onclick = toggleInlineSubgoalForm;
+            
+            // Clear form
+            document.getElementById('inline-subgoal-title').value = '';
+            document.getElementById('inline-subgoal-description').value = '';
+            document.getElementById('inline-subgoal-target-date').value = '';
+        }
+        
+        window.addInlineSubgoal = function() {
+            const title = document.getElementById('inline-subgoal-title').value.trim();
+            const description = document.getElementById('inline-subgoal-description').value.trim();
+            const targetDate = document.getElementById('inline-subgoal-target-date').value;
+            
+            if (!title) {
+                authUtils.showErrorMessage('Please enter a sub-goal title');
+                document.getElementById('inline-subgoal-title').focus();
+                return;
+            }
+            
+            // Create subgoal object
+            const subgoal = {
+                id: '', // New subgoal
+                title: title,
+                description: description,
+                target_date: targetDate,
+                status: 'pending'
+            };
+            
+            // Add to the list
+            addSubgoalToList(subgoal);
+            
+            // Reset form and button
+            cancelInlineSubgoal();
+            
+            // Show success message
+            authUtils.showSuccessMessage('Sub-goal added successfully!');
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('subgoal-creator-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSubgoalCreator();
+            }
+        });
+        
+        // Handle Enter key in inline form
+        document.addEventListener('DOMContentLoaded', function() {
+            const inlineTitle = document.getElementById('inline-subgoal-title');
+            if (inlineTitle) {
+                inlineTitle.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        addInlineSubgoal();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

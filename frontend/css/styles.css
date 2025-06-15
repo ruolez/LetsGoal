@@ -1,0 +1,386 @@
+/* Modern Professional Styles */
+
+/* No animations - removed to prevent flickering */
+.fade-in {
+  /* Animation removed */
+}
+
+.slide-in {
+  /* Animation removed */
+}
+
+/* Modern Background */
+.modern-bg {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+.dark-bg {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  min-height: 100vh;
+}
+
+/* Professional Card Styles */
+.modern-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.dark-card {
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Sophisticated Gradients */
+.gradient-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.gradient-info {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+/* Professional Progress Bar */
+.progress-bar {
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 4px;
+}
+
+/* Clean Typography */
+.heading-primary {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  letter-spacing: -0.025em;
+}
+
+.heading-secondary {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: -0.025em;
+}
+
+.text-muted {
+  color: #6b7280;
+}
+
+/* Modern Quote Box */
+.quote-box {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-left: 4px solid #6366f1;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #374151;
+}
+
+/* Professional Card Components */
+.goal-card {
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.goal-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
+}
+
+/* Modern Goal Card */
+.modern-goal-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.modern-goal-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-pending {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.status-active {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+/* Subgoal Items */
+.subgoal-item {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.subgoal-item:hover {
+  background-color: #f9fafb;
+}
+
+.subgoal-item input[type="checkbox"] {
+  margin-right: 8px;
+  transition: all 0.2s ease;
+}
+
+/* Enhanced Form Checkbox */
+.form-checkbox {
+  appearance: none;
+  background-color: #fff;
+  border: 2px solid #d1d5db;
+  border-radius: 4px;
+  color: #3b82f6;
+  cursor: pointer;
+  display: inline-block;
+  flex-shrink: 0;
+  height: 16px;
+  width: 16px;
+  transition: all 0.2s ease;
+}
+
+.form-checkbox:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-7.5 7.5a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L6 9.793l7.146-7.147a.5.5 0 0 1 .708.708z'/%3e%3c/svg%3e");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.form-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-checkbox:hover {
+  border-color: #9ca3af;
+}
+
+/* Professional Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-secondary:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  font-size: 0.95rem;
+}
+
+.btn-success:hover {
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+/* Modern Input Fields */
+.input-field {
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 15px;
+  background: #ffffff;
+  color: #374151;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.input-field::placeholder {
+  color: #9ca3af;
+}
+
+/* Professional Progress Components */
+.progress-circle {
+  border-radius: 50%;
+  background: conic-gradient(#6366f1 0deg, #8b5cf6 180deg, #e5e7eb 180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #374151;
+}
+
+.achievement-badge {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-radius: 20px;
+  padding: 6px 16px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Legacy Status Indicators - keeping for backward compatibility */
+
+/* Subgoal Items in Edit Modal */
+.subgoal-item {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  background: white;
+}
+
+.subgoal-item:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Modal Layout Improvements */
+#edit-goal-modal {
+  z-index: 50;
+}
+
+#subgoal-creator-modal {
+  z-index: 70;
+}
+
+#edit-goal-modal .modern-card {
+  max-width: 4rem;
+}
+
+/* Prevent background scrolling when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Fix scrolling within modal panels */
+.modal-scroll-container {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(90vh - 200px);
+}
+
+/* Ensure subgoals panel scrolls properly */
+.subgoals-scroll-area {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 400px;
+  overscroll-behavior: contain;
+}
+
+/* Two-panel layout for larger screens */
+@media (min-width: 1024px) {
+  #edit-goal-modal .modern-card {
+    max-width: 64rem;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 1023px) {
+  /* Stack panels vertically on smaller screens */
+  #edit-goal-modal .flex:not(.flex-col) {
+    flex-direction: column;
+  }
+  
+  #edit-goal-modal .w-1/2 {
+    width: 100%;
+  }
+  
+  #edit-goal-modal .border-r {
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .subgoals-scroll-area {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .goal-card {
+    margin: 1rem 0;
+  }
+  
+  .motivational-quote {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .celebration-emoji {
+    font-size: 1.5rem;
+  }
+  
+  .modern-goal-card {
+    padding: 16px;
+  }
+  
+  #edit-goal-modal .modern-card {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+}
