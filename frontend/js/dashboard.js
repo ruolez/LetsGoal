@@ -5,6 +5,12 @@ console.log('🚀 Dashboard.js is loading...'); // Debug log
 let currentUser = null;
 let goals = [];
 let progressChart = null;
+let filteredGoals = [];
+let currentViewMode = 'grid';
+let currentFilter = 'all';
+let currentSort = 'recent';
+let currentPage = 0;
+const goalsPerPage = 9;
 
 // Test function to verify JavaScript is working
 window.testFunction = function() {
@@ -48,6 +54,9 @@ window.addEventListener('load', async function() {
     
     // Setup event listeners
     setupEventListeners();
+    
+    // Setup filtering and sorting
+    setupFiltersAndSorting();
 });
 
 // Load dashboard data
@@ -297,32 +306,153 @@ function calculateDayProgress(date, type) {
     }
 }
 
-// Render goals
+// Enhanced goal rendering with filtering and sorting
 function renderGoals() {
     const container = document.getElementById('goals-container');
     
+    // Filter and sort goals
+    applyFiltersAndSort();
+    
+    // Check if no goals exist at all
     if (goals.length === 0) {
         container.innerHTML = `
-            <div class="text-center text-gray-500 py-12">
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-target text-2xl text-gray-400"></i>
+            <div class="col-span-full flex flex-col items-center justify-center py-16 px-4">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-target text-3xl text-gray-400"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-700 mb-2">No goals yet</h3>
-                <p class="text-gray-500 mb-4">Start by creating your first goal to track your progress</p>
-                <button onclick="showCreateGoalModal()" class="btn-primary px-6 py-2">
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No goals yet</h3>
+                <p class="text-gray-500 mb-6 text-center max-w-md">Start your journey by creating your first goal. Break it down into manageable steps and track your progress.</p>
+                <button onclick="showCreateGoalModal()" class="btn-primary px-6 py-3">
                     <i class="fas fa-plus mr-2"></i>
-                    Create First Goal
+                    Create Your First Goal
                 </button>
             </div>
         `;
         return;
     }
     
-    container.innerHTML = goals.map(goal => `
-        <div class="modern-goal-card bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 transition-all duration-200">
-            <div class="flex justify-between items-start mb-4">
+    // Check if filtered goals is empty
+    if (filteredGoals.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full flex flex-col items-center justify-center py-12 px-4">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fas fa-search text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-700 mb-2">No goals found</h3>
+                <p class="text-gray-500 text-center">Try adjusting your filters or search terms.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Apply view mode classes
+    container.className = currentViewMode === 'grid' ? 'goals-grid' : 'goals-list';
+    
+    // Get goals for current page
+    const startIndex = currentPage * goalsPerPage;
+    const endIndex = startIndex + goalsPerPage;
+    const goalsToShow = filteredGoals.slice(0, endIndex);
+    
+    // Render goals
+    container.innerHTML = goalsToShow.map(goal => 
+        currentViewMode === 'grid' ? renderGoalCardGrid(goal) : renderGoalCardList(goal)
+    ).join('');
+    
+    // Update load more button
+    updateLoadMoreButton();
+}
+
+// Render goal card for grid view
+function renderGoalCardGrid(goal) {
+    const progressColor = goal.progress >= 100 ? '#10b981' : goal.progress >= 50 ? '#3b82f6' : '#6b7280';
+    const circumference = 2 * Math.PI * 25;
+    const strokeDashoffset = circumference - (goal.progress / 100) * circumference;
+    
+    return `
+        <div class="goal-card-grid" onclick="editGoal(${goal.id})">
+            <!-- Header with title and status -->
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-900 truncate pr-2">${goal.title}</h3>
+                <span class="status-badge ${getStatusBadgeClass(goal.status)} flex-shrink-0">
+                    <i class="fas ${getStatusIcon(goal.status)} mr-1"></i>
+                    ${goal.status.replace('_', ' ')}
+                </span>
+            </div>
+            
+            <!-- Description -->
+            ${goal.description ? `<p class="text-gray-600 text-sm mb-4 line-clamp-2">${goal.description}</p>` : ''}
+            
+            <!-- Progress and Stats -->
+            <div class="flex items-center justify-between mb-4">
+                <div class="progress-circle">
+                    <svg viewBox="0 0 60 60">
+                        <circle class="progress-ring progress-bg" cx="30" cy="30" r="25"/>
+                        <circle class="progress-ring progress-bar" cx="30" cy="30" r="25" 
+                                style="stroke: ${progressColor}; stroke-dashoffset: ${strokeDashoffset}"/>
+                    </svg>
+                    <div class="progress-text">${goal.progress}%</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500">Target Date</div>
+                    <div class="text-sm font-medium">${goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'Not set'}</div>
+                </div>
+            </div>
+            
+            <!-- Subgoals Preview -->
+            ${goal.subgoals.length > 0 ? `
+                <div class="border-t pt-3 mt-auto">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-600">Sub-goals</span>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                            ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length}
+                        </span>
+                    </div>
+                    <div class="space-y-1">
+                        ${goal.subgoals.slice(0, 3).map(subgoal => `
+                            <div class="subgoal-compact ${subgoal.status === 'achieved' ? 'completed' : ''}">
+                                <input type="checkbox" 
+                                       class="h-3 w-3 text-blue-600 rounded mr-2" 
+                                       ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                       onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
+                                <span class="truncate">${subgoal.title}</span>
+                            </div>
+                        `).join('')}
+                        ${goal.subgoals.length > 3 ? `
+                            <div class="text-xs text-gray-400 mt-1">+${goal.subgoals.length - 3} more</div>
+                        ` : ''}
+                    </div>
+                </div>
+            ` : `
+                <div class="border-t pt-3 mt-auto text-center">
+                    <span class="text-sm text-gray-500">No sub-goals yet</span>
+                </div>
+            `}
+            
+            <!-- Quick Actions -->
+            <div class="flex gap-2 mt-4 pt-3 border-t">
+                ${goal.status !== 'achieved' ? `
+                    <button onclick="updateGoalStatus(${goal.id}, 'achieved'); event.stopPropagation();" 
+                            class="flex-1 btn-success text-xs py-2">
+                        <i class="fas fa-trophy mr-1"></i>
+                        Complete
+                    </button>
+                ` : ''}
+                <button onclick="deleteGoal(${goal.id}); event.stopPropagation();" 
+                        class="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors text-xs">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Render goal card for list view
+function renderGoalCardList(goal) {
+    return `
+        <div class="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-all">
+            <div class="flex items-start justify-between">
                 <div class="flex-1">
-                    <div class="flex items-center space-x-3 mb-3">
+                    <div class="flex items-center space-x-3 mb-2">
                         <h3 class="text-xl font-semibold text-gray-900">${goal.title}</h3>
                         <span class="status-badge ${getStatusBadgeClass(goal.status)}">
                             <i class="fas ${getStatusIcon(goal.status)} mr-1"></i>
@@ -332,21 +462,44 @@ function renderGoals() {
                     
                     ${goal.description ? `<p class="text-gray-600 mb-4">${goal.description}</p>` : ''}
                     
-                    <div class="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                    <div class="flex items-center space-x-6 text-sm text-gray-500 mb-4">
                         <span class="flex items-center">
-                            <i class="fas fa-calendar-alt mr-1"></i>
+                            <i class="fas fa-calendar-alt mr-2"></i>
                             ${goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'No target date'}
                         </span>
-                        ${goal.achieved_date ? `
-                            <span class="flex items-center text-green-600">
-                                <i class="fas fa-check-circle mr-1"></i>
-                                Completed ${new Date(goal.achieved_date).toLocaleDateString()}
-                            </span>
-                        ` : ''}
+                        <span class="flex items-center">
+                            <i class="fas fa-tasks mr-2"></i>
+                            ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length} sub-goals
+                        </span>
+                        <span class="flex items-center">
+                            <i class="fas fa-chart-pie mr-2"></i>
+                            ${goal.progress}% complete
+                        </span>
                     </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                        <div class="progress-bar h-2 rounded-full transition-all duration-700" 
+                             style="width: ${goal.progress}%"></div>
+                    </div>
+                    
+                    <!-- Subgoals -->
+                    ${goal.subgoals.length > 0 ? `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            ${goal.subgoals.map(subgoal => `
+                                <div class="flex items-center p-2 rounded hover:bg-gray-50">
+                                    <input type="checkbox" 
+                                           class="h-4 w-4 text-blue-600 rounded mr-3" 
+                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id})">
+                                    <span class="text-sm ${subgoal.status === 'achieved' ? 'line-through text-gray-500' : 'text-gray-700'}">${subgoal.title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
                 </div>
                 
-                <div class="flex flex-col space-y-2">
+                <div class="flex flex-col space-y-2 ml-6">
                     ${goal.status !== 'achieved' ? `
                         <button onclick="updateGoalStatus(${goal.id}, 'achieved')" class="btn-success text-sm px-4 py-2">
                             <i class="fas fa-trophy mr-1"></i>
@@ -363,69 +516,8 @@ function renderGoals() {
                     </button>
                 </div>
             </div>
-            
-            <!-- Enhanced Progress Section -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-gray-700">Overall Progress</span>
-                    <span class="text-sm font-bold text-gray-900">${goal.progress}%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="progress-bar h-2 rounded-full transition-all duration-700" 
-                         style="width: ${goal.progress}%"></div>
-                </div>
-            </div>
-            
-            <!-- Enhanced Subgoals Section -->
-            ${goal.subgoals.length > 0 ? `
-                <div class="border-t border-gray-200 pt-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <h4 class="text-sm font-semibold text-gray-800">Sub-goals</h4>
-                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                            ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length} completed
-                        </span>
-                    </div>
-                    <div class="space-y-2">
-                        ${goal.subgoals.map(subgoal => `
-                            <div class="subgoal-item flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                <label class="flex items-center cursor-pointer flex-1">
-                                    <input type="checkbox" 
-                                           class="form-checkbox h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 focus:ring-2" 
-                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
-                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id})"
-                                           title="Click to mark as ${subgoal.status === 'achieved' ? 'incomplete' : 'complete'}">
-                                    <span class="ml-3 text-sm ${subgoal.status === 'achieved' ? 'line-through text-gray-500' : 'text-gray-700 font-medium'}">
-                                        ${subgoal.title}
-                                    </span>
-                                </label>
-                                ${subgoal.target_date ? `
-                                    <span class="text-xs text-gray-400 ml-2">
-                                        ${new Date(subgoal.target_date).toLocaleDateString()}
-                                    </span>
-                                ` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                    ${goal.subgoals.length === 0 ? `
-                        <div class="text-center py-4">
-                            <p class="text-sm text-gray-500">No sub-goals yet</p>
-                            <button onclick="editGoal(${goal.id})" class="text-blue-600 hover:text-blue-800 text-sm mt-1">
-                                Add sub-goals
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            ` : `
-                <div class="border-t border-gray-200 pt-4 text-center">
-                    <p class="text-sm text-gray-500 mb-2">No sub-goals yet</p>
-                    <button onclick="editGoal(${goal.id})" class="text-blue-600 hover:text-blue-800 text-sm">
-                        <i class="fas fa-plus mr-1"></i>
-                        Add sub-goals
-                    </button>
-                </div>
-            `}
         </div>
-    `).join('');
+    `;
 }
 
 // Helper functions for goal status
@@ -1318,6 +1410,118 @@ async function handleGoalUpdate() {
         if (updateBtn) {
             updateBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Goal';
             updateBtn.disabled = false;
+        }
+    }
+}
+
+// Enhanced filtering and sorting functionality
+function setupFiltersAndSorting() {
+    const searchInput = document.getElementById('goal-search');
+    const filterSelect = document.getElementById('goal-filter');
+    const sortSelect = document.getElementById('goal-sort');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            currentPage = 0;
+            renderGoals();
+        });
+    }
+    
+    if (filterSelect) {
+        filterSelect.addEventListener('change', (e) => {
+            currentFilter = e.target.value;
+            currentPage = 0;
+            renderGoals();
+        });
+    }
+    
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            currentPage = 0;
+            renderGoals();
+        });
+    }
+}
+
+function applyFiltersAndSort() {
+    let filtered = [...goals];
+    
+    // Apply search filter
+    const searchTerm = document.getElementById('goal-search')?.value.toLowerCase() || '';
+    if (searchTerm) {
+        filtered = filtered.filter(goal => 
+            goal.title.toLowerCase().includes(searchTerm) ||
+            goal.description?.toLowerCase().includes(searchTerm) ||
+            goal.subgoals.some(sg => sg.title.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    // Apply status filter
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(goal => goal.status === currentFilter);
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+        switch (currentSort) {
+            case 'recent':
+                return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+            case 'target':
+                if (!a.target_date && !b.target_date) return 0;
+                if (!a.target_date) return 1;
+                if (!b.target_date) return -1;
+                return new Date(a.target_date) - new Date(b.target_date);
+            case 'progress':
+                return b.progress - a.progress;
+            case 'name':
+                return a.title.localeCompare(b.title);
+            default:
+                return 0;
+        }
+    });
+    
+    filteredGoals = filtered;
+}
+
+// View mode management
+window.setViewMode = function(mode) {
+    currentViewMode = mode;
+    
+    // Update button states
+    const gridBtn = document.getElementById('grid-view-btn');
+    const listBtn = document.getElementById('list-view-btn');
+    
+    if (mode === 'grid') {
+        gridBtn.classList.add('bg-white', 'text-gray-700', 'shadow-sm');
+        gridBtn.classList.remove('text-gray-500');
+        listBtn.classList.remove('bg-white', 'text-gray-700', 'shadow-sm');
+        listBtn.classList.add('text-gray-500');
+    } else {
+        listBtn.classList.add('bg-white', 'text-gray-700', 'shadow-sm');
+        listBtn.classList.remove('text-gray-500');
+        gridBtn.classList.remove('bg-white', 'text-gray-700', 'shadow-sm');
+        gridBtn.classList.add('text-gray-500');
+    }
+    
+    renderGoals();
+}
+
+// Load more functionality
+window.loadMoreGoals = function() {
+    currentPage++;
+    renderGoals();
+}
+
+function updateLoadMoreButton() {
+    const loadMoreContainer = document.getElementById('load-more-container');
+    const totalShown = (currentPage + 1) * goalsPerPage;
+    
+    if (loadMoreContainer) {
+        if (totalShown < filteredGoals.length) {
+            loadMoreContainer.classList.remove('hidden');
+        } else {
+            loadMoreContainer.classList.add('hidden');
         }
     }
 }
