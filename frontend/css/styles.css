@@ -232,6 +232,17 @@
   background: rgba(255, 255, 255, 0.95);
 }
 
+/* Compact chart container */
+.h-24 {
+  height: 6rem;
+  max-height: 6rem;
+  overflow: hidden;
+}
+
+.h-24 canvas {
+  max-height: 100% !important;
+}
+
 /* Modern Background */
 .modern-bg {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);

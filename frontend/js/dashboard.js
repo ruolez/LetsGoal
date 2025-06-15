@@ -162,8 +162,8 @@ function updateProgressChart(stats) {
                 pointBackgroundColor: '#3B82F6',
                 pointBorderColor: '#FFFFFF',
                 pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
+                pointRadius: 2,
+                pointHoverRadius: 4
             }, {
                 label: 'Goals Completed',
                 data: recentProgressData.goalData,
@@ -175,8 +175,8 @@ function updateProgressChart(stats) {
                 pointBackgroundColor: '#10B981',
                 pointBorderColor: '#FFFFFF',
                 pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
+                pointRadius: 2,
+                pointHoverRadius: 4
             }]
         },
         options: {
@@ -188,15 +188,7 @@ function updateProgressChart(stats) {
             },
             plugins: {
                 legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true,
-                        font: {
-                            size: 11
-                        },
-                        color: '#374151'
-                    }
+                    display: false
                 }
             },
             scales: {
@@ -207,7 +199,7 @@ function updateProgressChart(stats) {
                     ticks: {
                         color: '#6B7280',
                         font: {
-                            size: 10
+                            size: 8
                         }
                     }
                 },
@@ -219,7 +211,7 @@ function updateProgressChart(stats) {
                     ticks: {
                         color: '#6B7280',
                         font: {
-                            size: 10
+                            size: 8
                         }
                     }
                 }

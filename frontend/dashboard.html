@@ -217,37 +217,39 @@
             </div>
             
             <!-- Right Sidebar -->
-            <div class="space-y-4">
+            <div class="space-y-3">
                 <!-- Progress Chart -->
                 <div class="modern-card rounded-xl p-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2">
                         Recent Progress
                     </h3>
-                    <canvas id="progress-chart" width="300" height="150"></canvas>
+                    <div class="h-24">
+                        <canvas id="progress-chart" width="300" height="96"></canvas>
+                    </div>
                 </div>
 
                 <!-- Daily Motivation -->
-                <div class="modern-card rounded-xl p-4 bg-gradient-to-r from-blue-50 to-purple-50">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                <div class="modern-card rounded-xl p-3 bg-gradient-to-r from-blue-50 to-purple-50">
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2">
                         Daily Motivation
                     </h3>
-                    <p id="daily-quote" class="text-gray-700 italic text-sm">
+                    <p id="daily-quote" class="text-gray-700 italic text-xs leading-relaxed">
                         Loading inspiration...
                     </p>
                 </div>
 
                 <!-- Quick Links -->
-                <div class="modern-card rounded-xl p-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                <div class="modern-card rounded-xl p-3">
+                    <h3 class="text-sm font-semibold text-gray-800 mb-2">
                         Quick Links
                     </h3>
-                    <div class="space-y-2">
-                        <button onclick="viewHistory()" class="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg transition-colors text-sm">
-                            <i class="fas fa-history mr-2 text-gray-500"></i>
+                    <div class="space-y-1">
+                        <button onclick="viewHistory()" class="w-full text-left px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-xs flex items-center">
+                            <i class="fas fa-history mr-2 text-gray-500 text-xs"></i>
                             View History
                         </button>
-                        <button onclick="generateReport()" class="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-lg transition-colors text-sm">
-                            <i class="fas fa-chart-bar mr-2 text-gray-500"></i>
+                        <button onclick="generateReport()" class="w-full text-left px-2 py-2 hover:bg-gray-50 rounded-md transition-colors text-xs flex items-center">
+                            <i class="fas fa-chart-bar mr-2 text-gray-500 text-xs"></i>
                             Progress Report
                         </button>
                     </div>
