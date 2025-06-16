@@ -71,9 +71,8 @@ class Goal(db.Model):
             achieved_count = sum(1 for sg in self.subgoals if sg.status == 'achieved')
             return int((achieved_count / len(self.subgoals)) * 100)
         
-        # Get latest progress entry
-        latest_entry = ProgressEntry.query.filter_by(goal_id=self.id).order_by(ProgressEntry.entry_date.desc()).first()
-        return latest_entry.progress_percentage if latest_entry else 0
+        # Goals with no subgoals start at 0%
+        return 0
 
 class Subgoal(db.Model):
     __tablename__ = 'subgoals'

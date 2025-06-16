@@ -171,9 +171,38 @@ def create_app():
         if data.get('target_date'):
             subgoal.target_date = datetime.strptime(data['target_date'], '%Y-%m-%d').date()
         if data.get('status'):
+            old_status = subgoal.status
             subgoal.status = data['status']
+            
+            # Handle achieved date
             if data['status'] == 'achieved' and not subgoal.achieved_date:
                 subgoal.achieved_date = date.today()
+            elif data['status'] == 'pending' and subgoal.achieved_date:
+                subgoal.achieved_date = None
+            
+            # Update goal status based on subgoal progress
+            goal = subgoal.goal
+            if goal and old_status != data['status']:
+                # Recalculate goal progress and update status
+                achieved_count = sum(1 for sg in goal.subgoals if sg.status == 'achieved' or (sg.id == subgoal.id and data['status'] == 'achieved'))
+                total_count = len(goal.subgoals)
+                progress = int((achieved_count / total_count) * 100) if total_count > 0 else 0
+                
+                # Auto-update goal status based on progress
+                if progress == 100 and goal.status != 'achieved':
+                    goal.status = 'achieved'
+                    goal.achieved_date = date.today()
+                elif progress > 0 and progress < 100:
+                    if goal.status == 'pending':
+                        goal.status = 'in_progress'
+                    elif goal.status == 'achieved':
+                        goal.status = 'in_progress'
+                        goal.achieved_date = None
+                elif progress == 0 and goal.status == 'in_progress':
+                    goal.status = 'pending'
+                elif progress == 0 and goal.status == 'achieved':
+                    goal.status = 'pending'
+                    goal.achieved_date = None
         
         subgoal.updated_at = datetime.utcnow()
         

@@ -350,14 +350,20 @@ function renderGoals() {
 
 // Render goal card for grid view
 function renderGoalCardGrid(goal) {
-    const progressColor = goal.progress >= 100 ? '#10b981' : goal.progress >= 50 ? '#3b82f6' : '#6b7280';
-    const circumference = 2 * Math.PI * 25;
+    // Enhanced progress colors with gradients
+    const progressColor = goal.progress >= 100 ? '#10b981' : 
+                         goal.progress >= 75 ? '#3b82f6' : 
+                         goal.progress >= 25 ? '#f59e0b' : '#ef4444';
+    
+    // Improved circle calculations for cleaner appearance
+    const radius = 26;
+    const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (goal.progress / 100) * circumference;
     
     const hasHiddenSubgoals = goal.subgoals.length > 3;
     
     return `
-        <div class="goal-card-grid expandable-goal-card" onclick="editGoal(${goal.id})" 
+        <div class="goal-card-grid expandable-goal-card" 
              data-goal-id="${goal.id}">
             
             <!-- Header with title and status -->
@@ -377,12 +383,12 @@ function renderGoalCardGrid(goal) {
             <!-- Progress and Stats -->
             <div class="flex items-center justify-between mb-4">
                 <div class="progress-circle">
-                    <svg viewBox="0 0 60 60">
-                        <circle class="progress-ring progress-bg" cx="30" cy="30" r="25"/>
-                        <circle class="progress-ring progress-bar" cx="30" cy="30" r="25" 
-                                style="stroke: ${progressColor}; stroke-dashoffset: ${strokeDashoffset}"/>
-                    </svg>
-                    <div class="progress-text">${goal.progress}%</div>
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center" 
+                         style="background: conic-gradient(${progressColor} ${goal.progress * 3.6}deg, #f3f4f6 ${goal.progress * 3.6}deg);">
+                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                            <span class="progress-text">${Math.round(goal.progress)}%</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="text-right">
                     <div class="text-sm text-gray-500">Target Date</div>
@@ -407,11 +413,13 @@ function renderGoalCardGrid(goal) {
                                  style="--animation-delay: ${index * 0.05}s">
                                 <div class="flex items-center w-full">
                                     <input type="checkbox" 
+                                           id="subgoal-${subgoal.id}"
                                            class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
                                            ${subgoal.status === 'achieved' ? 'checked' : ''}
                                            onclick="event.stopPropagation();"
                                            onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                    <span class="truncate flex-1">${subgoal.title}</span>
+                                    <span class="truncate flex-1 cursor-pointer" 
+                                          onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
                                     ${formatDaysLeft(subgoal.target_date, subgoal.status)}
                                 </div>
                             </div>
@@ -433,6 +441,11 @@ function renderGoalCardGrid(goal) {
             
             <!-- Quick Actions -->
             <div class="flex gap-2 mt-4 pt-3 border-t">
+                <button onclick="editGoal(${goal.id}); event.stopPropagation();" 
+                        class="flex-1 btn-secondary text-xs py-2">
+                    <i class="fas fa-edit mr-1"></i>
+                    Edit
+                </button>
                 ${goal.status !== 'achieved' ? `
                     <button onclick="updateGoalStatus(${goal.id}, 'achieved'); event.stopPropagation();" 
                             class="flex-1 btn-success text-xs py-2">
@@ -458,9 +471,9 @@ function renderGoalCardList(goal) {
                 <div class="flex-1">
                     <div class="flex items-center space-x-3 mb-2">
                         <h3 class="text-xl font-semibold text-gray-900">${goal.title}</h3>
-                        <span class="status-badge ${getStatusBadgeClass(goal.status)}">
-                            <i class="fas ${getStatusIcon(goal.status)} mr-1"></i>
-                            ${goal.status.replace('_', ' ')}
+                        <span class="status-badge ${getStatusBadgeClass(goal.status)}" 
+                              title="${goal.status.replace('_', ' ').toUpperCase()}">
+                            <i class="fas ${getStatusIcon(goal.status)}"></i>
                         </span>
                     </div>
                     
@@ -493,10 +506,12 @@ function renderGoalCardList(goal) {
                             ${goal.subgoals.map(subgoal => `
                                 <div class="flex items-center p-2 rounded hover:bg-gray-50">
                                     <input type="checkbox" 
+                                           id="subgoal-list-${subgoal.id}"
                                            class="h-4 w-4 text-blue-600 rounded mr-3" 
                                            ${subgoal.status === 'achieved' ? 'checked' : ''}
                                            onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id})">
-                                    <span class="text-sm ${subgoal.status === 'achieved' ? 'line-through text-gray-500' : 'text-gray-700'}">${subgoal.title}</span>
+                                    <span class="text-sm cursor-pointer ${subgoal.status === 'achieved' ? 'line-through text-gray-500' : 'text-gray-700'}"
+                                          onclick="toggleSubgoalCheckboxList(${subgoal.id}, ${goal.id})">${subgoal.title}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -1235,10 +1250,7 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
             // Update progress bar
             updateGoalProgressBar(goalId);
             
-            // Re-render goals to show updated status
-            renderGoals();
-            
-            // Update stats
+            // Update stats display
             const statsResponse = await fetch('/api/dashboard/stats', { credentials: 'include' });
             if (statsResponse.ok) {
                 const stats = await statsResponse.json();
@@ -1263,27 +1275,64 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
     }
 }
 
-// Update goal progress bar after subgoal change
+// Function to toggle subgoal checkbox when clicking on title (grid view)
+window.toggleSubgoalCheckbox = function(subgoalId, goalId) {
+    const checkbox = document.getElementById(`subgoal-${subgoalId}`);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        quickUpdateSubgoal(subgoalId, checkbox.checked, goalId);
+    }
+}
+
+// Function to toggle subgoal checkbox when clicking on title (list view)
+window.toggleSubgoalCheckboxList = function(subgoalId, goalId) {
+    const checkbox = document.getElementById(`subgoal-list-${subgoalId}`);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        quickUpdateSubgoal(subgoalId, checkbox.checked, goalId);
+    }
+}
+
+// Update goal progress after subgoal change
 function updateGoalProgressBar(goalId) {
     const goal = goals.find(g => g.id === goalId);
     if (!goal) return;
     
-    // Find the progress bar and percentage display
-    const goalCard = document.querySelector(`[onclick*="editGoal(${goalId})"]`).closest('.modern-goal-card');
-    if (goalCard) {
-        const progressBar = goalCard.querySelector('.progress-bar');
-        const progressText = goalCard.querySelector('.bg-gray-50 .text-sm.font-bold');
-        const completionBadge = goalCard.querySelector('.text-xs.bg-blue-100');
+    // Find the goal card by data attribute
+    const goalCard = document.querySelector(`[data-goal-id="${goalId}"]`);
+    if (!goalCard) return;
+    
+    // Update conic-gradient progress circle
+    const progressCircle = goalCard.querySelector('.progress-circle > div');
+    if (progressCircle) {
+        const progressColor = goal.progress >= 100 ? '#10b981' : 
+                             goal.progress >= 75 ? '#3b82f6' : 
+                             goal.progress >= 25 ? '#f59e0b' : '#ef4444';
         
-        if (progressBar) {
-            progressBar.style.width = `${goal.progress}%`;
-        }
-        if (progressText) {
-            progressText.textContent = `${goal.progress}%`;
-        }
-        if (completionBadge) {
-            const completed = goal.subgoals.filter(sg => sg.status === 'achieved').length;
-            completionBadge.textContent = `${completed}/${goal.subgoals.length} completed`;
+        progressCircle.style.background = `conic-gradient(${progressColor} ${goal.progress * 3.6}deg, #f3f4f6 ${goal.progress * 3.6}deg)`;
+    }
+    
+    // Update progress text
+    const progressText = goalCard.querySelector('.progress-text');
+    if (progressText) {
+        progressText.textContent = `${Math.round(goal.progress)}%`;
+    }
+    
+    // Update subgoals completion badge
+    const completionBadge = goalCard.querySelector('.text-xs.bg-blue-100');
+    if (completionBadge) {
+        const completed = goal.subgoals.filter(sg => sg.status === 'achieved').length;
+        completionBadge.textContent = `${completed}/${goal.subgoals.length}`;
+    }
+    
+    // Update status badge if goal status changed
+    const statusBadge = goalCard.querySelector('.status-badge');
+    if (statusBadge) {
+        statusBadge.className = `status-badge ${getStatusBadgeClass(goal.status)} flex-shrink-0 ml-2`;
+        statusBadge.setAttribute('title', goal.status.replace('_', ' ').toUpperCase());
+        const icon = statusBadge.querySelector('i');
+        if (icon) {
+            icon.className = `fas ${getStatusIcon(goal.status)}`;
         }
     }
 }
