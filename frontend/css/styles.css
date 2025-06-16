@@ -243,6 +243,160 @@
   max-height: 100% !important;
 }
 
+/* Enhanced Goal Card Hover Expansion */
+.expandable-goal-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;
+}
+
+.expandable-goal-card:hover {
+  cursor: pointer;
+}
+
+.goal-card-expanded {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15) !important;
+  border-color: #3b82f6 !important;
+  z-index: 10 !important;
+}
+
+/* Subgoals Section Transitions */
+.subgoals-section {
+  transition: all 0.3s ease;
+}
+
+.subgoals-default,
+.subgoals-expanded {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.subgoals-expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+/* Hover hint animation */
+.hover-hint {
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.expandable-goal-card:hover .hover-hint {
+  opacity: 1;
+  color: #3b82f6;
+}
+
+.hover-hint i {
+  transition: transform 0.2s ease;
+}
+
+.expandable-goal-card:hover .hover-hint i {
+  transform: translateY(2px);
+}
+
+/* Expansion overlay */
+.expansion-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  z-index: 5;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.expansion-overlay.active {
+  pointer-events: all;
+}
+
+.expansion-content {
+  padding: 1rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Smooth subgoal item animations */
+.subgoal-compact {
+  transition: all 0.2s ease;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0.125rem 0;
+}
+
+.expandable-goal-card:hover .subgoal-compact:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  transform: translateX(2px);
+}
+
+.subgoal-compact input[type="checkbox"] {
+  transition: all 0.2s ease;
+}
+
+.expandable-goal-card:hover .subgoal-compact input[type="checkbox"]:hover {
+  transform: scale(1.1);
+}
+
+/* Enhanced visual feedback during expansion */
+.goal-card-expanded .subgoals-section {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(99, 102, 241, 0.02) 100%);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin: -0.25rem;
+}
+
+/* Prevent layout shift during hover */
+.goals-grid .goal-card-grid {
+  isolation: isolate;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .expandable-goal-card {
+    /* Disable hover expansion on mobile devices */
+    pointer-events: auto;
+  }
+  
+  .expandable-goal-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: inherit !important;
+  }
+  
+  .hover-hint {
+    display: none;
+  }
+  
+  .subgoals-expanded {
+    display: block !important;
+  }
+  
+  .subgoals-default {
+    display: none !important;
+  }
+}
+
+/* Accessibility improvements */
+.expandable-goal-card:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Performance optimizations */
+.expandable-goal-card * {
+  will-change: transform, opacity;
+}
+
+.expandable-goal-card:hover * {
+  will-change: auto;
+}
+
 /* Modern Background */
 .modern-bg {
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);

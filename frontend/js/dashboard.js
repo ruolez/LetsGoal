@@ -354,8 +354,14 @@ function renderGoalCardGrid(goal) {
     const circumference = 2 * Math.PI * 25;
     const strokeDashoffset = circumference - (goal.progress / 100) * circumference;
     
+    const hasHiddenSubgoals = goal.subgoals.length > 3;
+    
     return `
-        <div class="goal-card-grid" onclick="editGoal(${goal.id})">
+        <div class="goal-card-grid expandable-goal-card" onclick="editGoal(${goal.id})" 
+             data-goal-id="${goal.id}" 
+             onmouseenter="handleGoalCardHover(this, true)" 
+             onmouseleave="handleGoalCardHover(this, false)">
+            
             <!-- Header with title and status -->
             <div class="flex items-center justify-between mb-3">
                 <h3 class="text-lg font-semibold text-gray-900 truncate pr-2">${goal.title}</h3>
@@ -384,16 +390,18 @@ function renderGoalCardGrid(goal) {
                 </div>
             </div>
             
-            <!-- Subgoals Preview -->
+            <!-- Subgoals Preview with Hover Expansion -->
             ${goal.subgoals.length > 0 ? `
-                <div class="border-t pt-3 mt-auto">
+                <div class="border-t pt-3 mt-auto subgoals-section">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm text-gray-600">Sub-goals</span>
                         <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                             ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length}
                         </span>
                     </div>
-                    <div class="space-y-1">
+                    
+                    <!-- Default View (first 3 subgoals) -->
+                    <div class="subgoals-default space-y-1">
                         ${goal.subgoals.slice(0, 3).map(subgoal => `
                             <div class="subgoal-compact ${subgoal.status === 'achieved' ? 'completed' : ''}">
                                 <input type="checkbox" 
@@ -403,10 +411,32 @@ function renderGoalCardGrid(goal) {
                                 <span class="truncate">${subgoal.title}</span>
                             </div>
                         `).join('')}
-                        ${goal.subgoals.length > 3 ? `
-                            <div class="text-xs text-gray-400 mt-1">+${goal.subgoals.length - 3} more</div>
+                        ${hasHiddenSubgoals ? `
+                            <div class="text-xs text-gray-400 mt-1 hover-hint">
+                                <i class="fas fa-chevron-down mr-1"></i>
+                                +${goal.subgoals.length - 3} more (hover to expand)
+                            </div>
                         ` : ''}
                     </div>
+                    
+                    <!-- Expanded View (all subgoals) -->
+                    ${hasHiddenSubgoals ? `
+                        <div class="subgoals-expanded space-y-1 hidden">
+                            ${goal.subgoals.map(subgoal => `
+                                <div class="subgoal-compact ${subgoal.status === 'achieved' ? 'completed' : ''}">
+                                    <input type="checkbox" 
+                                           class="h-3 w-3 text-blue-600 rounded mr-2" 
+                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
+                                    <span class="truncate">${subgoal.title}</span>
+                                </div>
+                            `).join('')}
+                            <div class="text-xs text-gray-400 mt-1">
+                                <i class="fas fa-chevron-up mr-1"></i>
+                                Showing all ${goal.subgoals.length} sub-goals
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             ` : `
                 <div class="border-t pt-3 mt-auto text-center">
@@ -428,6 +458,25 @@ function renderGoalCardGrid(goal) {
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
+            
+            <!-- Hover Expansion Overlay -->
+            ${hasHiddenSubgoals ? `
+                <div class="expansion-overlay hidden">
+                    <div class="expansion-content">
+                        <div class="subgoals-expanded-overlay space-y-1">
+                            ${goal.subgoals.map(subgoal => `
+                                <div class="subgoal-compact ${subgoal.status === 'achieved' ? 'completed' : ''}">
+                                    <input type="checkbox" 
+                                           class="h-3 w-3 text-blue-600 rounded mr-2" 
+                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
+                                    <span class="truncate">${subgoal.title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
         </div>
     `;
 }
@@ -1594,6 +1643,76 @@ function updateLoadMoreButton() {
         } else {
             loadMoreContainer.classList.add('hidden');
         }
+    }
+}
+
+// Enhanced goal card hover expansion functionality
+window.handleGoalCardHover = function(cardElement, isEntering) {
+    const goalId = cardElement.getAttribute('data-goal-id');
+    const goal = goals.find(g => g.id == goalId);
+    
+    // Only expand if there are hidden subgoals
+    if (!goal || goal.subgoals.length <= 3) {
+        return;
+    }
+    
+    const defaultView = cardElement.querySelector('.subgoals-default');
+    const expandedView = cardElement.querySelector('.subgoals-expanded');
+    const expansionOverlay = cardElement.querySelector('.expansion-overlay');
+    
+    if (isEntering) {
+        // Expand on hover
+        cardElement.classList.add('goal-card-expanded');
+        
+        if (defaultView) defaultView.style.display = 'none';
+        if (expandedView) {
+            expandedView.classList.remove('hidden');
+            expandedView.style.display = 'block';
+        }
+        
+        // Add subtle visual feedback
+        cardElement.style.transform = 'translateY(-2px)';
+        cardElement.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.15)';
+        cardElement.style.borderColor = '#3b82f6';
+        cardElement.style.zIndex = '10';
+        
+        // Animate expansion
+        if (expandedView) {
+            expandedView.style.opacity = '0';
+            expandedView.style.transform = 'translateY(-10px)';
+            
+            // Use requestAnimationFrame for smooth animation
+            requestAnimationFrame(() => {
+                expandedView.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                expandedView.style.opacity = '1';
+                expandedView.style.transform = 'translateY(0)';
+            });
+        }
+        
+    } else {
+        // Collapse on hover out
+        cardElement.classList.remove('goal-card-expanded');
+        
+        if (expandedView) {
+            expandedView.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+            expandedView.style.opacity = '0';
+            expandedView.style.transform = 'translateY(-10px)';
+            
+            // Hide after animation
+            setTimeout(() => {
+                expandedView.classList.add('hidden');
+                expandedView.style.display = 'none';
+                if (defaultView) defaultView.style.display = 'block';
+            }, 200);
+        } else {
+            if (defaultView) defaultView.style.display = 'block';
+        }
+        
+        // Reset visual state
+        cardElement.style.transform = '';
+        cardElement.style.boxShadow = '';
+        cardElement.style.borderColor = '';
+        cardElement.style.zIndex = '';
     }
 }
 
