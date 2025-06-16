@@ -5,25 +5,47 @@ function showSuccessMessage(message) {
     const successDiv = document.getElementById('success-message');
     const successText = document.getElementById('success-text');
     successText.textContent = message;
-    successDiv.classList.remove('hidden');
-    successDiv.classList.add('bounce-in');
+    
+    // Remove any existing animation classes
+    successDiv.classList.remove('hidden', 'notification-animate-out', 'slide-out');
+    
+    // Add the smooth slide-in animation
+    successDiv.classList.add('notification-animate-in');
     
     setTimeout(() => {
-        successDiv.classList.add('hidden');
-        successDiv.classList.remove('bounce-in');
-    }, 4000);
+        // Start the slide-out animation
+        successDiv.classList.remove('notification-animate-in');
+        successDiv.classList.add('notification-animate-out');
+        
+        // Hide after animation completes
+        setTimeout(() => {
+            successDiv.classList.add('hidden');
+            successDiv.classList.remove('notification-animate-out');
+        }, 400);
+    }, 3000);
 }
 
 function showErrorMessage(message) {
     const errorDiv = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
     errorText.textContent = message;
-    errorDiv.classList.remove('hidden');
-    errorDiv.classList.add('bounce-in');
+    
+    // Remove any existing animation classes
+    errorDiv.classList.remove('hidden', 'notification-animate-out');
+    
+    // Add the smooth slide-in animation
+    errorDiv.classList.add('notification-animate-in');
     
     setTimeout(() => {
-        errorDiv.classList.add('hidden');
-        errorDiv.classList.remove('bounce-in');
+        // Start the slide-out animation
+        errorDiv.classList.remove('notification-animate-in');
+        errorDiv.classList.add('notification-animate-out');
+        
+        // Hide after animation completes
+        setTimeout(() => {
+            errorDiv.classList.add('hidden');
+            errorDiv.classList.remove('notification-animate-out');
+        }, 400);
     }, 4000);
 }
 
