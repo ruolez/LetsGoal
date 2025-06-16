@@ -236,7 +236,7 @@
 .relative:has(#filter-dropdown),
 .relative:has(#sort-dropdown) {
   overflow: visible !important;
-  z-index: 9999 !important;
+  z-index: 9998 !important;
 }
 
 @keyframes dropdown-fade-in {
@@ -256,7 +256,7 @@
   background: rgba(255, 255, 255, 0.95);
   overflow: visible !important;
   position: relative;
-  z-index: 100;
+  z-index: 30;
 }
 
 /* Compact chart container */
@@ -954,56 +954,56 @@ body.modal-open {
 
 /* Smooth Notification System */
 .notification-success {
-  background: rgba(255, 138, 51, 0.9);
+  background: rgba(245, 124, 0, 0.95);
   color: white;
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 159, 64, 0.6);
-  transform: translateX(100%);
+  border: 1px solid rgba(245, 124, 0, 0.8);
+  transform: translateY(100%);
   opacity: 0;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .notification-success.slide-in {
-  transform: translateX(0);
+  transform: translateY(0);
 }
 
 .notification-success.slide-out {
-  transform: translateX(100%);
+  transform: translateY(100%);
   opacity: 0;
 }
 
 @keyframes gentle-slide-in {
   0% {
-    transform: translateX(100%) scale(0.95);
+    transform: translateY(100%) scale(0.95);
     opacity: 0;
   }
   50% {
-    transform: translateX(-8px) scale(1.02);
+    transform: translateY(-8px) scale(1.02);
     opacity: 0.95;
   }
   100% {
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
     opacity: 0.95;
   }
 }
 
 @keyframes gentle-slide-out {
   0% {
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
     opacity: 0.95;
   }
   100% {
-    transform: translateX(100%) scale(0.95);
+    transform: translateY(100%) scale(0.95);
     opacity: 0;
   }
 }
 
 .notification-animate-in {
-  animation: gentle-slide-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: gentle-slide-in 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .notification-animate-out {
-  animation: gentle-slide-out 0.4s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+  animation: gentle-slide-out 1.0s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
 }
 
 .notification-error {
@@ -1011,7 +1011,7 @@ body.modal-open {
   color: white;
   backdrop-filter: blur(8px);
   border: 1px solid rgba(239, 68, 68, 0.2);
-  transform: translateX(100%);
+  transform: translateY(100%);
   opacity: 0;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

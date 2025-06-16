@@ -21,7 +21,7 @@ function showSuccessMessage(message) {
         setTimeout(() => {
             successDiv.classList.add('hidden');
             successDiv.classList.remove('notification-animate-out');
-        }, 400);
+        }, 1000);
     }, 3000);
 }
 
@@ -45,7 +45,7 @@ function showErrorMessage(message) {
         setTimeout(() => {
             errorDiv.classList.add('hidden');
             errorDiv.classList.remove('notification-animate-out');
-        }, 400);
+        }, 1000);
     }, 4000);
 }
 
