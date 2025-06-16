@@ -1676,16 +1676,18 @@ window.handleGoalCardHover = function(cardElement, isEntering) {
         cardElement.style.borderColor = '#3b82f6';
         cardElement.style.zIndex = '10';
         
-        // Animate expansion
+        // Animate expansion with ultra-smooth timing
         if (expandedView) {
             expandedView.style.opacity = '0';
-            expandedView.style.transform = 'translateY(-10px)';
+            expandedView.style.transform = 'translateY(-15px) scale(0.95)';
             
-            // Use requestAnimationFrame for smooth animation
+            // Double requestAnimationFrame for ultra-smooth animation
             requestAnimationFrame(() => {
-                expandedView.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                expandedView.style.opacity = '1';
-                expandedView.style.transform = 'translateY(0)';
+                requestAnimationFrame(() => {
+                    expandedView.style.transition = 'opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    expandedView.style.opacity = '1';
+                    expandedView.style.transform = 'translateY(0) scale(1)';
+                });
             });
         }
         
@@ -1694,16 +1696,23 @@ window.handleGoalCardHover = function(cardElement, isEntering) {
         cardElement.classList.remove('goal-card-expanded');
         
         if (expandedView) {
-            expandedView.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+            expandedView.style.transition = 'opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
             expandedView.style.opacity = '0';
-            expandedView.style.transform = 'translateY(-10px)';
+            expandedView.style.transform = 'translateY(-15px) scale(0.95)';
             
-            // Hide after animation
+            // Hide after animation with smooth cleanup
             setTimeout(() => {
                 expandedView.classList.add('hidden');
                 expandedView.style.display = 'none';
-                if (defaultView) defaultView.style.display = 'block';
-            }, 200);
+                if (defaultView) {
+                    defaultView.style.display = 'block';
+                    defaultView.style.opacity = '0';
+                    requestAnimationFrame(() => {
+                        defaultView.style.transition = 'opacity 0.2s ease';
+                        defaultView.style.opacity = '1';
+                    });
+                }
+            }, 300);
         } else {
             if (defaultView) defaultView.style.display = 'block';
         }
