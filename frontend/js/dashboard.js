@@ -456,6 +456,33 @@ function setupStickyHover() {
                 }, 800); // Increased timeout for better UX
             });
         });
+        
+        // Handle quick subgoal input interactions
+        const quickInput = card.querySelector('.quick-subgoal-input');
+        if (quickInput) {
+            quickInput.addEventListener('focus', function() {
+                clearTimeout(hoverTimeout);
+                card.classList.add('sticky-hover');
+                stickyHoverStates.set(goalId, true);
+            });
+            
+            quickInput.addEventListener('blur', function() {
+                // Delay removal to allow for re-focus or other interactions
+                hoverTimeout = setTimeout(() => {
+                    if (!card.matches(':hover') && document.activeElement !== quickInput) {
+                        card.classList.remove('sticky-hover');
+                        stickyHoverStates.set(goalId, false);
+                    }
+                }, 1000); // Longer delay for input interactions
+            });
+            
+            quickInput.addEventListener('keydown', function() {
+                // Keep expanded while typing
+                clearTimeout(hoverTimeout);
+                card.classList.add('sticky-hover');
+                stickyHoverStates.set(goalId, true);
+            });
+        }
     });
 }
 
@@ -549,6 +576,20 @@ function renderGoalCardGrid(goal) {
                     <span class="text-sm text-gray-500">No sub-goals yet</span>
                 </div>
             `}
+            
+            <!-- Quick Add Subgoal Input -->
+            ${goal.status !== 'completed' ? `
+                <div class="mt-2 px-1">
+                    <input type="text" 
+                           id="quick-subgoal-${goal.id}"
+                           class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
+                           placeholder="Add quick sub-goal..." 
+                           onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
+                           onclick="event.stopPropagation();"
+                           onfocus="event.stopPropagation(); maintainStickyHover(${goal.id})"
+                           onblur="event.stopPropagation();">
+                </div>
+            ` : ''}
             
             <!-- Quick Actions -->
             <div class="flex gap-2 mt-2 pt-1.5 border-t">
@@ -1482,6 +1523,115 @@ window.toggleSubgoalCheckboxList = function(subgoalId, goalId) {
     if (checkbox) {
         checkbox.checked = !checkbox.checked;
         quickUpdateSubgoal(subgoalId, checkbox.checked, goalId);
+    }
+}
+
+// Handle keypress in quick subgoal input
+window.handleQuickSubgoalKeypress = function(event, goalId) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        quickAddSubgoal(goalId);
+    }
+}
+
+// Maintain sticky hover when focusing on input
+window.maintainStickyHover = function(goalId) {
+    const card = document.querySelector(`[data-goal-id="${goalId}"]`);
+    if (card) {
+        card.classList.add('sticky-hover');
+        stickyHoverStates.set(goalId.toString(), true);
+    }
+}
+
+// Quick add subgoal function
+async function quickAddSubgoal(goalId) {
+    try {
+        const input = document.getElementById(`quick-subgoal-${goalId}`);
+        const title = input.value.trim();
+        
+        if (!title) {
+            authUtils.showErrorMessage('Please enter a sub-goal title');
+            input.focus();
+            return;
+        }
+        
+        // Find the goal to inherit target_date
+        const goal = goals.find(g => g.id === goalId);
+        if (!goal) {
+            authUtils.showErrorMessage('Goal not found');
+            return;
+        }
+        
+        // Show loading state
+        input.disabled = true;
+        input.value = 'Adding...';
+        
+        // Prepare subgoal data
+        const subgoalData = {
+            title: title,
+            description: '',
+            target_date: goal.target_date || null,
+            status: 'pending'
+        };
+        
+        // Call API to create subgoal
+        const response = await fetch(`/api/goals/${goalId}/subgoals`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(subgoalData),
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const newSubgoal = await response.json();
+            
+            // Clear input and restore state
+            input.value = '';
+            input.disabled = false;
+            input.placeholder = 'Add quick sub-goal...';
+            
+            // Show success message
+            authUtils.showSuccessMessage(`Sub-goal "${title}" added successfully`);
+            
+            // Reload goals to get updated data and maintain sorting
+            const goalsResponse = await fetch('/api/goals', { credentials: 'include' });
+            if (goalsResponse.ok) {
+                goals = await goalsResponse.json();
+                renderGoals();
+            }
+            
+            // Update stats
+            const statsResponse = await fetch('/api/dashboard/stats', { credentials: 'include' });
+            if (statsResponse.ok) {
+                const stats = await statsResponse.json();
+                updateStatsDisplay(stats);
+                updateProgressChart(stats);
+            }
+            
+        } else {
+            const error = await response.json();
+            
+            // Restore input state
+            input.value = title;
+            input.disabled = false;
+            input.focus();
+            
+            authUtils.showErrorMessage(error.error || 'Failed to add sub-goal');
+        }
+        
+    } catch (error) {
+        console.error('Error adding quick subgoal:', error);
+        
+        // Restore input state
+        const input = document.getElementById(`quick-subgoal-${goalId}`);
+        if (input) {
+            input.disabled = false;
+            input.focus();
+        }
+        
+        authUtils.showErrorMessage('Connection error. Please try again');
     }
 }
 

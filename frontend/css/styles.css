@@ -500,6 +500,42 @@ html {
   perspective: 1000px;
 }
 
+/* Quick subgoal input styling */
+.quick-subgoal-input {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  border: 1px solid #e5e7eb;
+  background: #fafafa;
+  transition: all 0.2s ease;
+}
+
+.quick-subgoal-input:focus {
+  background: white;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.quick-subgoal-input:hover {
+  background: white;
+  border-color: #d1d5db;
+}
+
+.quick-subgoal-input::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.quick-subgoal-input:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Ensure sticky hover maintains for input interactions */
+.goal-card-grid.sticky-hover .quick-subgoal-input {
+  background: white;
+}
+
 /* Reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   .expandable-goal-card,
