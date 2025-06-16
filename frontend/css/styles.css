@@ -243,186 +243,163 @@
   max-height: 100% !important;
 }
 
-/* Enhanced Goal Card Hover Expansion */
+/* Ultra-Smooth Pure CSS Goal Card Hover */
 .expandable-goal-card {
   position: relative;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  overflow: visible;
-  backface-visibility: hidden;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              border-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  isolation: isolate;
 }
 
 .expandable-goal-card:hover {
-  cursor: pointer;
+  transform: translateY(-6px) scale(1.03) translateZ(0);
+  box-shadow: 0 25px 50px rgba(59, 130, 246, 0.25), 
+              0 0 0 1px rgba(59, 130, 246, 0.1),
+              0 10px 30px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+  z-index: 10;
 }
 
-.goal-card-expanded {
-  transform: translateY(-4px) scale(1.02) !important;
-  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.1) !important;
-  border-color: #3b82f6 !important;
-  z-index: 10 !important;
-}
-
-/* Subgoals Section Transitions */
+/* Subgoals Section - No More Flickering */
 .subgoals-section {
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  overflow: hidden;
   transform: translateZ(0);
 }
 
-.subgoals-default,
-.subgoals-expanded {
-  transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+.subgoals-list {
+  position: relative;
+}
+
+/* Flicker-Free Subgoal Items */
+.subgoal-item {
+  transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  backface-visibility: hidden;
+              background-color 0.2s ease;
   transform: translateZ(0);
+  backface-visibility: hidden;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0.125rem 0;
+  transform-origin: top center;
 }
 
-.subgoals-expanded {
-  max-height: none;
-  overflow: visible;
+/* Always visible subgoals (first 3) */
+.visible-subgoal {
+  opacity: 1;
+  transform: translateY(0) scale(1) translateZ(0);
 }
 
-/* Hover hint animation */
-.hover-hint {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* Hidden subgoals (4+) - smooth reveal on hover */
+.hidden-subgoal {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.95) translateZ(0);
+  max-height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Reveal hidden subgoals on card hover */
+.expandable-goal-card:hover .hidden-subgoal {
+  opacity: 1;
+  transform: translateY(0) scale(1) translateZ(0);
+  max-height: 2rem;
+  pointer-events: all;
+  transition-delay: calc(var(--animation-delay, 0s));
+}
+
+/* Smooth hover hint */
+.hover-hint-item {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   opacity: 0.7;
   transform: translateZ(0);
 }
 
-.expandable-goal-card:hover .hover-hint {
-  opacity: 1;
-  color: #3b82f6;
-  transform: translateY(-1px);
+.expandable-goal-card:hover .hover-hint-item {
+  opacity: 0;
+  transform: translateY(-5px) scale(0.9) translateZ(0);
+  pointer-events: none;
 }
 
-.hover-hint i {
+.hover-hint-item i {
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: inline-block;
 }
 
-.expandable-goal-card:hover .hover-hint i {
+.hover-hint-item:hover i {
   transform: translateY(2px) scale(1.1);
-  animation: chevron-bounce 0.6s ease-in-out;
+  animation: chevron-pulse 0.8s ease-in-out infinite;
 }
 
-@keyframes chevron-bounce {
-  0%, 100% { transform: translateY(2px) scale(1.1); }
-  50% { transform: translateY(4px) scale(1.15); }
+@keyframes chevron-pulse {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(2px) scale(1.1); }
 }
 
-/* Expansion overlay */
-.expansion-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 0.75rem;
-  z-index: 5;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+/* Individual Subgoal Hover Effects */
+.subgoal-item:hover {
+  background-color: rgba(59, 130, 246, 0.06);
+  transform: translateX(2px) scale(1.01) translateZ(0);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
 }
 
-.expansion-overlay.active {
-  pointer-events: all;
-}
-
-.expansion-content {
-  padding: 1rem;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Smooth subgoal item animations */
-.subgoal-compact {
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  margin: 0.125rem 0;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.expandable-goal-card:hover .subgoal-compact {
-  animation: fadeInUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-.expandable-goal-card:hover .subgoal-compact:nth-child(1) { animation-delay: 0.05s; }
-.expandable-goal-card:hover .subgoal-compact:nth-child(2) { animation-delay: 0.1s; }
-.expandable-goal-card:hover .subgoal-compact:nth-child(3) { animation-delay: 0.15s; }
-.expandable-goal-card:hover .subgoal-compact:nth-child(4) { animation-delay: 0.2s; }
-.expandable-goal-card:hover .subgoal-compact:nth-child(5) { animation-delay: 0.25s; }
-.expandable-goal-card:hover .subgoal-compact:nth-child(6) { animation-delay: 0.3s; }
-.expandable-goal-card:hover .subgoal-compact:nth-child(7) { animation-delay: 0.35s; }
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px) translateZ(0);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) translateZ(0);
-  }
-}
-
-.expandable-goal-card:hover .subgoal-compact:hover {
-  background-color: rgba(59, 130, 246, 0.08);
-  transform: translateX(3px) scale(1.02);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-
-.subgoal-compact input[type="checkbox"] {
+.subgoal-item input[type="checkbox"] {
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: translateZ(0);
 }
 
-.expandable-goal-card:hover .subgoal-compact input[type="checkbox"]:hover {
-  transform: scale(1.15) translateZ(0);
-  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3));
+.subgoal-item:hover input[type="checkbox"] {
+  transform: scale(1.1) translateZ(0);
+  filter: drop-shadow(0 2px 4px rgba(59, 130, 246, 0.25));
+}
+
+/* Completed subgoals styling */
+.subgoal-item.completed {
+  opacity: 0.7;
+}
+
+.subgoal-item.completed span {
+  text-decoration: line-through;
+  color: #6b7280;
 }
 
 /* Enhanced visual feedback during expansion */
-.goal-card-expanded .subgoals-section {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.02) 0%, rgba(99, 102, 241, 0.02) 100%);
+.expandable-goal-card:hover .subgoals-section.has-hidden-subgoals {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(99, 102, 241, 0.03) 100%);
   border-radius: 0.5rem;
-  padding: 0.75rem;
-  margin: -0.25rem;
+  padding: 0.75rem 0.5rem;
+  margin: -0.25rem -0.25rem;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Prevent layout shift during hover */
 .goals-grid .goal-card-grid {
   isolation: isolate;
+  contain: layout style;
 }
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  .expandable-goal-card {
-    /* Disable hover expansion on mobile devices */
-    pointer-events: auto;
-  }
-  
   .expandable-goal-card:hover {
     transform: none !important;
     box-shadow: none !important;
     border-color: inherit !important;
   }
   
-  .hover-hint {
+  .hover-hint-item {
     display: none;
   }
   
-  .subgoals-expanded {
-    display: block !important;
-  }
-  
-  .subgoals-default {
-    display: none !important;
+  /* Show all subgoals on mobile */
+  .hidden-subgoal {
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) translateZ(0) !important;
+    max-height: 2rem !important;
+    pointer-events: all !important;
   }
 }
 
@@ -446,14 +423,13 @@
   will-change: auto;
 }
 
-.subgoal-compact {
+.subgoal-item {
   will-change: transform, opacity;
   contain: layout style;
 }
 
-.subgoals-expanded,
-.subgoals-default {
-  will-change: opacity, transform;
+.subgoals-list {
+  will-change: auto;
   contain: layout;
 }
 

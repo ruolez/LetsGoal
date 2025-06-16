@@ -358,9 +358,7 @@ function renderGoalCardGrid(goal) {
     
     return `
         <div class="goal-card-grid expandable-goal-card" onclick="editGoal(${goal.id})" 
-             data-goal-id="${goal.id}" 
-             onmouseenter="handleGoalCardHover(this, true)" 
-             onmouseleave="handleGoalCardHover(this, false)">
+             data-goal-id="${goal.id}">
             
             <!-- Header with title and status -->
             <div class="flex items-center justify-between mb-3">
@@ -442,24 +440,6 @@ function renderGoalCardGrid(goal) {
                 </button>
             </div>
             
-            <!-- Hover Expansion Overlay -->
-            ${hasHiddenSubgoals ? `
-                <div class="expansion-overlay hidden">
-                    <div class="expansion-content">
-                        <div class="subgoals-expanded-overlay space-y-1">
-                            ${goal.subgoals.map(subgoal => `
-                                <div class="subgoal-compact ${subgoal.status === 'achieved' ? 'completed' : ''}">
-                                    <input type="checkbox" 
-                                           class="h-3 w-3 text-blue-600 rounded mr-2" 
-                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
-                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                    <span class="truncate">${subgoal.title}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            ` : ''}
         </div>
     `;
 }
@@ -1629,84 +1609,7 @@ function updateLoadMoreButton() {
     }
 }
 
-// Enhanced goal card hover expansion functionality
-window.handleGoalCardHover = function(cardElement, isEntering) {
-    const goalId = cardElement.getAttribute('data-goal-id');
-    const goal = goals.find(g => g.id == goalId);
-    
-    // Only expand if there are hidden subgoals
-    if (!goal || goal.subgoals.length <= 3) {
-        return;
-    }
-    
-    const defaultView = cardElement.querySelector('.subgoals-default');
-    const expandedView = cardElement.querySelector('.subgoals-expanded');
-    const expansionOverlay = cardElement.querySelector('.expansion-overlay');
-    
-    if (isEntering) {
-        // Expand on hover
-        cardElement.classList.add('goal-card-expanded');
-        
-        if (defaultView) defaultView.style.display = 'none';
-        if (expandedView) {
-            expandedView.classList.remove('hidden');
-            expandedView.style.display = 'block';
-        }
-        
-        // Add subtle visual feedback
-        cardElement.style.transform = 'translateY(-2px)';
-        cardElement.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.15)';
-        cardElement.style.borderColor = '#3b82f6';
-        cardElement.style.zIndex = '10';
-        
-        // Animate expansion with ultra-smooth timing
-        if (expandedView) {
-            expandedView.style.opacity = '0';
-            expandedView.style.transform = 'translateY(-15px) scale(0.95)';
-            
-            // Double requestAnimationFrame for ultra-smooth animation
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    expandedView.style.transition = 'opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                    expandedView.style.opacity = '1';
-                    expandedView.style.transform = 'translateY(0) scale(1)';
-                });
-            });
-        }
-        
-    } else {
-        // Collapse on hover out
-        cardElement.classList.remove('goal-card-expanded');
-        
-        if (expandedView) {
-            expandedView.style.transition = 'opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            expandedView.style.opacity = '0';
-            expandedView.style.transform = 'translateY(-15px) scale(0.95)';
-            
-            // Hide after animation with smooth cleanup
-            setTimeout(() => {
-                expandedView.classList.add('hidden');
-                expandedView.style.display = 'none';
-                if (defaultView) {
-                    defaultView.style.display = 'block';
-                    defaultView.style.opacity = '0';
-                    requestAnimationFrame(() => {
-                        defaultView.style.transition = 'opacity 0.2s ease';
-                        defaultView.style.opacity = '1';
-                    });
-                }
-            }, 300);
-        } else {
-            if (defaultView) defaultView.style.display = 'block';
-        }
-        
-        // Reset visual state
-        cardElement.style.transform = '';
-        cardElement.style.boxShadow = '';
-        cardElement.style.borderColor = '';
-        cardElement.style.zIndex = '';
-    }
-}
+// Pure CSS hover animations - no JavaScript manipulation needed
 
 // Additional event listeners - set up when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
