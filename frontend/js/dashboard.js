@@ -511,7 +511,7 @@ function renderGoalCardGrid(goal) {
             <!-- Header with title and status -->
             <div class="mb-3">
                 <div class="flex items-start justify-between gap-2">
-                    <h3 class="text-lg font-semibold text-gray-900 flex-1">${goal.title}</h3>
+                    <h3 class="goal-card-title">${goal.title}</h3>
                     <span class="status-badge ${getStatusBadgeClass(goal.status)} flex-shrink-0 ml-2" 
                           title="${goal.status.replace('_', ' ').toUpperCase()}">
                         <i class="fas ${getStatusIcon(goal.status)}"></i>

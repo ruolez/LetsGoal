@@ -259,12 +259,12 @@
 }
 
 /* Filter bar enhancements */
-.bg-white.rounded-xl.border.border-gray-200.p-6 {
+.bg-white.rounded-xl.border.border-gray-200 {
   backdrop-filter: blur(8px);
   background: rgba(255, 255, 255, 0.95);
   overflow: visible !important;
   position: relative;
-  z-index: 30;
+  z-index: 10;
 }
 
 /* Compact chart container */
@@ -504,6 +504,85 @@
 
 .subgoals-list {
   will-change: auto;
+}
+
+/* Goal Card Title Enhancement */
+.goal-card-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  flex: 1;
+  margin: 0;
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.expandable-goal-card:hover .goal-card-title {
+  background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transform: translateY(-1px);
+}
+
+/* Fallback for browsers that don't support background-clip */
+@supports not (background-clip: text) {
+  .goal-card-title {
+    color: #1f2937;
+    background: none;
+    -webkit-text-fill-color: initial;
+  }
+  
+  .expandable-goal-card:hover .goal-card-title {
+    color: #1e40af;
+    background: none;
+    -webkit-text-fill-color: initial;
+  }
+}
+
+/* Navigation Link Buttons */
+.nav-link-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.nav-link-btn:hover {
+  color: #374151;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.nav-link-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.nav-link-btn i {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  transition: color 0.2s ease;
+}
+
+.nav-link-btn:hover i {
+  color: #6b7280;
 }
 
 /* Smooth scroll behavior for better UX */

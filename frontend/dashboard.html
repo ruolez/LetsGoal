@@ -51,29 +51,26 @@
 
                 <!-- Center Section - Daily Motivation -->
                 <div class="hidden lg:flex items-center flex-1 justify-center px-8">
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-lightbulb text-yellow-500 text-sm"></i>
-                        <p id="daily-quote" class="text-gray-600 italic text-sm">
-                            Loading inspiration...
-                        </p>
-                    </div>
+                    <p id="daily-quote" class="text-gray-500 italic text-xs font-light">
+                        Loading inspiration...
+                    </p>
                 </div>
 
                 <!-- Right Section - Quick Links and User -->
                 <div class="flex items-center space-x-4">
                     <!-- Quick Links -->
-                    <div class="hidden md:flex items-center space-x-2">
-                        <button onclick="viewHistory()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors flex items-center">
-                            <i class="fas fa-history mr-1.5 text-gray-400"></i>
-                            History
+                    <div class="hidden md:flex items-center space-x-1">
+                        <button onclick="viewHistory()" class="nav-link-btn">
+                            <i class="fas fa-history"></i>
+                            <span>History</span>
                         </button>
-                        <button onclick="viewProgress()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors flex items-center">
-                            <i class="fas fa-chart-line mr-1.5 text-gray-400"></i>
-                            Progress
+                        <button onclick="viewProgress()" class="nav-link-btn">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Progress</span>
                         </button>
-                        <button onclick="generateReport()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors flex items-center">
-                            <i class="fas fa-chart-bar mr-1.5 text-gray-400"></i>
-                            Report
+                        <button onclick="generateReport()" class="nav-link-btn">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Report</span>
                         </button>
                     </div>
 
@@ -114,9 +111,9 @@
     <!-- Main Content -->
     <div class="container mx-auto px-6 py-6">
         <!-- Enhanced Filter and Actions Bar -->
-        <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div class="flex flex-col sm:flex-row gap-4 flex-1">
+        <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div class="flex flex-col sm:flex-row gap-3 flex-1">
                     <!-- Enhanced Search -->
                     <div class="relative flex-1 max-w-sm">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -199,7 +196,7 @@
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
                     <!-- Enhanced View Toggle -->
                     <div class="flex bg-gray-100 rounded-lg p-1">
                         <button id="grid-view-btn" onclick="setViewMode('grid')" class="view-toggle-btn px-4 py-2 rounded-md bg-white text-gray-700 shadow-sm font-medium transition-all duration-200">
