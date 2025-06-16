@@ -390,9 +390,9 @@ function renderGoalCardGrid(goal) {
                 </div>
             </div>
             
-            <!-- Subgoals Preview with Hover Expansion -->
+            <!-- Subgoals Preview with Pure CSS Hover Expansion -->
             ${goal.subgoals.length > 0 ? `
-                <div class="border-t pt-3 mt-auto subgoals-section">
+                <div class="border-t pt-3 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-sm text-gray-600">Sub-goals</span>
                         <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
@@ -400,10 +400,11 @@ function renderGoalCardGrid(goal) {
                         </span>
                     </div>
                     
-                    <!-- Default View (first 3 subgoals) -->
-                    <div class="subgoals-default space-y-1">
-                        ${goal.subgoals.slice(0, 3).map(subgoal => `
-                            <div class="subgoal-compact ${subgoal.status === 'achieved' ? 'completed' : ''}">
+                    <!-- Single Unified Subgoals List -->
+                    <div class="subgoals-list space-y-1">
+                        ${goal.subgoals.map((subgoal, index) => `
+                            <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= 3 ? 'hidden-subgoal' : 'visible-subgoal'}" 
+                                 style="--animation-delay: ${index * 0.05}s">
                                 <input type="checkbox" 
                                        class="h-3 w-3 text-blue-600 rounded mr-2" 
                                        ${subgoal.status === 'achieved' ? 'checked' : ''}
@@ -411,32 +412,14 @@ function renderGoalCardGrid(goal) {
                                 <span class="truncate">${subgoal.title}</span>
                             </div>
                         `).join('')}
+                        
                         ${hasHiddenSubgoals ? `
-                            <div class="text-xs text-gray-400 mt-1 hover-hint">
+                            <div class="hover-hint-item text-xs text-gray-400 mt-1">
                                 <i class="fas fa-chevron-down mr-1"></i>
-                                +${goal.subgoals.length - 3} more (hover to expand)
+                                <span class="hint-text">+${goal.subgoals.length - 3} more (hover to expand)</span>
                             </div>
                         ` : ''}
                     </div>
-                    
-                    <!-- Expanded View (all subgoals) -->
-                    ${hasHiddenSubgoals ? `
-                        <div class="subgoals-expanded space-y-1 hidden">
-                            ${goal.subgoals.map(subgoal => `
-                                <div class="subgoal-compact ${subgoal.status === 'achieved' ? 'completed' : ''}">
-                                    <input type="checkbox" 
-                                           class="h-3 w-3 text-blue-600 rounded mr-2" 
-                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
-                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                    <span class="truncate">${subgoal.title}</span>
-                                </div>
-                            `).join('')}
-                            <div class="text-xs text-gray-400 mt-1">
-                                <i class="fas fa-chevron-up mr-1"></i>
-                                Showing all ${goal.subgoals.length} sub-goals
-                            </div>
-                        </div>
-                    ` : ''}
                 </div>
             ` : `
                 <div class="border-t pt-3 mt-auto text-center">
