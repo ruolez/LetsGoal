@@ -166,7 +166,7 @@ document.getElementById('register-form')?.addEventListener('submit', async funct
         const data = await response.json();
         
         if (response.ok) {
-            showSuccessMessage(`Welcome to LetsGoal, ${data.user.username}!`);
+            showSuccessMessage(`Welcome to Let's Goal!, ${data.user.username}!`);
             setTimeout(() => {
                 window.location.href = '/dashboard';
             }, 1500);

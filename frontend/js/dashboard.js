@@ -6,9 +6,15 @@ console.log('🚀 Dashboard.js is loading...'); // Debug log
 function parseLocalDate(dateString) {
     if (!dateString) return null;
     
-    // Handle ISO date strings (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss)
+    // Handle ISO datetime strings (YYYY-MM-DDTHH:mm:ss) - preserve time for sorting
+    if (typeof dateString === 'string' && dateString.includes('T')) {
+        // For full datetime strings, use standard Date parsing to preserve time
+        return new Date(dateString);
+    }
+    
+    // Handle ISO date strings (YYYY-MM-DD only) 
     if (typeof dateString === 'string' && dateString.includes('-')) {
-        const parts = dateString.split('T')[0].split('-'); // Take only date part if datetime
+        const parts = dateString.split('-');
         if (parts.length === 3) {
             const year = parseInt(parts[0]);
             const month = parseInt(parts[1]) - 1; // Month is 0-indexed in JavaScript
@@ -34,6 +40,9 @@ let currentFilter = 'all';
 let currentSort = 'recent';
 let currentPage = 0;
 const goalsPerPage = 9;
+
+// Track which goal cards should maintain sticky hover state
+let stickyHoverStates = new Map();
 
 // Dashboard functionality confirmed working
 
@@ -368,8 +377,86 @@ function renderGoals() {
         currentViewMode === 'grid' ? renderGoalCardGrid(goal) : renderGoalCardList(goal)
     ).join('');
     
+    // Add sticky hover functionality for grid view
+    if (currentViewMode === 'grid') {
+        setupStickyHover();
+    }
+    
     // Update load more button
     updateLoadMoreButton();
+}
+
+// Setup sticky hover functionality for goal cards
+function setupStickyHover() {
+    const goalCards = document.querySelectorAll('.goal-card-grid');
+    
+    goalCards.forEach(card => {
+        const goalId = card.getAttribute('data-goal-id');
+        let hoverTimeout = null;
+        
+        // Restore sticky state if it was active before re-render
+        if (stickyHoverStates.get(goalId)) {
+            card.classList.add('sticky-hover');
+        }
+        
+        // Mouse enter - immediately add sticky hover
+        card.addEventListener('mouseenter', function() {
+            clearTimeout(hoverTimeout);
+            this.classList.add('sticky-hover');
+            stickyHoverStates.set(goalId, true);
+        });
+        
+        // Mouse leave - delay removal to allow for potential re-entry
+        card.addEventListener('mouseleave', function() {
+            const self = this;
+            clearTimeout(hoverTimeout);
+            
+            // Small delay to prevent flickering if user quickly moves mouse back
+            hoverTimeout = setTimeout(() => {
+                self.classList.remove('sticky-hover');
+                stickyHoverStates.set(goalId, false);
+            }, 100);
+        });
+        
+        // When interacting with checkboxes, ensure sticky hover stays active
+        const checkboxes = card.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                // Keep the card expanded while interacting
+                clearTimeout(hoverTimeout);
+                card.classList.add('sticky-hover');
+                stickyHoverStates.set(goalId, true);
+                
+                // Remove sticky hover after a longer delay to allow multiple interactions
+                hoverTimeout = setTimeout(() => {
+                    // Only remove if mouse is not over the card
+                    if (!card.matches(':hover')) {
+                        card.classList.remove('sticky-hover');
+                        stickyHoverStates.set(goalId, false);
+                    }
+                }, 800); // Increased timeout for better UX
+            });
+        });
+        
+        // Also handle clicking on subgoal text (which toggles checkboxes)
+        const subgoalTexts = card.querySelectorAll('.subgoal-item span.cursor-pointer');
+        subgoalTexts.forEach(text => {
+            text.addEventListener('click', function() {
+                // Keep the card expanded while interacting
+                clearTimeout(hoverTimeout);
+                card.classList.add('sticky-hover');
+                stickyHoverStates.set(goalId, true);
+                
+                // Remove sticky hover after a longer delay
+                hoverTimeout = setTimeout(() => {
+                    if (!card.matches(':hover')) {
+                        card.classList.remove('sticky-hover');
+                        stickyHoverStates.set(goalId, false);
+                    }
+                }, 800); // Increased timeout for better UX
+            });
+        });
+    });
 }
 
 // Render goal card for grid view
@@ -422,27 +509,27 @@ function renderGoalCardGrid(goal) {
             
             <!-- Subgoals Preview with Pure CSS Hover Expansion -->
             ${goal.subgoals.length > 0 ? `
-                <div class="border-t pt-3 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
-                    <div class="flex items-center justify-between mb-2">
+                <div class="border-t pt-1.5 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
+                    <div class="flex items-center justify-between mb-0.5">
                         <span class="text-sm text-gray-600">Sub-goals</span>
-                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                        <span class="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
                             ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length}
                         </span>
                     </div>
                     
                     <!-- Single Unified Subgoals List -->
-                    <div class="subgoals-list space-y-1">
+                    <div class="subgoals-list space-y-0">
                         ${goal.subgoals.map((subgoal, index) => `
                             <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= 3 ? 'hidden-subgoal' : 'visible-subgoal'}" 
                                  style="--animation-delay: ${index * 0.05}s">
-                                <div class="flex items-center w-full">
+                                <div class="flex items-center w-full py-0.25">
                                     <input type="checkbox" 
                                            id="subgoal-${subgoal.id}"
                                            class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
                                            ${subgoal.status === 'achieved' ? 'checked' : ''}
                                            onclick="event.stopPropagation();"
                                            onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                    <span class="truncate flex-1 cursor-pointer" 
+                                    <span class="truncate flex-1 cursor-pointer text-sm" 
                                           onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
                                     ${formatDaysLeft(subgoal.target_date, subgoal.status)}
                                 </div>
@@ -458,13 +545,13 @@ function renderGoalCardGrid(goal) {
                     </div>
                 </div>
             ` : `
-                <div class="border-t pt-3 mt-auto text-center">
+                <div class="border-t pt-1.5 mt-auto text-center">
                     <span class="text-sm text-gray-500">No sub-goals yet</span>
                 </div>
             `}
             
             <!-- Quick Actions -->
-            <div class="flex gap-2 mt-4 pt-3 border-t">
+            <div class="flex gap-2 mt-2 pt-1.5 border-t">
                 <button onclick="editGoal(${goal.id}); event.stopPropagation();" 
                         class="flex-1 btn-secondary text-xs py-2">
                     <i class="fas fa-edit mr-1"></i>
@@ -669,10 +756,37 @@ window.showCreateGoalModal = function() {
             goalTitleInput.focus();
         }
     }, 100);
+    
+    // Add ESC key listener to close create modal
+    const handleCreateModalEsc = function(e) {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            const createModal = document.getElementById('create-goal-modal');
+            // Only close if the create modal is visible (not hidden)
+            if (createModal && !createModal.classList.contains('hidden')) {
+                console.log('🎯 ESC key pressed - closing create modal'); // Debug log
+                closeCreateGoalModal();
+            }
+        }
+    };
+    
+    // Remove any existing ESC listeners and add new one
+    document.removeEventListener('keydown', window.createModalEscHandler);
+    window.createModalEscHandler = handleCreateModalEsc;
+    document.addEventListener('keydown', handleCreateModalEsc);
+    
+    console.log('⌨️ ESC key listener attached to create modal'); // Debug log
 }
 
 window.closeCreateGoalModal = function() {
     console.log('🎯 Closing create goal modal'); // Debug log
+    
+    // Remove ESC key listener when closing modal
+    if (window.createModalEscHandler) {
+        document.removeEventListener('keydown', window.createModalEscHandler);
+        window.createModalEscHandler = null;
+        console.log('⌨️ ESC key listener removed from create modal'); // Debug log
+    }
+    
     document.getElementById('create-goal-modal').classList.add('hidden');
     document.getElementById('create-goal-form').reset();
 }
@@ -864,7 +978,13 @@ function editGoal(goalId) {
     // Prevent background scrolling
     document.body.classList.add('modal-open');
     
-    // Populate the edit form
+    // Show modal first
+    document.getElementById('edit-goal-modal').classList.remove('hidden');
+    
+    // Setup event listeners for this modal instance (this clones the form, so do it first)
+    setupEditModalEventListeners();
+    
+    // Populate the edit form AFTER event listeners are set up
     document.getElementById('edit-goal-id').value = goal.id;
     document.getElementById('edit-goal-title').value = goal.title;
     document.getElementById('edit-goal-description').value = goal.description || '';
@@ -873,12 +993,6 @@ function editGoal(goalId) {
     
     // Load subgoals
     loadSubgoalsForEdit(goal.subgoals || []);
-    
-    // Show modal
-    document.getElementById('edit-goal-modal').classList.remove('hidden');
-    
-    // Setup event listeners for this modal instance
-    setupEditModalEventListeners();
 }
 
 // Setup event listeners specifically for the edit modal
@@ -922,6 +1036,25 @@ function setupEditModalEventListeners() {
     } else {
         console.error('❌ Update goal button not found!');
     }
+    
+    // Add ESC key listener to close modal
+    const handleEscKey = function(e) {
+        if (e.key === 'Escape' || e.keyCode === 27) {
+            const editModal = document.getElementById('edit-goal-modal');
+            // Only close if the edit modal is visible (not hidden)
+            if (editModal && !editModal.classList.contains('hidden')) {
+                console.log('🎯 ESC key pressed - closing edit modal'); // Debug log
+                closeEditGoalModal();
+            }
+        }
+    };
+    
+    // Remove any existing ESC listeners and add new one
+    document.removeEventListener('keydown', window.editModalEscHandler);
+    window.editModalEscHandler = handleEscKey;
+    document.addEventListener('keydown', handleEscKey);
+    
+    console.log('⌨️ ESC key listener attached to edit modal'); // Debug log
 }
 
 window.closeEditGoalModal = function() {
@@ -930,6 +1063,13 @@ window.closeEditGoalModal = function() {
     
     // Re-enable background scrolling
     document.body.classList.remove('modal-open');
+    
+    // Remove ESC key listener when closing modal
+    if (window.editModalEscHandler) {
+        document.removeEventListener('keydown', window.editModalEscHandler);
+        window.editModalEscHandler = null;
+        console.log('⌨️ ESC key listener removed'); // Debug log
+    }
     
     // Close both modals
     editModal.classList.add('hidden');
@@ -1303,6 +1443,13 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
                 updateProgressChart(stats);
             }
             
+            // Reload goals to get updated timestamps for proper sorting
+            const goalsResponse = await fetch('/api/goals', { credentials: 'include' });
+            if (goalsResponse.ok) {
+                goals = await goalsResponse.json();
+                renderGoals();
+            }
+            
         } else {
             // Restore original state on error
             subgoalItem.style.opacity = '1';
@@ -1602,7 +1749,10 @@ function applyFiltersAndSort() {
     filtered.sort((a, b) => {
         switch (currentSort) {
             case 'recent':
-                return parseLocalDate(b.updated_at || b.created_at) - parseLocalDate(a.updated_at || a.created_at);
+                // Use last_activity_at for more accurate "recently updated" sorting
+                const aTimestamp = a.last_activity_at || a.updated_at || a.created_at;
+                const bTimestamp = b.last_activity_at || b.updated_at || b.created_at;
+                return parseLocalDate(bTimestamp) - parseLocalDate(aTimestamp);
             case 'target':
                 if (!a.target_date && !b.target_date) return 0;
                 if (!a.target_date) return 1;
