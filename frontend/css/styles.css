@@ -599,34 +599,53 @@ html {
   transform: translateY(-1px);
 }
 
-/* Status Badges */
+/* Status Badges - Minimal icon-only design */
 .status-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
-  border-radius: 20px;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  position: relative;
 }
 
 .status-pending {
   background: #f3f4f6;
   color: #6b7280;
-  border: 1px solid #d1d5db;
 }
 
 .status-active {
   background: #dbeafe;
   color: #1d4ed8;
-  border: 1px solid #bfdbfe;
 }
 
 .status-completed {
   background: #d1fae5;
   color: #065f46;
-  border: 1px solid #a7f3d0;
+}
+
+/* Status badge hover tooltip */
+.status-badge::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.status-badge:hover::after {
+  opacity: 1;
 }
 
 /* Subgoal Items */
