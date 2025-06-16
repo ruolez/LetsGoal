@@ -406,6 +406,7 @@ function renderGoalCardGrid(goal) {
                                 <input type="checkbox" 
                                        class="h-3 w-3 text-blue-600 rounded mr-2" 
                                        ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                       onclick="event.stopPropagation();"
                                        onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
                                 <span class="truncate">${subgoal.title}</span>
                             </div>
