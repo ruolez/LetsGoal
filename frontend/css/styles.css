@@ -632,14 +632,19 @@ html {
   position: relative;
 }
 
-.status-pending {
+.status-created {
   background: #f3f4f6;
   color: #6b7280;
 }
 
-.status-active {
+.status-started {
   background: #dbeafe;
   color: #1d4ed8;
+}
+
+.status-working {
+  background: #fef3c7;
+  color: #d97706;
 }
 
 .status-completed {

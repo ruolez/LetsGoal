@@ -68,7 +68,7 @@ def create_app():
             title=data['title'],
             description=data.get('description', ''),
             target_date=datetime.strptime(data['target_date'], '%Y-%m-%d').date() if data.get('target_date') else None,
-            status='pending'
+            status='created'
         )
         
         try:
@@ -96,8 +96,10 @@ def create_app():
             goal.target_date = datetime.strptime(data['target_date'], '%Y-%m-%d').date()
         if data.get('status'):
             goal.status = data['status']
-            if data['status'] == 'achieved' and not goal.achieved_date:
+            if data['status'] == 'completed' and not goal.achieved_date:
                 goal.achieved_date = date.today()
+            elif data['status'] != 'completed' and goal.achieved_date:
+                goal.achieved_date = None
         
         goal.updated_at = datetime.utcnow()
         
@@ -188,21 +190,18 @@ def create_app():
                 total_count = len(goal.subgoals)
                 progress = int((achieved_count / total_count) * 100) if total_count > 0 else 0
                 
-                # Auto-update goal status based on progress
-                if progress == 100 and goal.status != 'achieved':
-                    goal.status = 'achieved'
+                # Auto-update goal status based on new system: Created -> Started -> Working -> Completed
+                if progress == 100 and goal.status != 'completed':
+                    goal.status = 'completed'
                     goal.achieved_date = date.today()
-                elif progress > 0 and progress < 100:
-                    if goal.status == 'pending':
-                        goal.status = 'in_progress'
-                    elif goal.status == 'achieved':
-                        goal.status = 'in_progress'
+                elif achieved_count == 1 and goal.status == 'created':
+                    goal.status = 'started'
+                elif achieved_count >= 2 and goal.status in ['created', 'started']:
+                    goal.status = 'working'
+                elif progress == 0:
+                    goal.status = 'created'
+                    if goal.achieved_date:
                         goal.achieved_date = None
-                elif progress == 0 and goal.status == 'in_progress':
-                    goal.status = 'pending'
-                elif progress == 0 and goal.status == 'achieved':
-                    goal.status = 'pending'
-                    goal.achieved_date = None
         
         subgoal.updated_at = datetime.utcnow()
         
@@ -264,30 +263,34 @@ def create_app():
     @login_required
     def get_dashboard_stats():
         total_goals = Goal.query.filter_by(user_id=current_user.id).count()
-        achieved_goals = Goal.query.filter_by(user_id=current_user.id, status='achieved').count()
-        active_goals = Goal.query.filter_by(user_id=current_user.id, status='in_progress').count()
-        pending_goals = Goal.query.filter_by(user_id=current_user.id, status='pending').count()
+        completed_goals = Goal.query.filter_by(user_id=current_user.id, status='completed').count()
+        working_goals = Goal.query.filter_by(user_id=current_user.id, status='working').count()
+        started_goals = Goal.query.filter_by(user_id=current_user.id, status='started').count()
+        created_goals = Goal.query.filter_by(user_id=current_user.id, status='created').count()
+        active_goals = working_goals + started_goals
         
         return jsonify({
             'total_goals': total_goals,
-            'achieved_goals': achieved_goals,
+            'completed_goals': completed_goals,
             'active_goals': active_goals,
-            'pending_goals': pending_goals,
-            'achievement_rate': round((achieved_goals / total_goals * 100) if total_goals > 0 else 0, 1)
+            'working_goals': working_goals,
+            'started_goals': started_goals,
+            'created_goals': created_goals,
+            'achievement_rate': round((completed_goals / total_goals * 100) if total_goals > 0 else 0, 1)
         })
     
     # History and reporting endpoint
     @app.route('/api/reports/history', methods=['GET'])
     @login_required
     def get_history_report():
-        achieved_goals = Goal.query.filter_by(
+        completed_goals = Goal.query.filter_by(
             user_id=current_user.id, 
-            status='achieved'
+            status='completed'
         ).order_by(Goal.achieved_date.desc()).all()
         
         # Calculate timing analysis
         timing_analysis = []
-        for goal in achieved_goals:
+        for goal in completed_goals:
             if goal.target_date and goal.achieved_date:
                 days_diff = (goal.achieved_date - goal.target_date).days
                 timing_analysis.append({
@@ -301,16 +304,16 @@ def create_app():
         
         # Monthly achievement trends
         monthly_trends = {}
-        for goal in achieved_goals:
+        for goal in completed_goals:
             if goal.achieved_date:
                 month_key = goal.achieved_date.strftime('%Y-%m')
                 monthly_trends[month_key] = monthly_trends.get(month_key, 0) + 1
         
         return jsonify({
-            'achieved_goals': [goal.to_dict() for goal in achieved_goals],
+            'completed_goals': [goal.to_dict() for goal in completed_goals],
             'timing_analysis': timing_analysis,
             'monthly_trends': monthly_trends,
-            'total_achievements': len(achieved_goals)
+            'total_achievements': len(completed_goals)
         })
     
     # Initialize database

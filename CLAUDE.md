@@ -100,8 +100,27 @@ cd tests && python -m pytest test_goals.py::GoalTestCase
 - **Environment variables** configure Flask and database paths
 - **Port mapping**: Container port 5000 → Host port 5001
 
+### UI Interaction Patterns
+- **Clickable subgoal titles**: Clicking subgoal text toggles checkbox state
+- **Dedicated Edit button**: Goal cards use dedicated Edit button instead of click-to-edit
+- **Hover expansion**: Goal cards show hidden subgoals (4+) on hover without modal interference
+- **Real-time progress**: Progress circles update immediately using conic-gradient backgrounds
+
+### Critical Design Decisions
+- **No competing stacking contexts**: Removed `translateZ(0)`, `isolation`, and `contain` properties from goal cards to prevent dropdown z-index issues
+- **Subgoal status synchronization**: Backend automatically updates goal status and achieved_date when subgoals change
+- **Progress calculation**: `goal.progress = (completed_subgoals / total_subgoals) × 100` with automatic status transitions
+- **Optimistic UI updates**: Frontend updates immediately, then syncs with backend for consistency
+
+### CSS Architecture
+- **Grid layout**: 4-column responsive grid with `minmax(320px, 1fr)` for goal cards
+- **CSS Grid with hover**: Pure CSS animations without DOM manipulation to prevent flickering
+- **Z-index hierarchy**: Dropdowns (`z-index: 9999`) > hover cards (`z-index: 2`) > normal cards (`z-index: 1`)
+- **Conic-gradient progress**: `conic-gradient(color deg, background deg)` for smooth progress circles
+
 ### Common Issues
 - **Modal conflicts**: Inline forms used instead of nested modals
 - **Form validation**: Hidden required fields can cause "invalid form control" errors
-- **Progress updates**: Use `renderGoals()` to refresh UI after status changes
+- **Progress updates**: Use `updateGoalProgressBar()` for individual updates vs `renderGoals()` for full refresh
 - **Chart updates**: Always call `generateRecentProgressData()` for fresh trend data
+- **Dropdown clipping**: Ensure parent containers have `overflow: visible` for dropdowns

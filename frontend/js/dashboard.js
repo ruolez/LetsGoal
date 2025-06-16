@@ -86,7 +86,7 @@ async function loadDashboardData() {
 // Update stats display
 function updateStatsDisplay(stats) {
     document.getElementById('total-goals').textContent = stats.total_goals;
-    document.getElementById('achieved-goals').textContent = stats.achieved_goals;
+    document.getElementById('achieved-goals').textContent = stats.completed_goals;
     document.getElementById('active-goals').textContent = stats.active_goals;
     document.getElementById('achievement-rate').textContent = `${stats.achievement_rate}%`;
 }
@@ -281,7 +281,7 @@ function calculateDayProgress(date, type) {
         // Count recently completed goals
         let completedCount = 0;
         goals.forEach(goal => {
-            if (goal.status === 'achieved') {
+            if (goal.status === 'completed') {
                 // Simulate that some goals were completed on different days
                 if (isToday || (dayOfWeek > 0 && Math.random() > 0.8)) {
                     completedCount++;
@@ -446,8 +446,8 @@ function renderGoalCardGrid(goal) {
                     <i class="fas fa-edit mr-1"></i>
                     Edit
                 </button>
-                ${goal.status !== 'achieved' ? `
-                    <button onclick="updateGoalStatus(${goal.id}, 'achieved'); event.stopPropagation();" 
+                ${goal.status !== 'completed' ? `
+                    <button onclick="updateGoalStatus(${goal.id}, 'completed'); event.stopPropagation();" 
                             class="flex-1 btn-success text-xs py-2">
                         <i class="fas fa-trophy mr-1"></i>
                         Complete
@@ -519,8 +519,8 @@ function renderGoalCardList(goal) {
                 </div>
                 
                 <div class="flex flex-col space-y-2 ml-6">
-                    ${goal.status !== 'achieved' ? `
-                        <button onclick="updateGoalStatus(${goal.id}, 'achieved')" class="btn-success text-sm px-4 py-2">
+                    ${goal.status !== 'completed' ? `
+                        <button onclick="updateGoalStatus(${goal.id}, 'completed')" class="btn-success text-sm px-4 py-2">
                             <i class="fas fa-trophy mr-1"></i>
                             Complete
                         </button>
@@ -588,28 +588,31 @@ function formatDaysLeft(targetDate, status) {
 // Helper functions for goal status
 function getStatusColor(status) {
     switch (status) {
-        case 'achieved': return 'text-green-600';
-        case 'in_progress': return 'text-yellow-600';
-        case 'pending': return 'text-gray-600';
+        case 'completed': return 'text-green-600';
+        case 'working': return 'text-amber-600';
+        case 'started': return 'text-blue-600';
+        case 'created': return 'text-gray-600';
         default: return 'text-gray-600';
     }
 }
 
 function getStatusIcon(status) {
     switch (status) {
-        case 'achieved': return 'fa-trophy';
-        case 'in_progress': return 'fa-rocket';
-        case 'pending': return 'fa-clock';
+        case 'completed': return 'fa-trophy';
+        case 'working': return 'fa-rocket';
+        case 'started': return 'fa-play';
+        case 'created': return 'fa-clock';
         default: return 'fa-circle';
     }
 }
 
 function getStatusBadgeClass(status) {
     switch (status) {
-        case 'achieved': return 'status-completed';
-        case 'in_progress': return 'status-active';
-        case 'pending': return 'status-pending';
-        default: return 'status-pending';
+        case 'completed': return 'status-completed';
+        case 'working': return 'status-working';
+        case 'started': return 'status-started';
+        case 'created': return 'status-created';
+        default: return 'status-created';
     }
 }
 
@@ -682,8 +685,8 @@ async function updateGoalStatus(goalId, status) {
         
         if (response.ok) {
             const updatedGoal = await response.json();
-            if (status === 'achieved') {
-                authUtils.showSuccessMessage(`Congratulations! Goal "${updatedGoal.title}" achieved!`);
+            if (status === 'completed') {
+                authUtils.showSuccessMessage(`Congratulations! Goal "${updatedGoal.title}" completed!`);
                 // Add celebration effect
                 createCelebrationEffect();
             } else {
@@ -762,8 +765,10 @@ window.viewHistory = async function() {
 
 window.generateReport = function() {
     const totalGoals = goals.length;
-    const achievedGoals = goals.filter(g => g.status === 'achieved').length;
-    const inProgressGoals = goals.filter(g => g.status === 'in_progress').length;
+    const completedGoals = goals.filter(g => g.status === 'completed').length;
+    const workingGoals = goals.filter(g => g.status === 'working').length;
+    const startedGoals = goals.filter(g => g.status === 'started').length;
+    const activeGoals = workingGoals + startedGoals;
     const avgProgress = totalGoals > 0 ? Math.round(goals.reduce((sum, g) => sum + g.progress, 0) / totalGoals) : 0;
     
     const modal = document.createElement('div');
@@ -785,12 +790,12 @@ window.generateReport = function() {
                             <div class="text-sm text-gray-600">Total Goals</div>
                         </div>
                         <div>
-                            <div class="text-2xl font-bold text-green-600">${achievedGoals}</div>
+                            <div class="text-2xl font-bold text-green-600">${completedGoals}</div>
                             <div class="text-sm text-gray-600">Completed</div>
                         </div>
                         <div>
-                            <div class="text-2xl font-bold text-blue-600">${inProgressGoals}</div>
-                            <div class="text-sm text-gray-600">In Progress</div>
+                            <div class="text-2xl font-bold text-blue-600">${activeGoals}</div>
+                            <div class="text-sm text-gray-600">Active</div>
                         </div>
                         <div>
                             <div class="text-2xl font-bold text-indigo-600">${avgProgress}%</div>
@@ -1202,14 +1207,16 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
                     const completedSubgoals = goal.subgoals.filter(sg => sg.status === 'achieved').length;
                     goal.progress = goal.subgoals.length > 0 ? Math.round((completedSubgoals / goal.subgoals.length) * 100) : 0;
                     
-                    // Auto-update goal status based on progress
+                    // Auto-update goal status based on new system: Created -> Started -> Working -> Completed
                     const previousStatus = goal.status;
-                    if (goal.progress === 100 && goal.status !== 'achieved') {
-                        goal.status = 'achieved';
-                    } else if (goal.progress > 0 && goal.progress < 100 && goal.status === 'pending') {
-                        goal.status = 'in_progress';
-                    } else if (goal.progress === 0 && goal.status === 'in_progress') {
-                        goal.status = 'pending';
+                    if (goal.progress === 100 && goal.status !== 'completed') {
+                        goal.status = 'completed';
+                    } else if (completedSubgoals === 1 && goal.status === 'created') {
+                        goal.status = 'started';
+                    } else if (completedSubgoals >= 2 && (goal.status === 'created' || goal.status === 'started')) {
+                        goal.status = 'working';
+                    } else if (goal.progress === 0) {
+                        goal.status = 'created';
                     }
                     
                     // Update goal status on backend if it changed
@@ -1368,7 +1375,7 @@ function showHistoryModal(historyData) {
             </div>
             
             <div class="space-y-4">
-                ${historyData.achieved_goals.map(goal => `
+                ${historyData.completed_goals.map(goal => `
                     <div class="border border-gray-200 rounded-lg p-4">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
@@ -1638,9 +1645,10 @@ window.setFilter = function(filterValue) {
     const label = document.getElementById('filter-label');
     const filterLabels = {
         'all': 'All Goals',
-        'in_progress': 'In Progress',
-        'pending': 'Pending',
-        'achieved': 'Achieved'
+        'created': 'Created',
+        'started': 'Started',
+        'working': 'Working',
+        'completed': 'Completed'
     };
     label.textContent = filterLabels[filterValue];
     

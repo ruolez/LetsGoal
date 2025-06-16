@@ -41,7 +41,7 @@ class Goal(db.Model):
     description = db.Column(db.Text)
     target_date = db.Column(db.Date)
     achieved_date = db.Column(db.Date)
-    status = db.Column(db.String(20), default='pending')
+    status = db.Column(db.String(20), default='created')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -64,7 +64,7 @@ class Goal(db.Model):
         }
     
     def calculate_progress(self):
-        if self.status == 'achieved':
+        if self.status == 'completed':
             return 100
         
         if self.subgoals:
