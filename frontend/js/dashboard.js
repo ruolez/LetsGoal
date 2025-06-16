@@ -117,17 +117,16 @@ async function loadDashboardData() {
 
 // Update stats display
 function updateStatsDisplay(stats) {
-    document.getElementById('total-goals').textContent = stats.total_goals;
-    document.getElementById('achieved-goals').textContent = stats.completed_goals;
-    document.getElementById('active-goals').textContent = stats.active_goals;
-    document.getElementById('achievement-rate').textContent = `${stats.achievement_rate}%`;
+    // Stats display has been removed from the UI
+    // Stats are now available via the Progress modal
+    console.log('Dashboard stats:', stats);
 }
 
 // Update progress chart to show recent progress trends
 function updateProgressChart(stats) {
     const ctx = document.getElementById('progress-chart');
     if (!ctx) {
-        console.error('Progress chart canvas not found');
+        console.log('Progress chart canvas not found - will be initialized when modal opens');
         return;
     }
     
@@ -176,6 +175,8 @@ function updateProgressChart(stats) {
                 }
             }
         });
+        // Store the chart instance globally for modal access
+        window.progressChart = progressChart;
         return;
     }
     
@@ -250,6 +251,9 @@ function updateProgressChart(stats) {
             }
         }
     });
+    
+    // Store the chart instance globally for modal access
+    window.progressChart = progressChart;
 }
 
 // Generate recent progress data for the last 7 days

@@ -3,12 +3,20 @@
 /* Grid and Layout Styles */
 .goals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   grid-auto-rows: minmax(280px, auto);
   gap: 1.5rem;
   padding: 12px;
   align-items: start;
   z-index: 1;
+}
+
+/* Ensure 4 cards per row on larger screens */
+@media (min-width: 1200px) {
+  .goals-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
 }
 
 .goals-list {
@@ -267,6 +275,17 @@
 }
 
 .h-24 canvas {
+  max-height: 100% !important;
+}
+
+/* Horizontal chart container */
+.h-32 {
+  height: 8rem;
+  max-height: 8rem;
+  overflow: hidden;
+}
+
+.h-32 canvas {
   max-height: 100% !important;
 }
 

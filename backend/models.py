@@ -59,6 +59,8 @@ class Goal(db.Model):
             'achieved_date': self.achieved_date.isoformat() if self.achieved_date else None,
             'status': self.status,
             'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'last_activity_at': self.get_last_activity_at().isoformat() if self.get_last_activity_at() else None,
             'subgoals': [sg.to_dict() for sg in self.subgoals],
             'progress': self.calculate_progress()
         }
@@ -73,6 +75,19 @@ class Goal(db.Model):
         
         # Goals with no subgoals start at 0%
         return 0
+    
+    def get_last_activity_at(self):
+        """Get the most recent activity timestamp for this goal"""
+        timestamps = [self.updated_at]
+        
+        # Add subgoal timestamps
+        for subgoal in self.subgoals:
+            if subgoal.updated_at:
+                timestamps.append(subgoal.updated_at)
+        
+        # Filter out None values and return the most recent
+        valid_timestamps = [ts for ts in timestamps if ts is not None]
+        return max(valid_timestamps) if valid_timestamps else self.created_at
 
 class Subgoal(db.Model):
     __tablename__ = 'subgoals'
@@ -86,6 +101,7 @@ class Subgoal(db.Model):
     status = db.Column(db.String(20), default='pending')
     order_index = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
@@ -96,7 +112,9 @@ class Subgoal(db.Model):
             'target_date': self.target_date.isoformat() if self.target_date else None,
             'achieved_date': self.achieved_date.isoformat() if self.achieved_date else None,
             'status': self.status,
-            'order_index': self.order_index
+            'order_index': self.order_index,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
 class ProgressEntry(db.Model):
@@ -116,5 +134,36 @@ class ProgressEntry(db.Model):
             'entry_date': self.entry_date.isoformat() if self.entry_date else None,
             'progress_percentage': self.progress_percentage,
             'notes': self.notes,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Event(db.Model):
+    __tablename__ = 'events'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    entity_type = db.Column(db.String(20), nullable=False)  # 'goal', 'subgoal'
+    entity_id = db.Column(db.Integer, nullable=False)
+    action = db.Column(db.String(50), nullable=False)  # 'created', 'updated', 'deleted', 'status_changed', etc.
+    field_name = db.Column(db.String(50))  # specific field that changed
+    old_value = db.Column(db.Text)  # previous value (JSON if complex)
+    new_value = db.Column(db.Text)  # new value (JSON if complex)
+    event_metadata = db.Column(db.Text)  # additional context (JSON)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationship to user
+    user = db.relationship('User', backref='events')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'entity_type': self.entity_type,
+            'entity_id': self.entity_id,
+            'action': self.action,
+            'field_name': self.field_name,
+            'old_value': self.old_value,
+            'new_value': self.new_value,
+            'metadata': self.event_metadata,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
