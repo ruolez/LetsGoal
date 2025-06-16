@@ -2,6 +2,29 @@
 
 console.log('🚀 Dashboard.js is loading...'); // Debug log
 
+// Utility function to parse date strings as local dates (fixes timezone issues)
+function parseLocalDate(dateString) {
+    if (!dateString) return null;
+    
+    // Handle ISO date strings (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss)
+    if (typeof dateString === 'string' && dateString.includes('-')) {
+        const parts = dateString.split('T')[0].split('-'); // Take only date part if datetime
+        if (parts.length === 3) {
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // Month is 0-indexed in JavaScript
+            const day = parseInt(parts[2]);
+            
+            // Validate the date parts
+            if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+                return new Date(year, month, day);
+            }
+        }
+    }
+    
+    // Fallback to standard Date parsing
+    return new Date(dateString);
+}
+
 let currentUser = null;
 let goals = [];
 let progressChart = null;
@@ -226,10 +249,10 @@ function generateRecentProgressData() {
     const subgoalData = [];
     const goalData = [];
     
-    // Get last 7 days
+    // Get last 7 days (using local dates for consistency)
     for (let i = 6; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
+        const today = new Date();
+        const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
         
         // Format day label (e.g., "Mon", "Tue")
         const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
@@ -258,7 +281,8 @@ function calculateDayProgress(date, type) {
     // In a production app, you'd store completion timestamps in the database
     
     const today = new Date();
-    const isToday = date.toDateString() === today.toDateString();
+    const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const isToday = date.toDateString() === todayLocal.toDateString();
     const dayOfWeek = date.getDay();
     
     if (type === 'subgoals') {
@@ -392,7 +416,7 @@ function renderGoalCardGrid(goal) {
                 </div>
                 <div class="text-right">
                     <div class="text-sm text-gray-500">Target Date</div>
-                    <div class="text-sm font-medium">${goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'Not set'}</div>
+                    <div class="text-sm font-medium">${goal.target_date ? parseLocalDate(goal.target_date).toLocaleDateString() : 'Not set'}</div>
                 </div>
             </div>
             
@@ -482,7 +506,7 @@ function renderGoalCardList(goal) {
                     <div class="flex items-center space-x-6 text-sm text-gray-500 mb-4">
                         <span class="flex items-center">
                             <i class="fas fa-calendar-alt mr-2"></i>
-                            ${goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'No target date'}
+                            ${goal.target_date ? parseLocalDate(goal.target_date).toLocaleDateString() : 'No target date'}
                         </span>
                         <span class="flex items-center">
                             <i class="fas fa-tasks mr-2"></i>
@@ -543,9 +567,11 @@ function renderGoalCardList(goal) {
 function getDaysUntilDeadline(targetDate) {
     if (!targetDate) return null;
     
-    const target = new Date(targetDate);
+    const target = parseLocalDate(targetDate);
+    // Use local date for today to match parseLocalDate behavior
     const today = new Date();
-    const diffTime = target - today;
+    const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const diffTime = target - todayLocal;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays;
@@ -627,10 +653,22 @@ function setDailyQuote() {
 window.showCreateGoalModal = function() {
     console.log('🎯 Opening create goal modal'); // Debug log
     document.getElementById('create-goal-modal').classList.remove('hidden');
-    // Set default target date to 30 days from now
+    // Set default target date to 30 days from now (using local time to avoid timezone shifts)
     const defaultDate = new Date();
     defaultDate.setDate(defaultDate.getDate() + 30);
-    document.getElementById('goal-target-date').value = defaultDate.toISOString().split('T')[0];
+    // Format as YYYY-MM-DD without timezone conversion
+    const year = defaultDate.getFullYear();
+    const month = String(defaultDate.getMonth() + 1).padStart(2, '0');
+    const day = String(defaultDate.getDate()).padStart(2, '0');
+    document.getElementById('goal-target-date').value = `${year}-${month}-${day}`;
+    
+    // Auto-focus on the goal title input field
+    setTimeout(() => {
+        const goalTitleInput = document.getElementById('goal-title');
+        if (goalTitleInput) {
+            goalTitleInput.focus();
+        }
+    }, 100);
 }
 
 window.closeCreateGoalModal = function() {
@@ -1382,8 +1420,8 @@ function showHistoryModal(historyData) {
                                 <h4 class="font-semibold text-gray-800">${goal.title}</h4>
                                 <p class="text-gray-600 text-sm">${goal.description || 'No description'}</p>
                                 <div class="flex space-x-4 text-sm text-gray-500 mt-2">
-                                    <span>Target: ${goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'No date'}</span>
-                                    <span>Achieved: ${goal.achieved_date ? new Date(goal.achieved_date).toLocaleDateString() : 'Unknown'}</span>
+                                    <span>Target: ${goal.target_date ? parseLocalDate(goal.target_date).toLocaleDateString() : 'No date'}</span>
+                                    <span>Achieved: ${goal.achieved_date ? parseLocalDate(goal.achieved_date).toLocaleDateString() : 'Unknown'}</span>
                                 </div>
                             </div>
                             <div class="text-right">
@@ -1564,12 +1602,12 @@ function applyFiltersAndSort() {
     filtered.sort((a, b) => {
         switch (currentSort) {
             case 'recent':
-                return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+                return parseLocalDate(b.updated_at || b.created_at) - parseLocalDate(a.updated_at || a.created_at);
             case 'target':
                 if (!a.target_date && !b.target_date) return 0;
                 if (!a.target_date) return 1;
                 if (!b.target_date) return -1;
-                return new Date(a.target_date) - new Date(b.target_date);
+                return parseLocalDate(a.target_date) - parseLocalDate(b.target_date);
             case 'progress':
                 return b.progress - a.progress;
             case 'name':
