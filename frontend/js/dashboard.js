@@ -1912,6 +1912,30 @@ function applyFiltersAndSort() {
                 if (!a.target_date) return 1;
                 if (!b.target_date) return -1;
                 return parseLocalDate(a.target_date) - parseLocalDate(b.target_date);
+            case 'urgent_subgoals':
+                // Helper function to find earliest subgoal date
+                const getEarliestSubgoalDate = (goal) => {
+                    if (!goal.subgoals || goal.subgoals.length === 0) return null;
+                    
+                    const dates = goal.subgoals
+                        .filter(sg => sg.target_date && sg.status !== 'achieved')
+                        .map(sg => parseLocalDate(sg.target_date));
+                    
+                    if (dates.length === 0) return null;
+                    
+                    return new Date(Math.min(...dates));
+                };
+                
+                const aEarliest = getEarliestSubgoalDate(a);
+                const bEarliest = getEarliestSubgoalDate(b);
+                
+                // Goals with no subgoal dates go to the bottom
+                if (!aEarliest && !bEarliest) return 0;
+                if (!aEarliest) return 1;
+                if (!bEarliest) return -1;
+                
+                // Sort by earliest date (ascending - most urgent first)
+                return aEarliest - bEarliest;
             case 'progress':
                 return b.progress - a.progress;
             case 'name':
@@ -2008,7 +2032,8 @@ window.setSort = function(sortValue) {
         'recent': 'Recently Updated',
         'target': 'Target Date',
         'progress': 'Progress',
-        'name': 'Name'
+        'name': 'Name',
+        'urgent_subgoals': 'Due Date'
     };
     label.textContent = sortLabels[sortValue];
     
