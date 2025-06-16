@@ -355,6 +355,24 @@
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
 }
 
+/* Days left indicator styling */
+.subgoal-item .text-xs {
+  font-weight: 500;
+  font-size: 0.7rem;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.subgoal-item:hover .text-xs {
+  opacity: 1;
+}
+
+/* Ensure days left indicators don't interfere with hover animations */
+.subgoal-item .flex {
+  width: 100%;
+  min-width: 0;
+}
+
 .subgoal-item input[type="checkbox"] {
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   transform: translateZ(0);

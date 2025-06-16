@@ -403,12 +403,15 @@ function renderGoalCardGrid(goal) {
                         ${goal.subgoals.map((subgoal, index) => `
                             <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= 3 ? 'hidden-subgoal' : 'visible-subgoal'}" 
                                  style="--animation-delay: ${index * 0.05}s">
-                                <input type="checkbox" 
-                                       class="h-3 w-3 text-blue-600 rounded mr-2" 
-                                       ${subgoal.status === 'achieved' ? 'checked' : ''}
-                                       onclick="event.stopPropagation();"
-                                       onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                <span class="truncate">${subgoal.title}</span>
+                                <div class="flex items-center w-full">
+                                    <input type="checkbox" 
+                                           class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
+                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                           onclick="event.stopPropagation();"
+                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
+                                    <span class="truncate flex-1">${subgoal.title}</span>
+                                    ${formatDaysLeft(subgoal.target_date, subgoal.status)}
+                                </div>
                             </div>
                         `).join('')}
                         
@@ -517,6 +520,52 @@ function renderGoalCardList(goal) {
             </div>
         </div>
     `;
+}
+
+// Helper function to calculate days until deadline
+function getDaysUntilDeadline(targetDate) {
+    if (!targetDate) return null;
+    
+    const target = new Date(targetDate);
+    const today = new Date();
+    const diffTime = target - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+}
+
+// Helper function to format days left indicator
+function formatDaysLeft(targetDate, status) {
+    if (!targetDate || status === 'achieved') return '';
+    
+    const daysLeft = getDaysUntilDeadline(targetDate);
+    
+    if (daysLeft === null) return '';
+    
+    let colorClass = '';
+    let text = '';
+    
+    if (daysLeft < 0) {
+        colorClass = 'text-red-500 bg-red-50';
+        text = `${Math.abs(daysLeft)}d overdue`;
+    } else if (daysLeft === 0) {
+        colorClass = 'text-orange-600 bg-orange-50';
+        text = 'Due today';
+    } else if (daysLeft === 1) {
+        colorClass = 'text-orange-600 bg-orange-50';
+        text = 'Due tomorrow';
+    } else if (daysLeft <= 3) {
+        colorClass = 'text-orange-600 bg-orange-50';
+        text = `${daysLeft}d left`;
+    } else if (daysLeft <= 7) {
+        colorClass = 'text-yellow-600 bg-yellow-50';
+        text = `${daysLeft}d left`;
+    } else {
+        colorClass = 'text-gray-500 bg-gray-50';
+        text = `${daysLeft}d left`;
+    }
+    
+    return `<span class="text-xs px-2 py-1 rounded-full ${colorClass} ml-auto flex-shrink-0">${text}</span>`;
 }
 
 // Helper functions for goal status
