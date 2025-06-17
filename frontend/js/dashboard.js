@@ -48,6 +48,70 @@ const goalsPerPage = 9;
 let stickyHoverStates = new Map();
 
 // ========================
+//   THEME MANAGEMENT
+// ========================
+
+// Theme management system
+function initializeTheme() {
+    // Check for stored theme preference or system preference
+    const storedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    let theme = 'light'; // default
+    if (storedTheme) {
+        theme = storedTheme;
+    } else if (systemPrefersDark) {
+        theme = 'dark';
+    }
+    
+    setTheme(theme);
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        // Only auto-switch if user hasn't manually set a preference
+        if (!localStorage.getItem('theme')) {
+            setTheme(e.matches ? 'dark' : 'light');
+        }
+    });
+}
+
+function setTheme(theme) {
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const lightIcon = document.getElementById('theme-icon-light');
+    const darkIcon = document.getElementById('theme-icon-dark');
+    const themeLabel = document.getElementById('theme-label');
+    
+    if (theme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+        if (lightIcon) lightIcon.classList.add('hidden');
+        if (darkIcon) darkIcon.classList.remove('hidden');
+        if (themeLabel) themeLabel.textContent = 'Light';
+        if (themeToggle) themeToggle.setAttribute('title', 'Switch to light mode');
+    } else {
+        html.setAttribute('data-theme', 'light');
+        if (lightIcon) lightIcon.classList.remove('hidden');
+        if (darkIcon) darkIcon.classList.add('hidden');
+        if (themeLabel) themeLabel.textContent = 'Dark';
+        if (themeToggle) themeToggle.setAttribute('title', 'Switch to dark mode');
+    }
+    
+    // Store the preference
+    localStorage.setItem('theme', theme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
+// Make theme functions globally accessible
+window.toggleTheme = toggleTheme;
+window.setTheme = setTheme;
+window.initializeTheme = initializeTheme;
+
+// ========================
 // SETTINGS PERSISTENCE
 // ========================
 
@@ -1718,6 +1782,9 @@ const tagColors = [
 
 // Initialize dashboard
 window.addEventListener('load', async function() {
+    // Initialize theme system first
+    initializeTheme();
+    
     // Check authentication
     currentUser = await authUtils.checkAuthStatus();
     if (!currentUser) {
@@ -2251,7 +2318,7 @@ function renderGoalCardGrid(goal) {
                 </div>
                 
                 <!-- Enhanced Progress and Date Section -->
-                <div class="mt-4 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="mt-4 mb-4 p-3 progress-stats-section rounded-lg">
                     <div class="flex items-center justify-between">
                         <!-- Progress Section -->
                         <div class="flex items-center gap-4">
@@ -2325,34 +2392,78 @@ function renderGoalCardGrid(goal) {
                         
                         <!-- Single Unified Subgoals List -->
                         <div class="subgoals-list space-y-0">
-                            ${goal.subgoals.map((subgoal, index) => `
-                                <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= 3 ? 'hidden-subgoal' : 'visible-subgoal'}" 
-                                     style="--animation-delay: ${index * 0.05}s">
-                                    <div class="flex items-center w-full py-0.25">
-                                        <input type="checkbox" 
-                                               id="subgoal-${subgoal.id}"
-                                               class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
-                                               ${subgoal.status === 'achieved' ? 'checked' : ''}
-                                               onclick="event.stopPropagation();"
-                                               onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                        <span class="truncate flex-1 cursor-pointer text-sm" 
-                                              onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
-                                        ${formatDaysLeft(subgoal.target_date, subgoal.status)}
-                                    </div>
-                                </div>
-                            `).join('')}
+                            ${(() => {
+                                const sortedSubgoals = sortSubgoalsForDisplay(goal.subgoals);
+                                const visibleSlots = 3;
+                                let output = '';
+                                
+                                // Render actual subgoals
+                                sortedSubgoals.forEach((subgoal, index) => {
+                                    output += `
+                                        <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= visibleSlots ? 'hidden-subgoal' : 'visible-subgoal'}" 
+                                             style="--animation-delay: ${index * 0.05}s">
+                                            <div class="flex items-center w-full py-0.25">
+                                                <input type="checkbox" 
+                                                       id="subgoal-${subgoal.id}"
+                                                       class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
+                                                       ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                                       onclick="event.stopPropagation();"
+                                                       onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
+                                                <span class="truncate flex-1 cursor-pointer text-sm" 
+                                                      onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
+                                                ${formatDaysLeft(subgoal.target_date, subgoal.status)}
+                                            </div>
+                                        </div>`;
+                                });
+                                
+                                // Add empty spacer divs to ensure consistent height for cards with fewer subgoals
+                                const visibleCount = Math.min(sortedSubgoals.length, visibleSlots);
+                                for (let i = visibleCount; i < visibleSlots; i++) {
+                                    output += `<div class="subgoal-item visible-subgoal spacer-item">
+                                        <div class="flex items-center w-full py-0.25" style="height: 1.5rem;">
+                                            <!-- Empty spacer to maintain consistent card height -->
+                                        </div>
+                                    </div>`;
+                                }
+                                
+                                return output;
+                            })()}
                             
                             ${hasHiddenSubgoals ? `
                                 <div class="hover-hint-item text-xs text-gray-400 mt-1">
                                     <i class="fas fa-chevron-down mr-1"></i>
                                     <span class="hint-text">+${goal.subgoals.length - 3} more (hover to expand)</span>
                                 </div>
-                            ` : ''}
+                            ` : `
+                                <div class="hover-hint-item text-xs text-gray-400 mt-1" style="opacity: 0; height: 1rem;">
+                                    <!-- Invisible spacer to maintain consistent spacing -->
+                                </div>
+                            `}
                         </div>
                     </div>
                 ` : `
-                    <div class="border-t pt-1.5 mt-auto text-center">
-                        <span class="text-sm text-gray-500">No sub-goals yet</span>
+                    <div class="border-t pt-1.5 mt-auto subgoals-section">
+                        <!-- Reserve space for consistent card height -->
+                        <div class="subgoals-list space-y-0">
+                            <!-- Add 3 empty spacer slots for consistent height -->
+                            ${Array.from({length: 3}, (_, i) => `
+                                <div class="subgoal-item visible-subgoal spacer-item">
+                                    <div class="flex items-center w-full py-0.25" style="height: 1.5rem;">
+                                        <!-- Empty spacer slot ${i + 1} -->
+                                    </div>
+                                </div>
+                            `).join('')}
+                            
+                            <!-- Always show invisible spacer hint for consistent spacing -->
+                            <div class="hover-hint-item text-xs text-gray-400 mt-1" style="opacity: 0; height: 1rem;">
+                                <!-- Invisible spacer for consistent spacing -->
+                            </div>
+                        </div>
+                        
+                        <!-- "No sub-goals yet" message positioned over the spacers -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span class="text-sm text-gray-500">No sub-goals yet</span>
+                        </div>
                     </div>
                 `}
             </div>
@@ -2370,7 +2481,7 @@ function compressDescriptionText() {
 // Render goal card for list view
 function renderGoalCardList(goal) {
     return `
-        <div class="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 transition-all">
+        <div class="modern-goal-card p-6 hover:border-gray-300 transition-all">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <div class="flex items-center space-x-3 mb-2">
@@ -2414,7 +2525,7 @@ function renderGoalCardList(goal) {
                     <!-- Subgoals -->
                     ${goal.subgoals.length > 0 ? `
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            ${goal.subgoals.map(subgoal => `
+                            ${sortSubgoalsForDisplay(goal.subgoals).map(subgoal => `
                                 <div class="flex items-center p-2 rounded hover:bg-gray-50">
                                     <input type="checkbox" 
                                            id="subgoal-list-${subgoal.id}"
@@ -2462,6 +2573,17 @@ function getDaysUntilDeadline(targetDate) {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays;
+}
+
+// Helper function to sort subgoals with completed ones at the bottom
+function sortSubgoalsForDisplay(subgoals) {
+    return subgoals.slice().sort((a, b) => {
+        // Completed subgoals go to bottom
+        if (a.status === 'achieved' && b.status !== 'achieved') return 1;
+        if (a.status !== 'achieved' && b.status === 'achieved') return -1;
+        // Among same status, maintain original order (by order_index if available)
+        return (a.order_index || 0) - (b.order_index || 0);
+    });
 }
 
 // Helper function to format days left indicator
@@ -3070,7 +3192,7 @@ window.addSubgoalToList = function(subgoal = null) {
     emptyState.classList.add('hidden');
     
     const row = document.createElement('div');
-    row.className = 'subgoal-item bg-white border border-gray-200 rounded-md p-2 hover:border-gray-300 transition-all';
+    row.className = 'subgoal-item modern-card border rounded-md p-2 hover:border-gray-300 transition-all';
     row.innerHTML = `
         <input type="hidden" class="subgoal-id" value="${subgoal?.id || ''}">
         <div class="flex items-start space-x-2">
@@ -3523,7 +3645,11 @@ function updateGoalProgressBar(goalId) {
                              goal.progress >= 75 ? '#3b82f6' : 
                              goal.progress >= 25 ? '#f59e0b' : '#ef4444';
         
-        progressCircle.style.background = `conic-gradient(${progressColor} ${goal.progress * 3.6}deg, #f3f4f6 ${goal.progress * 3.6}deg)`;
+        // Use CSS variable-aware background color for dark mode compatibility
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        const backgroundColor = isDarkMode ? '#475569' : '#f3f4f6'; // --color-border-primary in dark mode
+        
+        progressCircle.style.background = `conic-gradient(${progressColor} ${goal.progress * 3.6}deg, ${backgroundColor} ${goal.progress * 3.6}deg)`;
     }
     
     // Update progress text
@@ -3967,10 +4093,10 @@ window.setViewMode = function(mode) {
     listBtn.classList.add('text-gray-500');
     
     if (mode === 'grid') {
-        gridBtn.classList.add('active', 'bg-white', 'text-gray-700', 'shadow-sm');
+        gridBtn.classList.add('active', 'view-toggle-btn', 'shadow-sm');
         gridBtn.classList.remove('text-gray-500');
     } else {
-        listBtn.classList.add('active', 'bg-white', 'text-gray-700', 'shadow-sm');
+        listBtn.classList.add('active', 'view-toggle-btn', 'shadow-sm');
         listBtn.classList.remove('text-gray-500');
     }
     
