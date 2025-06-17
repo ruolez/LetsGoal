@@ -609,7 +609,7 @@ html {
 .quick-subgoal-input {
   font-size: 0.75rem;
   line-height: 1.2;
-  border: 1px solid #d1d5db !important; /* Subtle but visible border */
+  border: 1px solid #cbd5e1 !important; /* Subtle but visible border */
   background: #fafafa;
   transition: all 0.2s ease;
 }
@@ -803,7 +803,7 @@ html {
 }
 
 .tag-option:hover {
-  border-color: #d1d5db;
+  border-color: #cbd5e1;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -891,7 +891,7 @@ html {
 
 .tag-item:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border-color: #d1d5db;
+  border-color: #cbd5e1;
 }
 
 .tag-item-color {
@@ -1070,7 +1070,7 @@ html {
 
 .goal-card:hover {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  border-color: #d1d5db;
+  border-color: #cbd5e1;
 }
 
 /* Modern Goal Card */
@@ -1084,7 +1084,7 @@ html {
 }
 
 .modern-goal-card:hover {
-  border-color: #d1d5db;
+  border-color: #cbd5e1;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
 }
@@ -1162,7 +1162,7 @@ html {
 .form-checkbox {
   appearance: none;
   background-color: #fff;
-  border: 2px solid #d1d5db;
+  border: 2px solid #cbd5e1;
   border-radius: 4px;
   color: #3b82f6;
   cursor: pointer;
@@ -1242,7 +1242,7 @@ html {
 
 /* Modern Input Fields */
 .input-field {
-  border: 2px solid #d1d5db !important; /* Subtle but visible border */
+  border: 2px solid #cbd5e1 !important; /* Subtle but visible border */
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 15px;
@@ -1292,7 +1292,7 @@ html {
 }
 
 .subgoal-item:hover {
-  border-color: #d1d5db;
+  border-color: #cbd5e1;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
@@ -1502,7 +1502,7 @@ body.modal-open {
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   background: transparent;
   color: #9ca3af;
   display: flex;
@@ -1573,7 +1573,7 @@ body.modal-open {
   background: #f8fafc;
   border-radius: 12px;
   padding: 16px;
-  border: 1px solid #d1d5db; /* Darker border for better visibility */
+  border: 1px solid #cbd5e1; /* Darker border for better visibility */
 }
 
 /* Modern Progress Circle */
@@ -1586,13 +1586,13 @@ body.modal-open {
 
 /* Progress circle container needs visible border */
 .modern-progress-circle .w-20 {
-  border: 1px solid #d1d5db !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 50% !important;
 }
 
 /* Inner white circle also needs border */
 .modern-progress-circle .w-14 {
-  border: 1px solid #d1d5db !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 50% !important;
 }
 
@@ -1616,7 +1616,7 @@ body.modal-open {
   background: white;
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #d1d5db; /* Darker border for better visibility */
+  border: 1px solid #cbd5e1; /* Darker border for better visibility */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -1707,7 +1707,7 @@ body.modal-open {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #cbd5e1;
   background: transparent;
   color: #9ca3af;
   display: flex;
@@ -1745,7 +1745,7 @@ body.modal-open {
   z-index: 50;
   min-width: 120px;
   background: white !important;
-  border: 1px solid #d1d5db !important;
+  border: 1px solid #cbd5e1 !important;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
   padding: 4px 0;
@@ -1811,7 +1811,7 @@ body.modal-open {
 /* Menu Divider */
 .card-menu-divider {
   height: 1px;
-  background-color: #d1d5db; /* Darker divider for better visibility */
+  background-color: #cbd5e1; /* Darker divider for better visibility */
   margin: 4px 0;
 }
 
@@ -1911,7 +1911,7 @@ body.modal-open {
 
 /* Restore proper card borders while preventing blue focus border */
 .expandable-goal-card {
-  border: 1px solid #d1d5db !important; /* Darker gray for better visibility */
+  border: 1px solid #cbd5e1 !important; /* Darker gray for better visibility */
 }
 
 /* Only target the specific focus state that causes blue border */
@@ -1923,7 +1923,7 @@ body.modal-open {
 
 /* Keep normal card borders visible but prevent focus blue border */
 .expandable-goal-card:focus {
-  border: 1px solid #d1d5db !important; /* Keep same dark border */
+  border: 1px solid #cbd5e1 !important; /* Keep same dark border */
   outline: none !important;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important; /* Subtle shadow without blue */
 }
@@ -1933,7 +1933,7 @@ input[type="text"],
 input[type="search"],
 .quick-subgoal-input,
 .input-field {
-  border: 1px solid #d1d5db !important; /* Subtle but visible border */
+  border: 1px solid #cbd5e1 !important; /* Subtle but visible border */
 }
 
 input[type="text"]:focus,
@@ -1950,42 +1950,42 @@ input[type="search"]:focus,
 
 /* Fix filter dropdown buttons - subtle but visible borders */
 .border-gray-200 {
-  border-color: #d1d5db !important; /* Subtle but visible */
+  border-color: #cbd5e1 !important; /* Subtle but visible */
 }
 
 /* Fix progress sections inside cards */
 .progress-stats-section {
-  border: 1px solid #d1d5db !important; /* Subtle border for better visibility */
+  border: 1px solid #cbd5e1 !important; /* Subtle border for better visibility */
 }
 
 /* Fix all elements with pale borders */
 .border-gray-100,
 .border-gray-200,
 .border-gray-300 {
-  border-color: #d1d5db !important;
+  border-color: #cbd5e1 !important;
 }
 
 /* Fix dropdown menus */
 .bg-white.border,
 .bg-white.rounded-lg.border,
 .bg-white.rounded-xl.border {
-  border-color: #d1d5db !important;
+  border-color: #cbd5e1 !important;
 }
 
 /* Fix specific filter bar elements */
 .bg-white.rounded-xl.border.border-gray-200 {
-  border-color: #d1d5db !important;
+  border-color: #cbd5e1 !important;
 }
 
 /* Fix any remaining pale borders */
 *[class*="border-gray-200"],
 *[class*="border-gray-100"] {
-  border-color: #d1d5db !important;
+  border-color: #cbd5e1 !important;
 }
 
 /* Fix filter dropdown buttons specifically - they use border-0 */
 .modern-filter-btn {
-  border: 1px solid #d1d5db !important; /* Add visible border */
+  border: 1px solid #cbd5e1 !important; /* Add visible border */
 }
 
 .modern-filter-btn:hover {

@@ -704,7 +704,7 @@ function renderGoalCardGrid(goal) {
                         <button class="card-menu-btn" onclick="toggleCardMenu(${goal.id}); event.stopPropagation();" title="More options">
                             <i class="fas fa-ellipsis-h"></i>
                         </button>
-                        <div id="card-menu-${goal.id}" class="card-dropdown-menu hidden" style="border: 1px solid #d1d5db !important;">
+                        <div id="card-menu-${goal.id}" class="card-dropdown-menu hidden" style="border: 1px solid #cbd5e1 !important;">
                             <button onclick="editGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
                                 <i class="fas fa-edit"></i>
                                 <span>Edit</span>
