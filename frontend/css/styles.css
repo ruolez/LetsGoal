@@ -562,6 +562,155 @@
   }
 }
 
+/* Animated Focus Logo Styling */
+@keyframes focus-ripple {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes focus-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes focus-ring-animate {
+  0% {
+    stroke-dasharray: 0 63;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 31.5 31.5;
+    stroke-dashoffset: -15.75;
+  }
+  100% {
+    stroke-dasharray: 0 63;
+    stroke-dashoffset: -63;
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes quote-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.animated-focus-logo {
+  position: relative;
+}
+
+.focus-logo-container {
+  animation: focus-pulse 3s ease-in-out infinite;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.focus-logo-container:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+}
+
+.focus-logo-container::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: conic-gradient(from 0deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+  border-radius: 50%;
+  animation: focus-ripple 2s linear infinite;
+  z-index: -1;
+}
+
+.focus-ring-outer {
+  stroke: currentColor;
+  stroke-width: 1.5;
+  opacity: 0.8;
+  animation: focus-ring-animate 4s ease-in-out infinite;
+  stroke-dasharray: 0 63;
+}
+
+.focus-ring-middle {
+  stroke: currentColor;
+  stroke-width: 2;
+  opacity: 0.9;
+  animation: focus-ring-animate 3s ease-in-out infinite 0.5s;
+  stroke-dasharray: 0 38;
+}
+
+.focus-ring-inner {
+  stroke: currentColor;
+  stroke-width: 2.5;
+  fill: currentColor;
+  opacity: 1;
+  animation: focus-pulse 2s ease-in-out infinite 1s;
+}
+
+/* Floating Quote Bubble Styling */
+.floating-quote {
+  animation: float-gentle 4s ease-in-out infinite;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.5rem 1.25rem !important;
+}
+
+.floating-quote p {
+  font-size: 0.75rem !important;
+  color: #9ca3af !important;
+  font-weight: 400 !important;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.floating-quote:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 1);
+}
+
+.floating-quote:hover p {
+  color: #6b7280 !important;
+}
+
+.quote-indicator {
+  animation: quote-pulse 2s ease-in-out infinite;
+}
+
+/* User Avatar Enhancement */
+.user-avatar {
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
 /* Navigation Link Buttons */
 .nav-link-btn {
   display: flex;
@@ -710,10 +859,10 @@ html {
 
 .tag-color-picker {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.5rem;
   margin-top: 0.5rem;
-  max-height: 400px;
+  max-height: 200px;
   overflow-y: auto;
   padding: 0.5rem;
 }

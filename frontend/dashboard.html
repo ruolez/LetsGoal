@@ -28,75 +28,60 @@
     </style>
 </head>
 <body class="min-h-screen">
-    <!-- Navigation Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-40" style="box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);">
+    <!-- Navigation Header - Concept 1: Minimalist Floating -->
+    <header class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 sticky top-0 z-40" style="box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);">
         <div class="max-w-7xl mx-auto">
             <div class="flex items-center justify-between h-16 px-6">
-                <!-- Brand Section -->
+                <!-- Brand Section with Animated Focus Logo -->
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-3">
-                        <div class="relative">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <div class="relative animated-focus-logo">
+                            <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg focus-logo-container">
+                                <svg class="w-5 h-5 text-white focus-logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" class="focus-ring-outer"/>
+                                    <circle cx="12" cy="12" r="6" class="focus-ring-middle"/>
+                                    <circle cx="12" cy="12" r="2" class="focus-ring-inner"/>
                                 </svg>
                             </div>
                         </div>
                         <div class="flex flex-col">
-                            <h1 class="text-lg font-semibold text-gray-900 leading-none">Let's Goal</h1>
-                            <span class="text-xs text-gray-500 leading-none">Dashboard</span>
+                            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-none">LetsGoal</h1>
+                            <span class="text-xs text-gray-500 leading-none">Achieve More</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Center Section - Daily Motivation -->
-                <div class="hidden lg:flex items-center flex-1 justify-center px-8">
-                    <p id="daily-quote" class="text-gray-500 italic text-xs font-light">
-                        Loading inspiration...
-                    </p>
+                <!-- Floating Quote Bubble -->
+                <div class="hidden lg:block flex-1 px-8">
+                    <div class="max-w-md mx-auto">
+                        <div class="relative bg-white rounded-full px-6 py-3 shadow-lg border border-gray-100 floating-quote">
+                            <p id="daily-quote" class="text-sm font-medium text-gray-700 text-center">
+                                Loading inspiration...
+                            </p>
+                            <div class="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full quote-indicator"></div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Right Section - Quick Links and User -->
+                <!-- User Section -->
                 <div class="flex items-center space-x-4">
-                    <!-- Quick Links -->
-                    <div class="hidden md:flex items-center space-x-1">
-                        <button onclick="viewHistory()" class="nav-link-btn">
-                            <i class="fas fa-history"></i>
-                            <span>History</span>
-                        </button>
-                        <button onclick="viewProgress()" class="nav-link-btn">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Progress</span>
-                        </button>
-                        <button onclick="generateReport()" class="nav-link-btn">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Report</span>
-                        </button>
-                    </div>
-
-                    <!-- Divider -->
-                    <div class="hidden md:block w-px h-6 bg-gray-200"></div>
-
                     <!-- User Info -->
                     <div class="hidden sm:flex items-center space-x-3">
                         <div class="text-right">
-                            <span id="user-welcome" class="text-sm font-medium text-gray-700 block leading-none">
+                            <span id="user-welcome" class="text-sm font-semibold text-gray-700 block leading-none">
                                 Welcome back!
                             </span>
-                            <span class="text-xs text-gray-500 leading-none">User Dashboard</span>
+                            <span class="text-xs text-gray-500 leading-none">Goal Achiever</span>
                         </div>
-                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center shadow-sm">
-                            <span class="text-sm font-medium text-white">U</span>
+                        <div class="w-9 h-9 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md user-avatar">
+                            <span class="text-sm font-semibold text-white">U</span>
                         </div>
                     </div>
-
-                    <!-- Divider -->
-                    <div class="hidden sm:block w-px h-6 bg-gray-200"></div>
 
                     <!-- Sign Out Button -->
                     <button 
                         onclick="authUtils.logout()" 
-                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors duration-150 ease-in-out"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-all duration-200 ease-in-out"
                         title="Sign out">
                         <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
