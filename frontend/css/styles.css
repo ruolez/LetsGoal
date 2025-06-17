@@ -1383,13 +1383,13 @@ body.modal-open {
 
 /* Smooth Notification System */
 .notification-success {
-  background: rgba(245, 124, 0, 0.95);
+  background: rgba(100, 149, 237, 0.95);
   color: white;
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(245, 124, 0, 0.8);
+  border: 1px solid rgba(100, 149, 237, 0.8);
   transform: translateY(100%);
   opacity: 0;
-  transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .notification-success.slide-in {
@@ -1428,11 +1428,11 @@ body.modal-open {
 }
 
 .notification-animate-in {
-  animation: gentle-slide-in 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: gentle-slide-in 2.0s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .notification-animate-out {
-  animation: gentle-slide-out 1.0s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+  animation: gentle-slide-out 1.8s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
 }
 
 .notification-error {
@@ -1442,7 +1442,7 @@ body.modal-open {
   border: 1px solid rgba(239, 68, 68, 0.2);
   transform: translateY(100%);
   opacity: 0;
-  transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* ================================================
