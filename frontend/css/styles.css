@@ -1458,23 +1458,28 @@ body.modal-open {
 /* Card Header Section - Fixed height for perfect alignment */
 .card-header-section {
   padding: 4px 0;
-  height: 120px; /* Fixed height instead of min-height */
+  height: 100px; /* Reduced from 120px since we now use 1 line instead of 2 */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
 
-/* Description container - always reserve space for 2 lines */
+/* Description container - always reserve space for 1 line */
 .description-container {
-  height: 2.24rem; /* Exactly 2 lines: 0.8rem * 1.4 * 2 = 2.24rem */
+  height: 1.12rem; /* Exactly 1 line: 0.8rem * 1.4 = 1.12rem */
   display: flex;
   align-items: flex-start;
   margin-top: 8px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 /* Empty description placeholder */
 .description-placeholder {
-  height: 2.24rem;
+  height: 1.12rem;
   margin-top: 8px;
 }
 
@@ -1578,19 +1583,22 @@ body.modal-open {
   font-weight: 600;
 }
 
-/* Goal Description Modern - Always 2 lines for consistent alignment */
+/* Goal Description Modern - Always 1 line with text compression */
 .goal-description-modern {
   font-size: 0.8rem;
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
-  height: 2.24rem; /* Exactly 2 lines: 0.8rem * 1.4 * 2 = 2.24rem */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  height: 1.12rem; /* Exactly 1 line: 0.8rem * 1.4 = 1.12rem */
+  white-space: nowrap;
   overflow: hidden;
-  hyphens: auto;
-  word-wrap: break-word;
+  text-overflow: ellipsis;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  transform-origin: left center;
+  transition: font-size 0.2s ease, transform 0.2s ease;
+  box-sizing: border-box;
 }
 
 /* Progress Stats Section */

@@ -572,6 +572,9 @@ function renderGoals() {
     
     // Update load more button
     updateLoadMoreButton();
+    
+    // Compress description text to fit in goal cards
+    compressDescriptionText();
 }
 
 // Setup sticky hover functionality for goal cards
@@ -736,10 +739,10 @@ function renderGoalCardGrid(goal) {
                     </div>
                 ` : ''}
                 
-                <!-- Description with consistent 2-line spacing -->
+                <!-- Description with consistent 1-line spacing -->
                 <div class="${goal.description ? 'description-container' : 'description-placeholder'}">
                     ${goal.description ? `
-                        <p class="goal-description-modern">${goal.description}</p>
+                        <p class="goal-description-modern" id="desc-${goal.id}">${goal.description}</p>
                     ` : ''}
                 </div>
             </div>
@@ -806,6 +809,50 @@ function renderGoalCardGrid(goal) {
             
         </div>
     `;
+}
+
+// Function to compress text to fit in one line
+function compressDescriptionText() {
+    // Use requestAnimationFrame to ensure DOM is fully rendered
+    requestAnimationFrame(() => {
+        const descriptions = document.querySelectorAll('.goal-description-modern');
+        
+        descriptions.forEach(desc => {
+            if (!desc.textContent.trim()) return;
+            
+            // Force the container to have a fixed width
+            const container = desc.parentElement;
+            const containerWidth = container.offsetWidth;
+            
+            // Reset to original state
+            desc.style.fontSize = '0.8rem';
+            desc.style.transform = 'scaleX(1)';
+            desc.style.width = containerWidth + 'px';
+            desc.style.maxWidth = containerWidth + 'px';
+            
+            // Force a reflow to get accurate measurements
+            desc.offsetWidth;
+            
+            // Check if text overflows the container
+            if (desc.scrollWidth > containerWidth) {
+                // Try reducing font size first
+                let fontSize = 0.8;
+                const minFontSize = 0.6;
+                
+                while (desc.scrollWidth > containerWidth && fontSize > minFontSize) {
+                    fontSize -= 0.02;
+                    desc.style.fontSize = fontSize + 'rem';
+                    desc.offsetWidth; // Force reflow
+                }
+                
+                // If still overflowing, apply horizontal scaling
+                if (desc.scrollWidth > containerWidth) {
+                    const scale = containerWidth / desc.scrollWidth;
+                    desc.style.transform = `scaleX(${Math.max(scale, 0.7)})`;
+                }
+            }
+        });
+    });
 }
 
 // Render goal card for list view
