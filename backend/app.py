@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_login import LoginManager, login_required, current_user
 from flask_cors import CORS
 from datetime import datetime, date
-from models import db, User, Goal, Subgoal, ProgressEntry, Event
+from models import db, User, Goal, Subgoal, ProgressEntry, Event, Tag
 from auth import auth_bp
 from event_tracker import EventTracker
 
@@ -365,6 +365,128 @@ def create_app():
             db.session.rollback()
             return jsonify({'error': 'Failed to add progress'}), 500
     
+    # Tags API endpoints
+    @app.route('/api/tags', methods=['GET'])
+    @login_required
+    def get_tags():
+        tags = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.name).all()
+        return jsonify([tag.to_dict() for tag in tags])
+    
+    @app.route('/api/tags', methods=['POST'])
+    @login_required
+    def create_tag():
+        data = request.get_json()
+        
+        if not data or not data.get('name'):
+            return jsonify({'error': 'Tag name is required'}), 400
+        
+        if not data.get('color'):
+            return jsonify({'error': 'Tag color is required'}), 400
+        
+        # Validate color format (should be hex color)
+        color = data['color']
+        if not color.startswith('#') or len(color) != 7:
+            return jsonify({'error': 'Color must be a valid hex color code (e.g., #3B82F6)'}), 400
+        
+        # Check if tag name already exists for this user
+        existing_tag = Tag.query.filter_by(user_id=current_user.id, name=data['name']).first()
+        if existing_tag:
+            return jsonify({'error': 'A tag with this name already exists'}), 400
+        
+        tag = Tag(
+            user_id=current_user.id,
+            name=data['name'].strip(),
+            color=color
+        )
+        
+        try:
+            db.session.add(tag)
+            db.session.commit()
+            return jsonify(tag.to_dict()), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to create tag'}), 500
+    
+    @app.route('/api/tags/<int:tag_id>', methods=['PUT'])
+    @login_required
+    def update_tag(tag_id):
+        tag = Tag.query.filter_by(id=tag_id, user_id=current_user.id).first()
+        if not tag:
+            return jsonify({'error': 'Tag not found'}), 404
+        
+        data = request.get_json()
+        
+        if data.get('name'):
+            # Check if new name conflicts with existing tag
+            existing_tag = Tag.query.filter_by(user_id=current_user.id, name=data['name']).first()
+            if existing_tag and existing_tag.id != tag_id:
+                return jsonify({'error': 'A tag with this name already exists'}), 400
+            tag.name = data['name'].strip()
+        
+        if data.get('color'):
+            # Validate color format
+            color = data['color']
+            if not color.startswith('#') or len(color) != 7:
+                return jsonify({'error': 'Color must be a valid hex color code (e.g., #3B82F6)'}), 400
+            tag.color = color
+        
+        tag.updated_at = datetime.utcnow()
+        
+        try:
+            db.session.commit()
+            return jsonify(tag.to_dict())
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to update tag'}), 500
+    
+    @app.route('/api/tags/<int:tag_id>', methods=['DELETE'])
+    @login_required
+    def delete_tag(tag_id):
+        tag = Tag.query.filter_by(id=tag_id, user_id=current_user.id).first()
+        if not tag:
+            return jsonify({'error': 'Tag not found'}), 404
+        
+        try:
+            db.session.delete(tag)
+            db.session.commit()
+            return jsonify({'message': 'Tag deleted successfully'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to delete tag'}), 500
+    
+    @app.route('/api/goals/<int:goal_id>/tags', methods=['PUT'])
+    @login_required
+    def update_goal_tags(goal_id):
+        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        if not goal:
+            return jsonify({'error': 'Goal not found'}), 404
+        
+        data = request.get_json()
+        tag_ids = data.get('tag_ids', [])
+        
+        if not isinstance(tag_ids, list):
+            return jsonify({'error': 'tag_ids must be a list'}), 400
+        
+        # Verify all tag IDs belong to the current user
+        if tag_ids:
+            user_tags = Tag.query.filter(Tag.id.in_(tag_ids), Tag.user_id == current_user.id).all()
+            if len(user_tags) != len(tag_ids):
+                return jsonify({'error': 'One or more tags not found or do not belong to you'}), 400
+        
+        try:
+            # Clear existing tags and set new ones
+            goal.tags.clear()
+            if tag_ids:
+                tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
+                goal.tags.extend(tags)
+            
+            goal.updated_at = datetime.utcnow()
+            db.session.commit()
+            return jsonify(goal.to_dict())
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to update goal tags'}), 500
+
     # Dashboard stats endpoint
     @app.route('/api/dashboard/stats', methods=['GET'])
     @login_required

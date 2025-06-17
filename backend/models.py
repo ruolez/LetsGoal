@@ -5,6 +5,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
+# Association table for many-to-many relationship between goals and tags
+goal_tags = db.Table('goal_tags',
+    db.Column('goal_id', db.Integer, db.ForeignKey('goals.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True),
+    db.Column('created_at', db.DateTime, default=datetime.utcnow)
+)
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
@@ -17,6 +24,7 @@ class User(UserMixin, db.Model):
     
     # Relationships
     goals = db.relationship('Goal', backref='user', lazy=True, cascade='all, delete-orphan')
+    tags = db.relationship('Tag', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -30,6 +38,29 @@ class User(UserMixin, db.Model):
             'username': self.username,
             'email': self.email,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(50), nullable=False)
+    color = db.Column(db.String(7), nullable=False)  # Hex color code
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Unique constraint to prevent duplicate tag names per user
+    __table_args__ = (db.UniqueConstraint('user_id', 'name', name='_user_tag_name_uc'),)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'name': self.name,
+            'color': self.color,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
 class Goal(db.Model):
@@ -48,6 +79,7 @@ class Goal(db.Model):
     # Relationships
     subgoals = db.relationship('Subgoal', backref='goal', lazy=True, cascade='all, delete-orphan')
     progress_entries = db.relationship('ProgressEntry', backref='goal', lazy=True, cascade='all, delete-orphan')
+    tags = db.relationship('Tag', secondary=goal_tags, lazy='subquery', backref=db.backref('goals', lazy=True))
     
     def to_dict(self):
         return {
@@ -62,6 +94,7 @@ class Goal(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'last_activity_at': self.get_last_activity_at().isoformat() if self.get_last_activity_at() else None,
             'subgoals': [sg.to_dict() for sg in self.subgoals],
+            'tags': [tag.to_dict() for tag in self.tags],
             'progress': self.calculate_progress()
         }
     

@@ -33,16 +33,158 @@ function parseLocalDate(dateString) {
 
 let currentUser = null;
 let goals = [];
+let tags = [];
 let progressChart = null;
 let filteredGoals = [];
 let currentViewMode = 'grid';
 let currentFilter = 'all';
 let currentSort = 'recent';
+let currentTagFilter = null; // null means show all tags
+let selectedTagIds = [];
 let currentPage = 0;
 const goalsPerPage = 9;
 
 // Track which goal cards should maintain sticky hover state
 let stickyHoverStates = new Map();
+
+// ========================
+// SETTINGS PERSISTENCE
+// ========================
+
+// Default user preferences
+const DEFAULT_SETTINGS = {
+    viewMode: 'grid',
+    filter: 'all',
+    sort: 'recent',
+    tagFilter: null,
+    page: 0,
+    searchTerm: ''
+};
+
+// Save user settings to localStorage
+function saveUserSettings() {
+    try {
+        const searchInput = document.getElementById('goal-search');
+        const searchTerm = searchInput ? searchInput.value : '';
+        
+        const settings = {
+            viewMode: currentViewMode,
+            filter: currentFilter,
+            sort: currentSort,
+            tagFilter: currentTagFilter,
+            page: currentPage,
+            searchTerm: searchTerm
+        };
+        
+        localStorage.setItem('letsgoal_user_settings', JSON.stringify(settings));
+        console.log('💾 User settings saved:', settings);
+    } catch (error) {
+        console.error('❌ Failed to save user settings:', error);
+    }
+}
+
+// Load user settings from localStorage
+function loadUserSettings() {
+    try {
+        const saved = localStorage.getItem('letsgoal_user_settings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            console.log('📂 Loading saved user settings:', settings);
+            
+            // Apply saved settings
+            currentViewMode = settings.viewMode || DEFAULT_SETTINGS.viewMode;
+            currentFilter = settings.filter || DEFAULT_SETTINGS.filter;
+            currentSort = settings.sort || DEFAULT_SETTINGS.sort;
+            currentTagFilter = settings.tagFilter || DEFAULT_SETTINGS.tagFilter;
+            currentPage = settings.page || DEFAULT_SETTINGS.page;
+            
+            // Apply search term
+            const searchInput = document.getElementById('goal-search');
+            if (searchInput && settings.searchTerm) {
+                searchInput.value = settings.searchTerm;
+            }
+            
+            console.log('✅ User settings applied');
+            return true;
+        } else {
+            console.log('📝 No saved settings found, using defaults');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Failed to load user settings:', error);
+        // Reset to defaults on error
+        currentViewMode = DEFAULT_SETTINGS.viewMode;
+        currentFilter = DEFAULT_SETTINGS.filter;
+        currentSort = DEFAULT_SETTINGS.sort;
+        currentTagFilter = DEFAULT_SETTINGS.tagFilter;
+        currentPage = DEFAULT_SETTINGS.page;
+        return false;
+    }
+}
+
+// Clear user settings (useful for reset)
+function clearUserSettings() {
+    try {
+        localStorage.removeItem('letsgoal_user_settings');
+        console.log('🗑️ User settings cleared');
+    } catch (error) {
+        console.error('❌ Failed to clear user settings:', error);
+    }
+}
+
+// Apply saved settings to UI elements
+function applySettingsToUI() {
+    console.log('🎨 Applying settings to UI...');
+    
+    // Apply view mode
+    const viewToggle = document.getElementById('view-toggle');
+    if (viewToggle) {
+        const isGrid = currentViewMode === 'grid';
+        viewToggle.querySelector('.fa-th-large').style.opacity = isGrid ? '1' : '0.5';
+        viewToggle.querySelector('.fa-list').style.opacity = isGrid ? '0.5' : '1';
+    }
+    
+    // Apply filter
+    const filterLabel = document.getElementById('filter-label');
+    if (filterLabel) {
+        const filterText = {
+            'all': 'All Goals',
+            'created': 'Created',
+            'started': 'Started',
+            'working': 'Working',
+            'completed': 'Completed'
+        };
+        filterLabel.textContent = filterText[currentFilter];
+    }
+    
+    // Apply sort
+    const sortLabel = document.getElementById('sort-label');
+    if (sortLabel) {
+        const sortText = {
+            'recent': 'Recently Updated',
+            'target': 'Target Date',
+            'progress': 'Progress',
+            'name': 'Name',
+            'urgent_subgoals': 'Due Date'
+        };
+        sortLabel.textContent = sortText[currentSort];
+    }
+    
+    // Apply tag filter
+    const tagFilterLabel = document.getElementById('tag-filter-label');
+    if (tagFilterLabel) {
+        if (currentTagFilter) {
+            const selectedTag = tags.find(tag => tag.id === currentTagFilter);
+            if (selectedTag) {
+                tagFilterLabel.textContent = selectedTag.name;
+            }
+        } else {
+            tagFilterLabel.textContent = 'All Tags';
+        }
+    }
+    
+    console.log('✅ Settings applied to UI');
+}
 
 // Dashboard functionality confirmed working
 
@@ -58,6 +200,18 @@ const motivationalQuotes = [
     "The future belongs to those who prepare for it today."
 ];
 
+// Predefined color palette for tags
+const tagColors = [
+    { name: 'Blue', value: '#3B82F6' },
+    { name: 'Green', value: '#10B981' },
+    { name: 'Purple', value: '#8B5CF6' },
+    { name: 'Orange', value: '#F59E0B' },
+    { name: 'Red', value: '#EF4444' },
+    { name: 'Pink', value: '#EC4899' },
+    { name: 'Indigo', value: '#6366F1' },
+    { name: 'Teal', value: '#14B8A6' }
+];
+
 // Initialize dashboard
 window.addEventListener('load', async function() {
     // Check authentication
@@ -67,6 +221,9 @@ window.addEventListener('load', async function() {
         return;
     }
     
+    // Load saved user settings BEFORE loading data
+    loadUserSettings();
+    
     // Update welcome message
     document.getElementById('user-welcome').innerHTML = `
         Welcome, ${currentUser.username}
@@ -75,8 +232,16 @@ window.addEventListener('load', async function() {
     // Load dashboard data
     await loadDashboardData();
     
+    // Load user tags
+    await loadUserTags();
+    
     // Set daily motivational quote
     setDailyQuote();
+    
+    // Apply saved settings to UI elements (after everything is loaded)
+    setTimeout(() => {
+        applySettingsToUI();
+    }, 100);
     
     // Setup event listeners
     setupEventListeners();
@@ -112,6 +277,25 @@ async function loadDashboardData() {
         authUtils.showErrorMessage('Failed to load dashboard data');
     } finally {
         authUtils.hideLoadingSpinner();
+    }
+}
+
+// Load user tags
+async function loadUserTags() {
+    try {
+        const response = await fetch('/api/tags', { credentials: 'include' });
+        
+        if (response.ok) {
+            tags = await response.json();
+            console.log('📊 Loaded user tags:', tags.length);
+            
+            // Populate tag filter dropdown
+            populateTagFilterDropdown();
+        } else {
+            console.error('Failed to load tags');
+        }
+    } catch (error) {
+        console.error('Error loading user tags:', error);
     }
 }
 
@@ -517,6 +701,12 @@ function renderGoalCardGrid(goal) {
                         <i class="fas ${getStatusIcon(goal.status)}"></i>
                     </span>
                 </div>
+                <!-- Tags -->
+                ${goal.tags && goal.tags.length > 0 ? `
+                    <div class="flex flex-wrap gap-1 mt-2">
+                        ${renderTagBadges(goal, 3)}
+                    </div>
+                ` : ''}
             </div>
             
             <!-- Description -->
@@ -632,6 +822,13 @@ function renderGoalCardList(goal) {
                             <i class="fas ${getStatusIcon(goal.status)}"></i>
                         </span>
                     </div>
+                    
+                    <!-- Tags -->
+                    ${goal.tags && goal.tags.length > 0 ? `
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            ${renderTagBadges(goal, 5)}
+                        </div>
+                    ` : ''}
                     
                     ${goal.description ? `<p class="text-gray-600 mb-4">${goal.description}</p>` : ''}
                     
@@ -794,6 +991,10 @@ window.showCreateGoalModal = function() {
     const day = String(defaultDate.getDate()).padStart(2, '0');
     document.getElementById('goal-target-date').value = `${year}-${month}-${day}`;
     
+    // Initialize tag selector
+    selectedTagIds = [];
+    renderTagSelector('create-goal-tags-grid', selectedTagIds);
+    
     // Auto-focus on the goal title input field
     setTimeout(() => {
         const goalTitleInput = document.getElementById('goal-title');
@@ -834,6 +1035,9 @@ window.closeCreateGoalModal = function() {
     
     document.getElementById('create-goal-modal').classList.add('hidden');
     document.getElementById('create-goal-form').reset();
+    
+    // Clear tag selection
+    selectedTagIds = [];
 }
 
 // Goal management functions
@@ -850,6 +1054,23 @@ async function createGoal(goalData) {
         
         if (response.ok) {
             const newGoal = await response.json();
+            
+            // Set tags if any are selected
+            if (selectedTagIds.length > 0) {
+                const tagResponse = await fetch(`/api/goals/${newGoal.id}/tags`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ tag_ids: selectedTagIds }),
+                    credentials: 'include'
+                });
+                
+                if (!tagResponse.ok) {
+                    console.warn('Failed to set goal tags, but goal was created successfully');
+                }
+            }
+            
             if (window.authUtils) {
                 window.authUtils.showSuccessMessage(`Goal "${newGoal.title}" created successfully`);
             }
@@ -1038,6 +1259,10 @@ function editGoal(goalId) {
     
     // Load subgoals
     loadSubgoalsForEdit(goal.subgoals || []);
+    
+    // Initialize tag selector with current goal tags
+    editSelectedTagIds = goal.tags ? goal.tags.map(tag => tag.id) : [];
+    renderTagSelector('edit-goal-tags-grid', editSelectedTagIds);
 }
 
 // Setup event listeners specifically for the edit modal
@@ -1178,37 +1403,37 @@ window.addSubgoalToList = function(subgoal = null) {
     emptyState.classList.add('hidden');
     
     const row = document.createElement('div');
-    row.className = 'subgoal-item bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-all';
+    row.className = 'subgoal-item bg-white border border-gray-200 rounded-md p-2 hover:border-gray-300 transition-all';
     row.innerHTML = `
         <input type="hidden" class="subgoal-id" value="${subgoal?.id || ''}">
-        <div class="flex items-start space-x-3">
+        <div class="flex items-start space-x-2">
             <input type="checkbox" 
-                   class="form-checkbox subgoal-checkbox mt-1" 
+                   class="form-checkbox subgoal-checkbox mt-0.5 w-3 h-3" 
                    ${subgoal?.status === 'achieved' ? 'checked' : ''}
                    onchange="toggleSubgoalStatus(this)"
                    ${!subgoal?.id ? 'disabled' : ''}>
             <div class="flex-1">
                 <input type="text" 
-                       class="subgoal-title input-field w-full mb-2 ${subgoal?.status === 'achieved' ? 'line-through text-gray-500' : ''}" 
+                       class="subgoal-title input-field w-full mb-1 text-xs py-1 ${subgoal?.status === 'achieved' ? 'line-through text-gray-500' : ''}" 
                        value="${subgoal?.title || ''}" 
                        placeholder="Enter sub-goal title" 
                        required>
-                <textarea class="subgoal-description input-field w-full text-sm" 
+                <textarea class="subgoal-description input-field w-full text-xs py-1" 
                           rows="1" 
                           placeholder="Description (optional)">${subgoal?.description || ''}</textarea>
                 ${subgoal?.target_date ? `
                     <input type="date" 
-                           class="subgoal-target-date input-field w-full text-sm mt-2" 
+                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1" 
                            value="${subgoal.target_date}">
                 ` : `
                     <input type="date" 
-                           class="subgoal-target-date input-field w-full text-sm mt-2" 
+                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1" 
                            placeholder="Target date (optional)">
                 `}
                 <input type="hidden" class="subgoal-status" value="${subgoal?.status || 'pending'}">
             </div>
-            <button type="button" onclick="removeSubgoalFromList(this)" class="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors" title="Remove sub-goal">
-                <i class="fas fa-trash text-sm"></i>
+            <button type="button" onclick="removeSubgoalFromList(this)" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors" title="Remove sub-goal">
+                <i class="fas fa-trash text-xs"></i>
             </button>
         </div>
     `;
@@ -1286,39 +1511,15 @@ async function updateGoal(goalData) {
         if (response.ok) {
             const updatedGoal = await response.json();
             console.log('✅ Goal updated successfully:', updatedGoal); // Debug log
-            
-            authUtils.showSuccessMessage('Goal updated successfully');
-            await loadDashboardData();
-            closeEditGoalModal();
-            
-            // Restore button state
-            const updateBtn = document.getElementById('update-goal-btn');
-            if (updateBtn) {
-                updateBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Goal';
-                updateBtn.disabled = false;
-            }
+            return updatedGoal;
         } else {
             const error = await response.json();
             console.error('❌ API error response:', error); // Debug log
-            authUtils.showErrorMessage(error.error || 'Failed to update goal');
-            
-            // Restore button state
-            const updateBtn = document.getElementById('update-goal-btn');
-            if (updateBtn) {
-                updateBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Goal';
-                updateBtn.disabled = false;
-            }
+            throw new Error(error.error || 'Failed to update goal');
         }
     } catch (error) {
         console.error('❌ Network error updating goal:', error);
-        authUtils.showErrorMessage('Connection error. Please try again');
-        
-        // Restore button state
-        const updateBtn = document.getElementById('update-goal-btn');
-        if (updateBtn) {
-            updateBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Goal';
-            updateBtn.disabled = false;
-        }
+        throw error;
     }
 }
 
@@ -1820,7 +2021,7 @@ async function handleGoalUpdate() {
         }
         
         // Show loading state
-        const updateBtn = document.getElementById('update-goal-btn');
+        let updateBtn = document.getElementById('update-goal-btn');
         if (updateBtn) {
             const originalText = updateBtn.innerHTML;
             updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Updating...';
@@ -1842,6 +2043,33 @@ async function handleGoalUpdate() {
         await updateGoal(goalData);
         console.log('✅ Goal updated successfully'); // Debug log
         
+        // Update goal tags
+        console.log('🔄 Updating goal tags...'); // Debug log
+        console.log('📌 Current editSelectedTagIds:', editSelectedTagIds);
+        console.log('📌 Available tags:', tags);
+        await updateGoalTags(goalId, editSelectedTagIds);
+        console.log('✅ Goal tags updated successfully'); // Debug log
+        
+        // Reload dashboard data to show updated tags
+        console.log('🔄 Reloading dashboard data with updated tags...'); // Debug log
+        await loadDashboardData();
+        console.log('✅ Dashboard data reloaded successfully'); // Debug log
+        
+        // Close modal and show success message
+        closeEditGoalModal();
+        if (window.authUtils) {
+            window.authUtils.showSuccessMessage('Goal updated successfully');
+        } else {
+            alert('Goal updated successfully');
+        }
+        
+        // Restore button state
+        updateBtn = document.getElementById('update-goal-btn');
+        if (updateBtn) {
+            updateBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Goal';
+            updateBtn.disabled = false;
+        }
+        
     } catch (error) {
         console.error('❌ Error in goal update process:', error);
         if (window.authUtils) {
@@ -1851,7 +2079,7 @@ async function handleGoalUpdate() {
         }
         
         // Restore button state
-        const updateBtn = document.getElementById('update-goal-btn');
+        updateBtn = document.getElementById('update-goal-btn');
         if (updateBtn) {
             updateBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Update Goal';
             updateBtn.disabled = false;
@@ -1867,6 +2095,7 @@ function setupFiltersAndSorting() {
         searchInput.addEventListener('input', (e) => {
             currentPage = 0;
             renderGoals();
+            saveUserSettings();
         });
     }
     
@@ -1877,6 +2106,9 @@ function setupFiltersAndSorting() {
         }
         if (!e.target.closest('#sort-dropdown-btn') && !e.target.closest('#sort-dropdown')) {
             closeSortDropdown();
+        }
+        if (!e.target.closest('#tag-filter-dropdown-btn') && !e.target.closest('#tag-filter-dropdown')) {
+            closeTagFilterDropdown();
         }
     });
 }
@@ -1897,6 +2129,13 @@ function applyFiltersAndSort() {
     // Apply status filter
     if (currentFilter !== 'all') {
         filtered = filtered.filter(goal => goal.status === currentFilter);
+    }
+    
+    // Apply tag filter
+    if (currentTagFilter !== null) {
+        filtered = filtered.filter(goal => 
+            goal.tags && goal.tags.some(tag => tag.id === currentTagFilter)
+        );
     }
     
     // Apply sorting
@@ -1954,7 +2193,7 @@ window.toggleFilterDropdown = function() {
     const btn = document.getElementById('filter-dropdown-btn');
     const chevron = document.getElementById('filter-chevron');
     
-    if (dropdown.classList.contains('hidden')) {
+    if (dropdown && dropdown.classList.contains('hidden')) {
         dropdown.classList.remove('hidden');
         btn.classList.add('active');
         chevron.style.transform = 'rotate(180deg)';
@@ -2016,10 +2255,14 @@ window.setFilter = function(filterValue) {
         'working': 'Working',
         'completed': 'Completed'
     };
-    label.textContent = filterLabels[filterValue];
+    
+    if (label) {
+        label.textContent = filterLabels[filterValue];
+    }
     
     closeFilterDropdown();
     renderGoals();
+    saveUserSettings();
 }
 
 window.setSort = function(sortValue) {
@@ -2039,6 +2282,7 @@ window.setSort = function(sortValue) {
     
     closeSortDropdown();
     renderGoals();
+    saveUserSettings();
 }
 
 // Enhanced view mode management
@@ -2064,12 +2308,578 @@ window.setViewMode = function(mode) {
     }
     
     renderGoals();
+    saveUserSettings();
 }
+
+// Tag filter functions
+window.toggleTagFilterDropdown = function() {
+    const dropdown = document.getElementById('tag-filter-dropdown');
+    const btn = document.getElementById('tag-filter-dropdown-btn');
+    const chevron = document.getElementById('tag-filter-chevron');
+    
+    if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        btn.classList.add('active');
+        chevron.style.transform = 'rotate(180deg)';
+        closeFilterDropdown(); // Close other dropdowns
+        closeSortDropdown();
+    } else {
+        closeTagFilterDropdown();
+    }
+}
+
+function closeTagFilterDropdown() {
+    const dropdown = document.getElementById('tag-filter-dropdown');
+    const btn = document.getElementById('tag-filter-dropdown-btn');
+    const chevron = document.getElementById('tag-filter-chevron');
+    
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        dropdown.classList.add('hidden');
+        btn.classList.remove('active');
+        chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+window.setTagFilter = function(tagId) {
+    currentTagFilter = tagId;
+    currentPage = 0;
+    
+    // Update label
+    const label = document.getElementById('tag-filter-label');
+    if (tagId === null) {
+        label.textContent = 'All Tags';
+    } else {
+        const tag = tags.find(t => t.id === tagId);
+        label.textContent = tag ? tag.name : 'Unknown Tag';
+    }
+    
+    // Update selection state in dropdown
+    document.querySelectorAll('.tag-filter-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    
+    const selectedOption = tagId === null ? 
+        document.querySelector('.tag-filter-option') : 
+        document.querySelector(`[data-tag-id="${tagId}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('selected');
+    }
+    
+    closeTagFilterDropdown();
+    renderGoals();
+    saveUserSettings();
+}
+
+window.clearTagFilter = function() {
+    setTagFilter(null);
+}
+
+function populateTagFilterDropdown() {
+    const container = document.getElementById('tag-filter-options');
+    if (!container) return;
+    
+    if (tags.length === 0) {
+        container.innerHTML = `
+            <div class="px-4 py-2 text-sm text-gray-500 text-center">
+                <p>No tags available</p>
+                <button type="button" onclick="showTagManagementModal(); closeTagFilterDropdown();" class="text-blue-600 hover:text-blue-800 underline text-xs mt-1">
+                    Create your first tag
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = tags.map(tag => `
+        <button type="button" onclick="setTagFilter(${tag.id})" data-tag-id="${tag.id}" 
+                class="tag-filter-option w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${currentTagFilter === tag.id ? 'selected' : ''}">
+            <div class="tag-filter-badge" style="background-color: ${tag.color}"></div>
+            ${tag.name}
+        </button>
+    `).join('');
+}
+
+// ========================
+// TAG UTILITY FUNCTIONS
+// ========================
+
+// Render tag badges for a goal
+function renderTagBadges(goal, maxVisible = 3) {
+    if (!goal.tags || goal.tags.length === 0) {
+        return '';
+    }
+    
+    const visibleTags = goal.tags.slice(0, maxVisible);
+    const remainingCount = Math.max(0, goal.tags.length - maxVisible);
+    
+    let badgesHtml = visibleTags.map(tag => `
+        <span class="tag-badge" style="background-color: ${tag.color}">
+            ${tag.name}
+        </span>
+    `).join('');
+    
+    if (remainingCount > 0) {
+        badgesHtml += `
+            <span class="tag-badge" style="background-color: #6b7280" title="${goal.tags.slice(maxVisible).map(t => t.name).join(', ')}">
+                +${remainingCount}
+            </span>
+        `;
+    }
+    
+    return badgesHtml;
+}
+
+// ========================
+// TAG SELECTION FUNCTIONS
+// ========================
+
+// Note: selectedTagIds is already declared at the top of the file
+let editSelectedTagIds = [];
+
+// Render tag selector for goal forms
+function renderTagSelector(containerId, selectedIds = []) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    if (tags.length === 0) {
+        container.innerHTML = `
+            <p class="text-sm text-gray-500 text-center py-4">
+                No tags available. 
+                <button type="button" onclick="showTagManagementModal()" class="text-blue-600 hover:text-blue-800 underline">
+                    Create your first tag
+                </button>
+            </p>
+        `;
+        return;
+    }
+    
+    container.innerHTML = tags.map(tag => {
+        const isSelected = selectedIds.includes(tag.id);
+        return `
+            <div class="tag-option ${isSelected ? 'selected' : ''}" 
+                 onclick="toggleTagSelection(${tag.id}, '${containerId}')">
+                <div class="tag-option-color" style="background-color: ${tag.color}"></div>
+                <div class="tag-option-name">${tag.name}</div>
+                ${isSelected ? '<i class="fas fa-check text-blue-600 ml-auto"></i>' : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Toggle tag selection
+window.toggleTagSelection = function(tagId, containerId) {
+    console.log('🏷️ Toggling tag selection:', tagId, 'in container:', containerId);
+    let targetArray;
+    
+    if (containerId.includes('create')) {
+        targetArray = selectedTagIds;
+    } else if (containerId.includes('edit')) {
+        targetArray = editSelectedTagIds;
+    } else {
+        console.warn('Unknown container ID:', containerId);
+        return;
+    }
+    
+    const index = targetArray.indexOf(tagId);
+    if (index > -1) {
+        targetArray.splice(index, 1);
+        console.log('📤 Removed tag', tagId, 'from selection');
+    } else {
+        targetArray.push(tagId);
+        console.log('📥 Added tag', tagId, 'to selection');
+    }
+    
+    console.log('🏷️ Updated selection array:', targetArray);
+    
+    // Re-render to update selection state
+    renderTagSelector(containerId, targetArray);
+}
+
+// Get selected tags data
+function getSelectedTagsData(tagIds) {
+    return tags.filter(tag => tagIds.includes(tag.id));
+}
+
+// Update goal tags
+async function updateGoalTags(goalId, tagIds) {
+    try {
+        console.log('🚀 Making API call to update goal tags:', { goalId, tagIds });
+        const response = await fetch(`/api/goals/${goalId}/tags`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ tag_ids: tagIds }),
+            credentials: 'include'
+        });
+        
+        console.log('📡 API response status:', response.status);
+        
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('❌ API error:', error);
+            throw new Error(error.error || 'Failed to update goal tags');
+        }
+        
+        const result = await response.json();
+        console.log('✅ API success:', result);
+        
+    } catch (error) {
+        console.error('Error updating goal tags:', error);
+        throw error;
+    }
+}
+
+// ========================
+// TAG MANAGEMENT FUNCTIONS
+// ========================
+
+let currentEditingTagId = null;
+
+// Show tag management modal
+window.showTagManagementModal = function() {
+    const modal = document.getElementById('tag-management-modal');
+    modal.classList.remove('hidden');
+    
+    // Initialize tag color picker
+    initializeTagColorPicker();
+    
+    // Render existing tags
+    renderTagsList();
+    
+    // Reset form state
+    cancelTagForm();
+}
+
+// Close tag management modal
+window.closeTagManagementModal = function() {
+    const modal = document.getElementById('tag-management-modal');
+    modal.classList.add('hidden');
+    cancelTagForm();
+}
+
+// Initialize color picker
+function initializeTagColorPicker() {
+    const colorPicker = document.getElementById('tag-color-picker');
+    if (!colorPicker) return;
+    
+    colorPicker.innerHTML = '';
+    
+    tagColors.forEach((color, index) => {
+        const colorOption = document.createElement('div');
+        colorOption.className = `color-option ${index === 0 ? 'selected' : ''}`;
+        colorOption.style.backgroundColor = color.value;
+        colorOption.title = color.name;
+        colorOption.onclick = () => selectTagColor(color.value, colorOption);
+        
+        colorPicker.appendChild(colorOption);
+    });
+    
+    // Set default color
+    document.getElementById('selected-tag-color').value = tagColors[0].value;
+    updateTagPreview();
+}
+
+// Select tag color
+function selectTagColor(color, element) {
+    // Remove selection from all color options
+    document.querySelectorAll('.color-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    // Select this color
+    element.classList.add('selected');
+    document.getElementById('selected-tag-color').value = color;
+    
+    updateTagPreview();
+}
+
+// Update tag preview
+function updateTagPreview() {
+    const nameInput = document.getElementById('tag-name-input');
+    const colorInput = document.getElementById('selected-tag-color');
+    const preview = document.getElementById('tag-preview');
+    
+    if (nameInput && colorInput && preview) {
+        const name = nameInput.value.trim() || 'Sample Tag';
+        const color = colorInput.value;
+        
+        preview.textContent = name;
+        preview.style.backgroundColor = color;
+    }
+}
+
+// Show tag creation form
+window.showTagCreationForm = function() {
+    const form = document.getElementById('tag-creation-form');
+    const createBtn = document.getElementById('create-tag-btn');
+    const formTitle = document.getElementById('tag-form-title');
+    const saveBtn = document.getElementById('save-tag-btn');
+    
+    // Reset form for new tag
+    currentEditingTagId = null;
+    document.getElementById('tag-name-input').value = '';
+    
+    // Update UI
+    form.classList.remove('hidden');
+    createBtn.style.display = 'none';
+    formTitle.textContent = 'Create New Tag';
+    saveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Create Tag';
+    
+    // Reset color selection
+    initializeTagColorPicker();
+    
+    // Focus on name input
+    setTimeout(() => {
+        document.getElementById('tag-name-input').focus();
+    }, 100);
+}
+
+// Edit existing tag
+window.editTag = function(tagId) {
+    const tag = tags.find(t => t.id === tagId);
+    if (!tag) return;
+    
+    const form = document.getElementById('tag-creation-form');
+    const createBtn = document.getElementById('create-tag-btn');
+    const formTitle = document.getElementById('tag-form-title');
+    const saveBtn = document.getElementById('save-tag-btn');
+    const nameInput = document.getElementById('tag-name-input');
+    const colorInput = document.getElementById('selected-tag-color');
+    
+    // Set editing mode
+    currentEditingTagId = tagId;
+    
+    // Populate form
+    nameInput.value = tag.name;
+    colorInput.value = tag.color;
+    
+    // Update UI
+    form.classList.remove('hidden');
+    createBtn.style.display = 'none';
+    formTitle.textContent = 'Edit Tag';
+    saveBtn.innerHTML = '<i class="fas fa-save mr-2"></i>Update Tag';
+    
+    // Initialize color picker and select current color
+    initializeTagColorPicker();
+    const colorOption = document.querySelector(`[style*="${tag.color}"]`);
+    if (colorOption) {
+        selectTagColor(tag.color, colorOption);
+    }
+    
+    updateTagPreview();
+    
+    // Focus on name input
+    setTimeout(() => {
+        nameInput.focus();
+        nameInput.select();
+    }, 100);
+}
+
+// Cancel tag form
+window.cancelTagForm = function() {
+    const form = document.getElementById('tag-creation-form');
+    const createBtn = document.getElementById('create-tag-btn');
+    
+    form.classList.add('hidden');
+    createBtn.style.display = 'inline-flex';
+    
+    // Reset form
+    currentEditingTagId = null;
+    document.getElementById('tag-name-input').value = '';
+    initializeTagColorPicker();
+}
+
+// Save tag (create or update)
+window.saveTag = async function() {
+    const nameInput = document.getElementById('tag-name-input');
+    const colorInput = document.getElementById('selected-tag-color');
+    const saveBtn = document.getElementById('save-tag-btn');
+    
+    const name = nameInput.value.trim();
+    const color = colorInput.value;
+    
+    if (!name) {
+        authUtils.showErrorMessage('Please enter a tag name');
+        nameInput.focus();
+        return;
+    }
+    
+    // Check for duplicate names (excluding current tag when editing)
+    const existingTag = tags.find(t => t.name.toLowerCase() === name.toLowerCase() && t.id !== currentEditingTagId);
+    if (existingTag) {
+        authUtils.showErrorMessage('A tag with this name already exists');
+        nameInput.focus();
+        nameInput.select();
+        return;
+    }
+    
+    // Show loading state
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+    saveBtn.disabled = true;
+    
+    try {
+        let response;
+        
+        if (currentEditingTagId) {
+            // Update existing tag
+            response = await fetch(`/api/tags/${currentEditingTagId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, color }),
+                credentials: 'include'
+            });
+        } else {
+            // Create new tag
+            response = await fetch('/api/tags', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, color }),
+                credentials: 'include'
+            });
+        }
+        
+        if (response.ok) {
+            const tagData = await response.json();
+            
+            if (currentEditingTagId) {
+                // Update existing tag in array
+                const tagIndex = tags.findIndex(t => t.id === currentEditingTagId);
+                if (tagIndex !== -1) {
+                    tags[tagIndex] = tagData;
+                }
+                authUtils.showSuccessMessage(`Tag "${name}" updated successfully`);
+            } else {
+                // Add new tag to array
+                tags.push(tagData);
+                authUtils.showSuccessMessage(`Tag "${name}" created successfully`);
+            }
+            
+            // Refresh tags list
+            renderTagsList();
+            
+            // Reset form
+            cancelTagForm();
+            
+        } else {
+            const error = await response.json();
+            authUtils.showErrorMessage(error.error || 'Failed to save tag');
+        }
+        
+    } catch (error) {
+        console.error('Error saving tag:', error);
+        authUtils.showErrorMessage('Connection error. Please try again');
+    } finally {
+        // Restore button state
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+// Delete tag
+window.deleteTag = async function(tagId) {
+    const tag = tags.find(t => t.id === tagId);
+    if (!tag) return;
+    
+    if (!confirm(`Are you sure you want to delete the tag "${tag.name}"?\n\nThis will remove it from all goals that use it.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/tags/${tagId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            // Remove from local array
+            tags = tags.filter(t => t.id !== tagId);
+            
+            // Refresh tags list
+            renderTagsList();
+            
+            // Refresh goals to update any that had this tag
+            await loadDashboardData();
+            
+            authUtils.showSuccessMessage(`Tag "${tag.name}" deleted successfully`);
+        } else {
+            const error = await response.json();
+            authUtils.showErrorMessage(error.error || 'Failed to delete tag');
+        }
+        
+    } catch (error) {
+        console.error('Error deleting tag:', error);
+        authUtils.showErrorMessage('Connection error. Please try again');
+    }
+}
+
+// Render tags list
+function renderTagsList() {
+    const tagsList = document.getElementById('tags-list');
+    const emptyState = document.getElementById('tags-empty-state');
+    
+    if (!tagsList || !emptyState) return;
+    
+    if (tags.length === 0) {
+        tagsList.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+    }
+    
+    emptyState.classList.add('hidden');
+    
+    tagsList.innerHTML = tags.map(tag => `
+        <div class="tag-item">
+            <div class="tag-item-color" style="background-color: ${tag.color}"></div>
+            <div class="tag-item-name">${tag.name}</div>
+            <div class="tag-item-actions">
+                <button onclick="editTag(${tag.id})" class="tag-item-btn edit">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+                <button onclick="deleteTag(${tag.id})" class="tag-item-btn delete">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Add event listeners for tag form
+document.addEventListener('DOMContentLoaded', function() {
+    // Tag name input listeners
+    const tagNameInput = document.getElementById('tag-name-input');
+    if (tagNameInput) {
+        tagNameInput.addEventListener('input', updateTagPreview);
+        tagNameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                saveTag();
+            }
+        });
+    }
+    
+    // Close tag modal when clicking outside
+    const tagModal = document.getElementById('tag-management-modal');
+    if (tagModal) {
+        tagModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeTagManagementModal();
+            }
+        });
+    }
+});
 
 // Load more functionality
 window.loadMoreGoals = function() {
     currentPage++;
     renderGoals();
+    saveUserSettings();
 }
 
 function updateLoadMoreButton() {
