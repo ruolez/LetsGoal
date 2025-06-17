@@ -736,10 +736,12 @@ function renderGoalCardGrid(goal) {
                     </div>
                 ` : ''}
                 
-                <!-- Description with better spacing -->
-                ${goal.description ? `
-                    <p class="goal-description-modern">${goal.description}</p>
-                ` : ''}
+                <!-- Description with consistent 2-line spacing -->
+                <div class="${goal.description ? 'description-container' : 'description-placeholder'}">
+                    ${goal.description ? `
+                        <p class="goal-description-modern">${goal.description}</p>
+                    ` : ''}
+                </div>
             </div>
             
             <!-- Flexible content area -->

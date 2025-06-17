@@ -1449,13 +1449,27 @@ body.modal-open {
    MODERN CARD HEADER REDESIGN STYLES
    ================================================ */
 
-/* Card Header Section - Ensure consistent alignment */
+/* Card Header Section - Fixed height for perfect alignment */
 .card-header-section {
   padding: 4px 0;
-  min-height: 80px;
+  height: 120px; /* Fixed height instead of min-height */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+}
+
+/* Description container - always reserve space for 2 lines */
+.description-container {
+  height: 2.24rem; /* Exactly 2 lines: 0.8rem * 1.4 * 2 = 2.24rem */
+  display: flex;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
+/* Empty description placeholder */
+.description-placeholder {
+  height: 2.24rem;
+  margin-top: 8px;
 }
 
 /* Modern Goal Title */
@@ -1558,12 +1572,13 @@ body.modal-open {
   font-weight: 600;
 }
 
-/* Goal Description Modern - Smaller text */
+/* Goal Description Modern - Always 2 lines for consistent alignment */
 .goal-description-modern {
   font-size: 0.8rem;
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
+  height: 2.24rem; /* Exactly 2 lines: 0.8rem * 1.4 * 2 = 2.24rem */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
