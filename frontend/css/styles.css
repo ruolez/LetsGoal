@@ -32,6 +32,13 @@
   cursor: pointer;
   overflow: visible;
   z-index: 1;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.goal-card-grid:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Stat Cards */
@@ -602,20 +609,20 @@ html {
 .quick-subgoal-input {
   font-size: 0.75rem;
   line-height: 1.2;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #d1d5db !important; /* Subtle but visible border */
   background: #fafafa;
   transition: all 0.2s ease;
 }
 
 .quick-subgoal-input:focus {
-  background: white;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  background: white !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) !important;
 }
 
 .quick-subgoal-input:hover {
-  background: white;
-  border-color: #d1d5db;
+  background: white !important;
+  border-color: #6b7280 !important; /* Darker hover border */
 }
 
 .quick-subgoal-input::placeholder {
@@ -1235,7 +1242,7 @@ html {
 
 /* Modern Input Fields */
 .input-field {
-  border: 2px solid #e5e7eb;
+  border: 2px solid #d1d5db !important; /* Subtle but visible border */
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 15px;
@@ -1244,9 +1251,9 @@ html {
 }
 
 .input-field:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  outline: none !important;
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
 }
 
 .input-field::placeholder {
@@ -1436,4 +1443,556 @@ body.modal-open {
   transform: translateY(100%);
   opacity: 0;
   transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ================================================
+   MODERN CARD HEADER REDESIGN STYLES
+   ================================================ */
+
+/* Card Header Section */
+.card-header-section {
+  padding: 4px 0;
+}
+
+/* Modern Goal Title */
+.goal-title-modern {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.4;
+  margin: 0;
+  min-width: 0;
+  flex: 1;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Status Dots for Modern Header */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+.status-dot-completed {
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.status-dot-working {
+  background-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.status-dot-started {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.status-dot-created {
+  background-color: #6b7280;
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.2);
+}
+
+/* Card Menu Button */
+.card-menu-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.card-menu-btn:hover {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-color: #9ca3af;
+}
+
+.card-menu-btn:active {
+  background-color: #e5e7eb;
+  transform: scale(0.95);
+}
+
+/* Modern Tag Badges */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.modern-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  border-radius: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.modern-tag-more {
+  background-color: #e5e7eb !important;
+  color: #6b7280 !important;
+  font-weight: 600;
+}
+
+/* Goal Description Modern */
+.goal-description-modern {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #6b7280;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  hyphens: auto;
+  word-wrap: break-word;
+}
+
+/* Progress Stats Section */
+.progress-stats-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #d1d5db; /* Darker border for better visibility */
+}
+
+/* Modern Progress Circle */
+.modern-progress-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Progress circle container needs visible border */
+.modern-progress-circle .w-20 {
+  border: 1px solid #d1d5db !important;
+  border-radius: 50% !important;
+}
+
+/* Inner white circle also needs border */
+.modern-progress-circle .w-14 {
+  border: 1px solid #d1d5db !important;
+  border-radius: 50% !important;
+}
+
+.progress-percentage {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Target Date Card */
+.target-date-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #d1d5db; /* Darker border for better visibility */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.target-date-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.target-date-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+/* Days Remaining Styles */
+.days-remaining {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.days-overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.days-today {
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.days-upcoming {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.days-future {
+  color: #059669;
+  font-weight: 500;
+}
+
+/* Responsive adjustments for modern header */
+@media (max-width: 768px) {
+  .goal-title-modern {
+    font-size: 1rem;
+  }
+  
+  .progress-stats-section {
+    padding: 12px;
+  }
+  
+  .modern-progress-circle .w-20 {
+    width: 64px !important;
+    height: 64px !important;
+  }
+  
+  .modern-progress-circle .w-14 {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  
+  .progress-percentage {
+    font-size: 0.75rem;
+  }
+  
+  .target-date-card {
+    padding: 8px;
+  }
+}
+
+/* ================================================
+   CARD DROPDOWN MENU STYLES
+   ================================================ */
+
+/* Menu Container */
+.card-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Enhanced Menu Button */
+.card-menu-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-menu-btn:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.card-menu-btn:hover {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-color: #9ca3af;
+  transform: scale(1.05);
+}
+
+.card-menu-btn:active {
+  background-color: #e5e7eb;
+  transform: scale(0.95);
+}
+
+/* Dropdown Menu */
+.card-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  min-width: 120px;
+  background: white !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  padding: 4px 0;
+  margin-top: 4px;
+}
+
+.card-dropdown-menu.hidden {
+  display: none;
+}
+
+/* Menu Items */
+.card-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+}
+
+.card-menu-item:hover {
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+.card-menu-item i {
+  width: 16px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  transition: color 0.15s ease;
+}
+
+.card-menu-item:hover i {
+  color: #374151;
+}
+
+/* Danger Menu Item (Delete) */
+.card-menu-danger {
+  color: #dc2626;
+}
+
+.card-menu-danger:hover {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+.card-menu-danger i {
+  color: #dc2626;
+}
+
+.card-menu-danger:hover i {
+  color: #b91c1c;
+}
+
+/* Menu Divider */
+.card-menu-divider {
+  height: 1px;
+  background-color: #d1d5db; /* Darker divider for better visibility */
+  margin: 4px 0;
+}
+
+/* Animation for dropdown */
+.card-dropdown-menu {
+  animation: menuFadeIn 0.15s ease-out;
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-dropdown-menu {
+    min-width: 140px;
+    right: -4px;
+  }
+  
+  .card-menu-item {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+  }
+}
+
+/* ================================================
+   FOCUS AND OUTLINE PREVENTION
+   ================================================ */
+
+/* Comprehensive focus outline removal for all card elements */
+.goal-card-grid,
+.goal-card-grid *,
+.goal-card-grid:focus,
+.goal-card-grid *:focus,
+.goal-card-grid button,
+.goal-card-grid button:focus,
+.goal-card-grid input,
+.goal-card-grid input:focus,
+.card-menu-btn,
+.card-menu-btn:focus,
+.card-menu-container,
+.card-menu-container *,
+.card-menu-container *:focus,
+.expandable-goal-card,
+.expandable-goal-card:focus,
+.expandable-goal-card *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+/* Force remove any browser default focus styles */
+.goal-card-grid:focus-visible,
+.goal-card-grid *:focus-visible,
+.expandable-goal-card:focus-visible,
+.expandable-goal-card *:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure no webkit tap highlights */
+.goal-card-grid,
+.goal-card-grid *,
+.card-menu-btn,
+.card-menu-container *,
+.expandable-goal-card,
+.expandable-goal-card * {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Additional universal focus prevention */
+* {
+  -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+}
+
+/* Override any Tailwind or framework focus styles */
+.goal-card-grid.focus\:ring-2:focus {
+  box-shadow: none !important;
+}
+
+.goal-card-grid.focus\:ring-blue-500:focus {
+  box-shadow: none !important;
+}
+
+/* Restore proper card borders while preventing blue focus border */
+.expandable-goal-card {
+  border: 1px solid #d1d5db !important; /* Darker gray for better visibility */
+}
+
+/* Only target the specific focus state that causes blue border */
+.goal-card-grid:focus,
+.goal-card-grid:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep normal card borders visible but prevent focus blue border */
+.expandable-goal-card:focus {
+  border: 1px solid #d1d5db !important; /* Keep same dark border */
+  outline: none !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important; /* Subtle shadow without blue */
+}
+
+/* Ensure input fields always have visible borders - override focus prevention */
+input[type="text"],
+input[type="search"],
+.quick-subgoal-input,
+.input-field {
+  border: 1px solid #d1d5db !important; /* Subtle but visible border */
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+.quick-subgoal-input:focus,
+.input-field:focus {
+  border-color: #3b82f6 !important; /* Blue focus border for inputs is good UX */
+  outline: none !important;
+}
+
+/* ================================================
+   COMPREHENSIVE BORDER VISIBILITY FIXES - SUBTLE VERSION
+   ================================================ */
+
+/* Fix filter dropdown buttons - subtle but visible borders */
+.border-gray-200 {
+  border-color: #d1d5db !important; /* Subtle but visible */
+}
+
+/* Fix progress sections inside cards */
+.progress-stats-section {
+  border: 1px solid #d1d5db !important; /* Subtle border for better visibility */
+}
+
+/* Fix all elements with pale borders */
+.border-gray-100,
+.border-gray-200,
+.border-gray-300 {
+  border-color: #d1d5db !important;
+}
+
+/* Fix dropdown menus */
+.bg-white.border,
+.bg-white.rounded-lg.border,
+.bg-white.rounded-xl.border {
+  border-color: #d1d5db !important;
+}
+
+/* Fix specific filter bar elements */
+.bg-white.rounded-xl.border.border-gray-200 {
+  border-color: #d1d5db !important;
+}
+
+/* Fix any remaining pale borders */
+*[class*="border-gray-200"],
+*[class*="border-gray-100"] {
+  border-color: #d1d5db !important;
+}
+
+/* Fix filter dropdown buttons specifically - they use border-0 */
+.modern-filter-btn {
+  border: 1px solid #d1d5db !important; /* Add visible border */
+}
+
+.modern-filter-btn:hover {
+  border-color: #9ca3af !important; /* Slightly darker on hover */
+}
+
+.modern-filter-btn:focus,
+.modern-filter-btn.active {
+  border-color: #3b82f6 !important; /* Blue border when focused/active */
 }

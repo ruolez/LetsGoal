@@ -692,65 +692,90 @@ function renderGoalCardGrid(goal) {
         <div class="goal-card-grid expandable-goal-card" 
              data-goal-id="${goal.id}">
             
-            <!-- Header with title and status -->
-            <div class="mb-3">
-                <div class="flex items-start justify-between gap-2">
-                    <h3 class="goal-card-title">${goal.title}</h3>
-                    <span class="status-badge ${getStatusBadgeClass(goal.status)} flex-shrink-0 ml-2" 
-                          title="${goal.status.replace('_', ' ').toUpperCase()}">
-                        <i class="fas ${getStatusIcon(goal.status)}"></i>
-                    </span>
-                </div>
-                <!-- Tags -->
-                ${goal.tags && goal.tags.length > 0 ? `
-                    <div class="flex flex-wrap gap-1 mt-2">
-                        ${renderTagBadges(goal, 3)}
+            <!-- Modern Header with Integrated Status -->
+            <div class="card-header-section mb-4">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <div class="status-dot ${getStatusDotClass(goal.status)}" 
+                             title="${goal.status.replace('_', ' ').toUpperCase()}"></div>
+                        <h3 class="goal-title-modern">${goal.title}</h3>
                     </div>
-                ` : ''}
-            </div>
-            
-            <!-- Description -->
-            ${goal.description ? `<p class="text-gray-600 text-sm mb-4 line-clamp-2">${goal.description}</p>` : ''}
-            
-            <!-- Progress and Stats -->
-            <div class="flex items-center justify-between mb-4">
-                <div class="progress-circle">
-                    <div class="w-16 h-16 rounded-full flex items-center justify-center" 
-                         style="background: conic-gradient(${progressColor} ${goal.progress * 3.6}deg, #f3f4f6 ${goal.progress * 3.6}deg);">
-                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                            <span class="progress-text">${Math.round(goal.progress)}%</span>
+                    <div class="card-menu-container">
+                        <button class="card-menu-btn" onclick="toggleCardMenu(${goal.id}); event.stopPropagation();" title="More options">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                        <div id="card-menu-${goal.id}" class="card-dropdown-menu hidden" style="border: 1px solid #d1d5db !important;">
+                            <button onclick="editGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
+                                <i class="fas fa-edit"></i>
+                                <span>Edit</span>
+                            </button>
+                            ${goal.status !== 'completed' ? `
+                                <button onclick="updateGoalStatus(${goal.id}, 'completed'); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
+                                    <i class="fas fa-trophy"></i>
+                                    <span>Complete</span>
+                                </button>
+                            ` : `
+                                <button onclick="updateGoalStatus(${goal.id}, 'working'); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
+                                    <i class="fas fa-undo"></i>
+                                    <span>Incomplete</span>
+                                </button>
+                            `}
+                            <div class="card-menu-divider"></div>
+                            <button onclick="deleteGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item card-menu-danger">
+                                <i class="fas fa-trash"></i>
+                                <span>Delete</span>
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div class="text-right">
-                    <div class="text-sm text-gray-500">Target Date</div>
-                    <div class="text-sm font-medium">${goal.target_date ? parseLocalDate(goal.target_date).toLocaleDateString() : 'Not set'}</div>
+                
+                <!-- Tags Row -->
+                ${goal.tags && goal.tags.length > 0 ? `
+                    <div class="tags-container mb-3">
+                        ${renderModernTagBadges(goal, 3)}
+                    </div>
+                ` : ''}
+                
+                <!-- Description with better spacing -->
+                ${goal.description ? `
+                    <p class="goal-description-modern">${goal.description}</p>
+                ` : ''}
+            </div>
+            
+            <!-- Enhanced Progress and Target Date Section -->
+            <div class="progress-stats-section mb-4">
+                <div class="flex items-center gap-4">
+                    <!-- Enhanced Progress Circle -->
+                    <div class="modern-progress-circle">
+                        <div class="w-20 h-20 rounded-full flex items-center justify-center relative" 
+                             style="background: conic-gradient(${progressColor} ${goal.progress * 3.6}deg, #f1f5f9 ${goal.progress * 3.6}deg);">
+                            <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                <span class="progress-percentage">${Math.round(goal.progress)}%</span>
+                            </div>
+                        </div>
+                        <div class="progress-label">Progress</div>
+                    </div>
+                    
+                    <!-- Target Date Info Card -->
+                    <div class="flex-1">
+                        <div class="target-date-card">
+                            <div class="target-date-label">Target Date</div>
+                            <div class="target-date-value">
+                                ${goal.target_date ? parseLocalDate(goal.target_date).toLocaleDateString() : 'Not set'}
+                            </div>
+                            ${goal.target_date ? `
+                                <div class="days-remaining">
+                                    ${calculateDaysRemaining(goal.target_date)}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <!-- Quick Actions -->
-            <div class="flex gap-2 mb-4 pb-2 border-b">
-                <button onclick="editGoal(${goal.id}); event.stopPropagation();" 
-                        class="flex-1 btn-secondary text-xs py-2">
-                    <i class="fas fa-edit mr-1"></i>
-                    Edit
-                </button>
-                ${goal.status !== 'completed' ? `
-                    <button onclick="updateGoalStatus(${goal.id}, 'completed'); event.stopPropagation();" 
-                            class="flex-1 btn-success text-xs py-2">
-                        <i class="fas fa-trophy mr-1"></i>
-                        Complete
-                    </button>
-                ` : ''}
-                <button onclick="deleteGoal(${goal.id}); event.stopPropagation();" 
-                        class="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors text-xs">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-
-            <!-- Quick Add Subgoal Input -->
+            <!-- Quick Add Subgoal Input - moved to after progress section -->
             ${goal.status !== 'completed' ? `
-                <div class="mb-3 px-1">
+                <div class="mb-4 px-1">
                     <input type="text" 
                            id="quick-subgoal-${goal.id}"
                            class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
@@ -970,6 +995,74 @@ function getStatusBadgeClass(status) {
         default: return 'status-created';
     }
 }
+
+// Modern status dot classes for redesigned header
+function getStatusDotClass(status) {
+    switch (status) {
+        case 'completed': return 'status-dot-completed';
+        case 'working': return 'status-dot-working';
+        case 'started': return 'status-dot-started';
+        case 'created': return 'status-dot-created';
+        default: return 'status-dot-created';
+    }
+}
+
+// Calculate days remaining until target date
+function calculateDaysRemaining(targetDate) {
+    if (!targetDate) return '';
+    
+    const today = new Date();
+    const target = parseLocalDate(targetDate);
+    const diffTime = target - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+        return `<span class="days-overdue">${Math.abs(diffDays)} days overdue</span>`;
+    } else if (diffDays === 0) {
+        return `<span class="days-today">Due today</span>`;
+    } else if (diffDays === 1) {
+        return `<span class="days-upcoming">Due tomorrow</span>`;
+    } else if (diffDays <= 7) {
+        return `<span class="days-upcoming">${diffDays} days left</span>`;
+    } else {
+        return `<span class="days-future">${diffDays} days left</span>`;
+    }
+}
+
+// Card dropdown menu functions
+window.toggleCardMenu = function(goalId) {
+    const menu = document.getElementById(`card-menu-${goalId}`);
+    const isVisible = !menu.classList.contains('hidden');
+    
+    // Close all other card menus first
+    document.querySelectorAll('.card-dropdown-menu').forEach(m => {
+        if (m.id !== `card-menu-${goalId}`) {
+            m.classList.add('hidden');
+        }
+    });
+    
+    if (isVisible) {
+        menu.classList.add('hidden');
+    } else {
+        menu.classList.remove('hidden');
+    }
+}
+
+window.closeCardMenu = function(goalId) {
+    const menu = document.getElementById(`card-menu-${goalId}`);
+    if (menu) {
+        menu.classList.add('hidden');
+    }
+}
+
+// Close all card menus when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.card-menu-container')) {
+        document.querySelectorAll('.card-dropdown-menu').forEach(menu => {
+            menu.classList.add('hidden');
+        });
+    }
+});
 
 // Set daily motivational quote
 function setDailyQuote() {
@@ -2421,6 +2514,32 @@ function renderTagBadges(goal, maxVisible = 3) {
     if (remainingCount > 0) {
         badgesHtml += `
             <span class="tag-badge" style="background-color: #6b7280" title="${goal.tags.slice(maxVisible).map(t => t.name).join(', ')}">
+                +${remainingCount}
+            </span>
+        `;
+    }
+    
+    return badgesHtml;
+}
+
+// Render modern tag badges for redesigned header
+function renderModernTagBadges(goal, maxVisible = 3) {
+    if (!goal.tags || goal.tags.length === 0) {
+        return '';
+    }
+    
+    const visibleTags = goal.tags.slice(0, maxVisible);
+    const remainingCount = Math.max(0, goal.tags.length - maxVisible);
+    
+    let badgesHtml = visibleTags.map(tag => `
+        <span class="modern-tag-badge" style="background-color: ${tag.color}">
+            ${tag.name}
+        </span>
+    `).join('');
+    
+    if (remainingCount > 0) {
+        badgesHtml += `
+            <span class="modern-tag-badge modern-tag-more" title="${goal.tags.slice(maxVisible).map(t => t.name).join(', ')}">
                 +${remainingCount}
             </span>
         `;
