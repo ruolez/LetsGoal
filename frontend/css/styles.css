@@ -1,4 +1,169 @@
-/* Modern Professional Styles */
+/* ==============================================
+   CSS CUSTOM PROPERTIES - THEME SYSTEM
+   ============================================== */
+
+:root {
+  /* Light Theme Colors */
+  --color-bg-primary: #f8fafc;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #f1f5f9;
+  --color-bg-elevated: #ffffff;
+  --color-bg-surface: #ffffff;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Text Colors */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #374151;
+  --color-text-tertiary: #6b7280;
+  --color-text-muted: #9ca3af;
+  --color-text-inverse: #ffffff;
+  
+  /* Border Colors */
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-border-tertiary: #cbd5e1;
+  --color-border-focus: #3b82f6;
+  
+  /* Interactive Colors */
+  --color-interactive-primary: #3b82f6;
+  --color-interactive-primary-hover: #2563eb;
+  --color-interactive-secondary: #f8fafc;
+  --color-interactive-secondary-hover: #f1f5f9;
+  
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-success-bg: #d1fae5;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fef3c7;
+  --color-error: #ef4444;
+  --color-error-bg: #fef2f2;
+  --color-info: #3b82f6;
+  --color-info-bg: #dbeafe;
+  
+  /* Goal Status Colors */
+  --color-status-created: #6b7280;
+  --color-status-created-bg: #f3f4f6;
+  --color-status-started: #f59e0b;
+  --color-status-started-bg: #fef3c7;
+  --color-status-working: #3b82f6;
+  --color-status-working-bg: #dbeafe;
+  --color-status-completed: #10b981;
+  --color-status-completed-bg: #d1fae5;
+  
+  /* Shadow Colors */
+  --color-shadow-sm: rgba(0, 0, 0, 0.05);
+  --color-shadow-md: rgba(0, 0, 0, 0.1);
+  --color-shadow-lg: rgba(0, 0, 0, 0.15);
+  --color-shadow-xl: rgba(0, 0, 0, 0.25);
+  
+  /* Gradient Colors */
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --gradient-navbar: linear-gradient(to right, #f8fafc, #f1f5f9);
+}
+
+/* Dark Theme Colors */
+[data-theme="dark"] {
+  /* Background Colors */
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #334155;
+  --color-bg-elevated: #2a3441;
+  --color-bg-surface: #273142;
+  --color-bg-overlay: rgba(0, 0, 0, 0.8);
+  
+  /* Text Colors */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #e2e8f0;
+  --color-text-tertiary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #1f2937;
+  
+  /* Border Colors */
+  --color-border-primary: #475569;
+  --color-border-secondary: #64748b;
+  --color-border-tertiary: #475569;
+  --color-border-focus: #3b82f6;
+  
+  /* Interactive Colors */
+  --color-interactive-primary: #3b82f6;
+  --color-interactive-primary-hover: #60a5fa;
+  --color-interactive-secondary: #334155;
+  --color-interactive-secondary-hover: #475569;
+  
+  /* Status Colors */
+  --color-success: #22c55e;
+  --color-success-bg: #1a3a2e;
+  --color-warning: #fbbf24;
+  --color-warning-bg: #3a2e1a;
+  --color-error: #f87171;
+  --color-error-bg: #3a1e1e;
+  --color-info: #60a5fa;
+  --color-info-bg: #1e2a3a;
+  
+  /* Goal Status Colors */
+  --color-status-created: #94a3b8;
+  --color-status-created-bg: #334155;
+  --color-status-started: #fbbf24;
+  --color-status-started-bg: #3a2e1a;
+  --color-status-working: #60a5fa;
+  --color-status-working-bg: #1e2a3a;
+  --color-status-completed: #22c55e;
+  --color-status-completed-bg: #1a3a2e;
+  
+  /* Shadow Colors */
+  --color-shadow-sm: rgba(0, 0, 0, 0.2);
+  --color-shadow-md: rgba(0, 0, 0, 0.3);
+  --color-shadow-lg: rgba(0, 0, 0, 0.4);
+  --color-shadow-xl: rgba(0, 0, 0, 0.6);
+  
+  /* Gradient Colors */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --gradient-success: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  --gradient-navbar: linear-gradient(to right, #1e293b, #334155);
+}
+
+/* ==============================================
+   THEME TRANSITION SYSTEM
+   ============================================== */
+
+* {
+  transition: 
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Disable transitions for elements that shouldn't animate */
+.breathing-lotus svg,
+.breathing-lotus svg *,
+[class*="animate-"],
+.subgoal-item {
+  transition: none !important;
+}
+
+/* ==============================================
+   GLOBAL THEME STYLES
+   ============================================== */
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--color-bg-primary);
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--gradient-bg);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* ==============================================
+   MODERN PROFESSIONAL STYLES
+   ============================================== */
 
 /* Grid and Layout Styles */
 .goals-grid {
@@ -99,14 +264,14 @@
 }
 
 .progress-circle .progress-bg {
-  stroke: #f3f4f6;
+  stroke: var(--color-border-primary);
   stroke-width: 4;
 }
 
 .progress-circle .progress-bar {
-  stroke: #3b82f6;
+  stroke: var(--color-interactive-primary);
   transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 1px 3px rgba(59, 130, 246, 0.2));
+  filter: drop-shadow(0 1px 3px var(--color-shadow-md));
 }
 
 .progress-circle .progress-text {
@@ -116,8 +281,8 @@
   transform: translate(-50%, -50%);
   font-size: 0.8rem;
   font-weight: 700;
-  color: #1f2937;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: var(--color-text-primary);
+  text-shadow: 0 1px 2px var(--color-shadow-sm);
   letter-spacing: -0.025em;
 }
 
@@ -147,12 +312,21 @@
   font-size: 0.875rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-primary);
 }
 
 .modern-input:focus {
   outline: none;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 12px var(--color-shadow-md);
+  background-color: var(--color-bg-surface);
+  border-color: var(--color-border-focus);
+}
+
+.modern-input::placeholder {
+  color: var(--color-text-muted);
 }
 
 .modern-filter-btn {
@@ -160,16 +334,23 @@
   font-weight: 500;
   transition: all 0.2s ease;
   outline: none;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-primary);
 }
 
 .modern-filter-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px var(--color-shadow-sm);
+  background-color: var(--color-interactive-secondary);
+  border-color: var(--color-border-secondary);
 }
 
 .modern-filter-btn:focus {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 12px var(--color-shadow-md);
+  background-color: var(--color-bg-surface);
+  border-color: var(--color-border-focus);
 }
 
 .modern-filter-btn.active .fas.fa-chevron-down {
@@ -181,28 +362,32 @@
   font-size: 0.875rem;
   position: relative;
   z-index: 1;
+  color: var(--color-text-tertiary);
+  background: transparent;
+  transition: all 0.2s ease;
 }
 
 .view-toggle-btn:hover {
   transform: translateY(-1px);
+  color: var(--color-text-secondary);
 }
 
 .view-toggle-btn.active {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  color: #374151;
+  background: var(--color-bg-surface);
+  box-shadow: 0 2px 4px var(--color-shadow-sm);
+  color: var(--color-text-primary);
 }
 
 /* Dropdown Animations */
 .filter-option:hover,
 .sort-option:hover {
-  background-color: #f8fafc;
+  background-color: var(--color-bg-tertiary);
   transform: translateX(2px);
 }
 
 .filter-option:active,
 .sort-option:active {
-  background-color: #e2e8f0;
+  background-color: var(--color-interactive-secondary-hover);
 }
 
 /* Status indicators in filter dropdown */
@@ -274,7 +459,8 @@
 /* Filter bar enhancements */
 .bg-white.rounded-xl.border.border-gray-200 {
   backdrop-filter: blur(8px);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-primary) !important;
   overflow: visible !important;
   position: relative;
   z-index: 10;
@@ -305,8 +491,8 @@
 /* Ultra-Smooth Pure CSS Goal Card Hover */
 /* Inner content that transforms */
 .expandable-goal-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.75rem;
   padding: 1rem;
   display: flex;
@@ -326,9 +512,9 @@
 .goal-card-grid:hover .expandable-goal-card,
 .goal-card-grid.sticky-hover .expandable-goal-card {
   transform: translateY(-4px);
-  box-shadow: 0 15px 35px rgba(59, 130, 246, 0.2), 
-              0 0 0 1px rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
+  box-shadow: 0 15px 35px var(--color-shadow-lg), 
+              0 0 0 1px var(--color-interactive-primary);
+  border-color: var(--color-interactive-primary);
   z-index: 2;
 }
 
@@ -408,9 +594,15 @@
 
 /* Individual Subgoal Hover Effects */
 .subgoal-item:hover {
-  background-color: rgba(59, 130, 246, 0.06);
+  background-color: var(--color-interactive-secondary-hover);
   transform: translateX(2px) scale(1.01);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 2px 8px var(--color-shadow-md);
+}
+
+/* Much darker hover for dark mode */
+html[data-theme="dark"] .subgoal-item:hover {
+  background-color: rgba(59, 130, 246, 0.25) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
 }
 
 /* Clickable subgoal title styling */
@@ -526,40 +718,63 @@
 .goal-card-title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-primary);
   line-height: 1.3;
   letter-spacing: -0.025em;
   flex: 1;
   margin: 0;
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  text-shadow: 0 1px 2px var(--color-shadow-sm);
   transition: all 0.2s ease;
 }
 
 .expandable-goal-card:hover .goal-card-title {
-  background: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--color-interactive-primary);
   transform: translateY(-1px);
 }
 
-/* Fallback for browsers that don't support background-clip */
-@supports not (background-clip: text) {
-  .goal-card-title {
-    color: #1f2937;
-    background: none;
-    -webkit-text-fill-color: initial;
-  }
-  
-  .expandable-goal-card:hover .goal-card-title {
-    color: #1e40af;
-    background: none;
-    -webkit-text-fill-color: initial;
-  }
+/* ==============================================
+   SVG LOGO DARK MODE COMPATIBILITY
+   ============================================== */
+
+/* Lotus logo SVG gradient adjustments for dark mode */
+[data-theme="dark"] .breathing-lotus svg #breath1 stop:nth-child(1) {
+  stop-color: #60a5fa;
+}
+
+[data-theme="dark"] .breathing-lotus svg #breath1 stop:nth-child(2) {
+  stop-color: #8b5cf6;
+}
+
+[data-theme="dark"] .breathing-lotus svg #breath1 stop:nth-child(3) {
+  stop-color: #a855f7;
+}
+
+[data-theme="dark"] .breathing-lotus svg #breath2 stop:nth-child(1) {
+  stop-color: #60a5fa;
+}
+
+[data-theme="dark"] .breathing-lotus svg #breath2 stop:nth-child(2) {
+  stop-color: #3b82f6;
+}
+
+[data-theme="dark"] .breathing-lotus svg #breathCore stop:nth-child(1) {
+  stop-color: #ffffff;
+  stop-opacity: 0.9;
+}
+
+[data-theme="dark"] .breathing-lotus svg #breathCore stop:nth-child(2) {
+  stop-color: #fbbf24;
+  stop-opacity: 0.7;
+}
+
+[data-theme="dark"] .breathing-lotus svg #breathCore stop:nth-child(3) {
+  stop-color: #f87171;
+  stop-opacity: 0.8;
+}
+
+/* Enhanced visibility for dark mode */
+[data-theme="dark"] .breathing-lotus svg {
+  filter: brightness(1.2) contrast(1.1);
 }
 
 /* Breathing Lotus Logo Styling */
@@ -629,7 +844,7 @@
 
 .floating-quote p {
   font-size: 0.8125rem !important;
-  color: #2d3748 !important;
+  color: var(--color-text-secondary) !important;
   font-weight: 400 !important;
   margin: 0;
   line-height: 1.4;
@@ -648,7 +863,7 @@
   left: -0.6em;
   top: -0.05em;
   font-size: 1.1em;
-  color: #64748b;
+  color: var(--color-text-muted);
   opacity: 0.7;
   font-weight: 400;
   text-shadow: none !important;
@@ -662,7 +877,7 @@
   right: -0.6em;
   bottom: -0.1em;
   font-size: 1.1em;
-  color: #64748b;
+  color: var(--color-text-muted);
   opacity: 0.7;
   font-weight: 400;
   text-shadow: none !important;
@@ -677,7 +892,7 @@
 /* Compact Quote Author Styling */
 .quote-author {
   font-size: 0.75rem !important;
-  color: #64748b !important;
+  color: var(--color-text-muted) !important;
   font-weight: 400 !important;
   font-family: 'Crimson Text', 'Times New Roman', serif !important;
   font-style: normal !important;
@@ -706,7 +921,7 @@
   padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   background: transparent;
   border: 1px solid transparent;
   border-radius: 0.5rem;
@@ -715,26 +930,26 @@
 }
 
 .nav-link-btn:hover {
-  color: #374151;
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  color: var(--color-text-secondary);
+  background: var(--color-interactive-secondary);
+  border-color: var(--color-border-primary);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px var(--color-shadow-sm);
 }
 
 .nav-link-btn:active {
   transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px var(--color-shadow-sm);
 }
 
 .nav-link-btn i {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--color-text-muted);
   transition: color 0.2s ease;
 }
 
 .nav-link-btn:hover i {
-  color: #6b7280;
+  color: var(--color-text-tertiary);
 }
 
 /* Smooth scroll behavior for better UX */
@@ -754,20 +969,21 @@ html {
 .quick-subgoal-input {
   font-size: 0.75rem;
   line-height: 1.2;
-  border: 1px solid #cbd5e1 !important; /* Subtle but visible border */
-  background: #fafafa;
+  border: 1px solid var(--color-border-primary) !important;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
   transition: all 0.2s ease;
 }
 
 .quick-subgoal-input:focus {
-  background: white !important;
-  border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) !important;
+  background: var(--color-bg-surface) !important;
+  border-color: var(--color-border-focus) !important;
+  box-shadow: 0 0 0 1px var(--color-shadow-sm) !important;
 }
 
 .quick-subgoal-input:hover {
-  background: white !important;
-  border-color: #6b7280 !important; /* Darker hover border */
+  background: var(--color-bg-surface) !important;
+  border-color: var(--color-border-secondary) !important;
 }
 
 .quick-subgoal-input::placeholder {
@@ -776,14 +992,15 @@ html {
 }
 
 .quick-subgoal-input:disabled {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Ensure sticky hover maintains for input interactions */
 .goal-card-grid.sticky-hover .quick-subgoal-input {
-  background: white;
+  background: var(--color-bg-surface);
 }
 
 /* Reduce motion for users who prefer it */
@@ -902,11 +1119,11 @@ html {
 }
 
 .tag-filter-option:hover {
-  background-color: #f9fafb;
+  background-color: var(--color-bg-tertiary);
 }
 
 .tag-filter-option.selected {
-  background-color: #eff6ff;
+  background-color: var(--color-info-bg);
 }
 
 .tag-filter-badge {
@@ -919,17 +1136,17 @@ html {
 
 /* Tag Selection in Forms */
 .tag-selector {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.5rem;
   padding: 0.75rem;
-  background: #f9fafb;
+  background: var(--color-bg-tertiary);
   transition: all 0.2s ease;
 }
 
 .tag-selector:focus-within {
-  border-color: #3b82f6;
-  background: white;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
+  border-color: var(--color-border-focus);
+  background: var(--color-bg-surface);
+  box-shadow: 0 0 0 1px var(--color-shadow-sm);
 }
 
 .tag-selector-grid {
@@ -943,21 +1160,21 @@ html {
   display: flex;
   align-items: center;
   padding: 0.5rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.375rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: white;
+  background: var(--color-bg-surface);
 }
 
 .tag-option:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-border-secondary);
+  box-shadow: 0 1px 3px var(--color-shadow-sm);
 }
 
 .tag-option.selected {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: var(--color-border-focus);
+  background: var(--color-info-bg);
 }
 
 .tag-option-color {
@@ -971,7 +1188,7 @@ html {
 .tag-option-name {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-secondary);
   flex: 1;
 }
 
@@ -995,8 +1212,8 @@ html {
 
 /* Tag Creation Form */
 .tag-form {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -1030,16 +1247,16 @@ html {
   align-items: center;
   justify-content: between;
   padding: 0.75rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border-primary);
   border-radius: 0.5rem;
   margin-bottom: 0.5rem;
-  background: white;
+  background: var(--color-bg-surface);
   transition: all 0.2s ease;
 }
 
 .tag-item:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px var(--color-shadow-sm);
+  border-color: var(--color-border-secondary);
 }
 
 .tag-item-color {
@@ -1053,7 +1270,7 @@ html {
 .tag-item-name {
   flex: 1;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 .tag-item-actions {
@@ -1072,28 +1289,30 @@ html {
 }
 
 .tag-item-btn.edit {
-  background: #eff6ff;
-  color: #2563eb;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .tag-item-btn.edit:hover {
-  background: #dbeafe;
+  background: var(--color-info-bg);
+  opacity: 0.8;
 }
 
 .tag-item-btn.delete {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 .tag-item-btn.delete:hover {
-  background: #fee2e2;
+  background: var(--color-error-bg);
+  opacity: 0.8;
 }
 
 /* Empty State */
 .tags-empty-state {
   text-align: center;
   padding: 2rem;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
 }
 
 .tags-empty-state i {
@@ -1131,50 +1350,30 @@ html {
 
 /* Modern Background */
 .modern-bg {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  min-height: 100vh;
-}
-
-.dark-bg {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: var(--gradient-bg);
   min-height: 100vh;
 }
 
 /* Professional Card Styles */
 .modern-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-bg-elevated);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.dark-card {
-  background: rgba(30, 41, 59, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-border-primary);
+  box-shadow: 0 8px 32px var(--color-shadow-md);
 }
 
 /* Sophisticated Gradients */
 .gradient-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
 }
 
 .gradient-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.gradient-warning {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.gradient-info {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--gradient-success);
 }
 
 /* Professional Progress Bar */
 .progress-bar {
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: var(--gradient-primary);
   border-radius: 4px;
 }
 
@@ -1182,58 +1381,58 @@ html {
 .heading-primary {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-primary);
   letter-spacing: -0.025em;
 }
 
 .heading-secondary {
   font-size: 1.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-text-secondary);
   letter-spacing: -0.025em;
 }
 
 .text-muted {
-  color: #6b7280;
+  color: var(--color-text-tertiary);
 }
 
 /* Modern Quote Box */
 .quote-box {
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  border-left: 4px solid #6366f1;
+  background: var(--color-bg-tertiary);
+  border-left: 4px solid var(--color-interactive-primary);
   border-radius: 8px;
   padding: 1.5rem;
   margin: 1.5rem 0;
   font-style: italic;
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 /* Professional Card Components */
 .goal-card {
   border-radius: 12px;
   overflow: hidden;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
 }
 
 .goal-card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  border-color: #cbd5e1;
+  box-shadow: 0 12px 24px var(--color-shadow-md);
+  border-color: var(--color-border-secondary);
 }
 
 /* Modern Goal Card */
 .modern-goal-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
   border-radius: 16px;
   padding: 24px;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--color-shadow-sm);
 }
 
 .modern-goal-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-border-secondary);
+  box-shadow: 0 4px 12px var(--color-shadow-md);
   transform: translateY(-1px);
 }
 
@@ -1250,23 +1449,23 @@ html {
 }
 
 .status-created {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--color-status-created-bg);
+  color: var(--color-status-created);
 }
 
 .status-started {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-status-started-bg);
+  color: var(--color-status-started);
 }
 
 .status-working {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--color-status-working-bg);
+  color: var(--color-status-working);
 }
 
 .status-completed {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--color-status-completed-bg);
+  color: var(--color-status-completed);
 }
 
 /* Status badge hover tooltip */
@@ -1310,7 +1509,7 @@ html {
 .form-checkbox {
   appearance: none;
   background-color: #fff;
-  border: 2px solid #cbd5e1;
+  border: 2px solid var(--color-border-primary);
   border-radius: 4px;
   color: #3b82f6;
   cursor: pointer;
@@ -1341,71 +1540,71 @@ html {
 
 /* Professional Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
   border: none;
   border-radius: 8px;
   padding: 12px 24px;
-  color: white;
+  color: var(--color-text-inverse);
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px var(--color-shadow-lg);
   font-size: 0.95rem;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 16px var(--color-shadow-xl);
 }
 
 .btn-secondary {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--color-interactive-secondary);
+  border: 1px solid var(--color-border-primary);
   border-radius: 8px;
   padding: 12px 24px;
-  color: #475569;
+  color: var(--color-text-secondary);
   font-weight: 600;
   cursor: pointer;
   font-size: 0.95rem;
 }
 
 .btn-secondary:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: var(--color-interactive-secondary-hover);
+  border-color: var(--color-border-secondary);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--gradient-success);
   border: none;
   border-radius: 8px;
   padding: 12px 24px;
-  color: white;
+  color: var(--color-text-inverse);
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px var(--color-shadow-lg);
   font-size: 0.95rem;
 }
 
 .btn-success:hover {
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 16px var(--color-shadow-xl);
 }
 
 /* Modern Input Fields */
 .input-field {
-  border: 2px solid #cbd5e1 !important; /* Subtle but visible border */
+  border: 2px solid var(--color-border-tertiary) !important;
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 15px;
-  background: #ffffff;
-  color: #374151;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
 }
 
 .input-field:focus {
   outline: none !important;
-  border-color: #6366f1 !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+  border-color: var(--color-border-focus) !important;
+  box-shadow: 0 0 0 3px var(--color-shadow-sm) !important;
 }
 
 .input-field::placeholder {
-  color: #9ca3af;
+  color: var(--color-text-muted);
 }
 
 /* Professional Progress Components */
@@ -1436,12 +1635,13 @@ html {
 .subgoal-item {
   transition: all 0.2s ease;
   border-radius: 8px;
-  background: white;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
 }
 
 .subgoal-item:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-color: var(--color-border-secondary);
+  box-shadow: 0 2px 4px var(--color-shadow-sm);
 }
 
 /* Modal Layout Improvements */
@@ -1634,7 +1834,7 @@ body.modal-open {
 .goal-title-modern {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text-primary);
   line-height: 1.4;
   margin: 0;
   min-width: 0;
@@ -1678,7 +1878,7 @@ body.modal-open {
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border-primary);
   background: transparent;
   color: #9ca3af;
   display: flex;
@@ -1749,19 +1949,19 @@ body.modal-open {
 
 /* Progress Stats Section */
 .progress-stats-section {
-  background: #f8fafc;
+  background: var(--color-bg-tertiary);
   border-radius: 12px;
   padding: 16px;
-  border: 1px solid #cbd5e1; /* Darker border for better visibility */
+  border: 1px solid var(--color-border-tertiary); /* Darker border for better visibility */
 }
 
 /* Compact Progress Section - New Design */
 .compact-progress-section {
-  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+  background: var(--color-bg-tertiary);
   border-radius: 10px;
   padding: 12px 16px;
-  border: 1px solid #cbd5e1;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--color-border-tertiary);
+  box-shadow: 0 1px 2px var(--color-shadow-sm);
 }
 
 .compact-progress-container {
@@ -1778,32 +1978,32 @@ body.modal-open {
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 4px var(--color-shadow-sm);
+  border: 1px solid var(--color-border-tertiary);
 }
 
 .compact-progress-inner {
   width: 30px;
   height: 30px;
-  background: white;
+  background: var(--color-bg-surface);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: inset 0 1px 2px var(--color-shadow-sm);
 }
 
 .compact-progress-text {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-primary);
   line-height: 1;
 }
 
 .compact-progress-label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
 }
 
 .compact-date-container {
@@ -1814,14 +2014,14 @@ body.modal-open {
 .compact-date-header {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   margin-bottom: 2px;
 }
 
 .compact-date-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text-primary);
   margin-bottom: 2px;
 }
 
@@ -1832,22 +2032,22 @@ body.modal-open {
 
 /* Days remaining colors for compact view */
 .compact-days-remaining.days-overdue {
-  color: #dc2626;
+  color: var(--color-error);
   font-weight: 600;
 }
 
 .compact-days-remaining.days-today {
-  color: #ea580c;
+  color: var(--color-warning);
   font-weight: 600;
 }
 
 .compact-days-remaining.days-upcoming {
-  color: #2563eb;
+  color: var(--color-interactive-primary);
   font-weight: 600;
 }
 
 .compact-days-remaining.days-future {
-  color: #059669;
+  color: var(--color-success);
   font-weight: 500;
 }
 
@@ -1861,44 +2061,44 @@ body.modal-open {
 
 /* Progress circle container needs visible border */
 .modern-progress-circle .w-20 {
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid var(--color-border-tertiary) !important;
   border-radius: 50% !important;
 }
 
 /* Inner white circle also needs border */
 .modern-progress-circle .w-14 {
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid var(--color-border-tertiary) !important;
   border-radius: 50% !important;
 }
 
 .progress-percentage {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-text-primary);
   line-height: 1;
 }
 
 .progress-label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   text-align: center;
   line-height: 1.2;
 }
 
 /* Target Date Card */
 .target-date-card {
-  background: white;
+  background: var(--color-bg-surface);
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #cbd5e1; /* Darker border for better visibility */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-border-tertiary); /* Darker border for better visibility */
+  box-shadow: 0 1px 2px var(--color-shadow-sm);
 }
 
 .target-date-label {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   margin-bottom: 4px;
   line-height: 1.2;
 }
@@ -1906,7 +2106,7 @@ body.modal-open {
 .target-date-value {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text-primary);
   line-height: 1.3;
   margin-bottom: 4px;
 }
@@ -1982,7 +2182,7 @@ body.modal-open {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border-primary);
   background: transparent;
   color: #9ca3af;
   display: flex;
@@ -2019,10 +2219,10 @@ body.modal-open {
   right: 0;
   z-index: 50;
   min-width: 120px;
-  background: white !important;
-  border: 1px solid #cbd5e1 !important;
+  background: var(--color-bg-surface) !important;
+  border: 1px solid var(--color-border-primary) !important;
   border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 25px var(--color-shadow-lg), 0 4px 6px var(--color-shadow-md);
   padding: 4px 0;
   margin-top: 4px;
 }
@@ -2040,7 +2240,7 @@ body.modal-open {
   padding: 6px 10px;
   border: none;
   background: transparent;
-  color: #374151;
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
   font-weight: 400;
   text-align: left;
@@ -2050,43 +2250,43 @@ body.modal-open {
 }
 
 .card-menu-item:hover {
-  background-color: #f9fafb;
-  color: #1f2937;
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
 }
 
 .card-menu-item i {
   width: 16px;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--color-text-tertiary);
   transition: color 0.15s ease;
 }
 
 .card-menu-item:hover i {
-  color: #374151;
+  color: var(--color-text-secondary);
 }
 
 /* Danger Menu Item (Delete) */
 .card-menu-danger {
-  color: #dc2626;
+  color: var(--color-error);
 }
 
 .card-menu-danger:hover {
-  background-color: #fef2f2;
-  color: #b91c1c;
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 .card-menu-danger i {
-  color: #dc2626;
+  color: var(--color-error);
 }
 
 .card-menu-danger:hover i {
-  color: #b91c1c;
+  color: var(--color-error);
 }
 
 /* Menu Divider */
 .card-menu-divider {
   height: 1px;
-  background-color: #cbd5e1; /* Darker divider for better visibility */
+  background-color: var(--color-border-primary);
   margin: 4px 0;
 }
 
@@ -2186,7 +2386,7 @@ body.modal-open {
 
 /* Restore proper card borders while preventing blue focus border */
 .expandable-goal-card {
-  border: 1px solid #cbd5e1 !important; /* Darker gray for better visibility */
+  border: 1px solid var(--color-border-primary) !important; /* Darker gray for better visibility */
 }
 
 /* Only target the specific focus state that causes blue border */
@@ -2198,7 +2398,7 @@ body.modal-open {
 
 /* Keep normal card borders visible but prevent focus blue border */
 .expandable-goal-card:focus {
-  border: 1px solid #cbd5e1 !important; /* Keep same dark border */
+  border: 1px solid var(--color-border-primary) !important; /* Keep same dark border */
   outline: none !important;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important; /* Subtle shadow without blue */
 }
@@ -2208,7 +2408,7 @@ input[type="text"],
 input[type="search"],
 .quick-subgoal-input,
 .input-field {
-  border: 1px solid #cbd5e1 !important; /* Subtle but visible border */
+  border: 1px solid var(--color-border-primary) !important; /* Subtle but visible border */
 }
 
 input[type="text"]:focus,
@@ -2225,49 +2425,512 @@ input[type="search"]:focus,
 
 /* Fix filter dropdown buttons - subtle but visible borders */
 .border-gray-200 {
-  border-color: #cbd5e1 !important; /* Subtle but visible */
+  border-color: var(--color-border-primary) !important; /* Subtle but visible */
 }
 
 /* Fix progress sections inside cards */
 .progress-stats-section {
-  border: 1px solid #cbd5e1 !important; /* Subtle border for better visibility */
+  border: 1px solid var(--color-border-primary) !important; /* Subtle border for better visibility */
 }
 
 /* Fix all elements with pale borders */
 .border-gray-100,
 .border-gray-200,
 .border-gray-300 {
-  border-color: #cbd5e1 !important;
+  border-color: var(--color-border-primary) !important;
 }
 
 /* Fix dropdown menus */
+/* ==============================================
+   TAILWIND DARK THEME OVERRIDES
+   ============================================== */
+
+/* Override Tailwind background classes for dark mode */
+[data-theme="dark"] .bg-white {
+  background-color: var(--color-bg-surface) !important;
+}
+
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .bg-gray-100 {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+[data-theme="dark"] .bg-gray-200 {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+/* Override Tailwind text colors for dark mode */
+[data-theme="dark"] .text-gray-500 {
+  color: var(--color-text-tertiary) !important;
+}
+
+[data-theme="dark"] .text-gray-600 {
+  color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .text-gray-700 {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .text-gray-800 {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .text-gray-900 {
+  color: var(--color-text-primary) !important;
+}
+
+/* Override Tailwind border colors for dark mode */
+[data-theme="dark"] .border-gray-200 {
+  border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .border-gray-300 {
+  border-color: var(--color-border-secondary) !important;
+}
+
+/* Specific overrides for common light backgrounds */
 .bg-white.border,
 .bg-white.rounded-lg.border,
 .bg-white.rounded-xl.border {
-  border-color: #cbd5e1 !important;
+  background-color: var(--color-bg-surface) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+/* High priority overrides for search and filter controls */
+[data-theme="dark"] .bg-white.rounded-xl.border.border-gray-200 {
+  background-color: var(--color-bg-surface) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] input#goal-search {
+  background-color: var(--color-bg-secondary) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] input#goal-search:focus {
+  background-color: var(--color-bg-surface) !important;
+  border-color: var(--color-interactive-primary) !important;
+}
+
+[data-theme="dark"] .modern-filter-btn {
+  background-color: var(--color-bg-secondary) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+[data-theme="dark"] .modern-filter-btn:hover {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+[data-theme="dark"] .modern-filter-btn:focus {
+  background-color: var(--color-bg-surface) !important;
+}
+
+[data-theme="dark"] .view-toggle-btn {
+  background-color: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+[data-theme="dark"] .view-toggle-btn.bg-white {
+  background-color: var(--color-bg-surface) !important;
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .flex.bg-gray-100.rounded-lg {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+/* Ultra high priority universal overrides for stubborn Tailwind classes */
+[data-theme="dark"] * {
+  /* Force override any white backgrounds */
+}
+
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-gray-50,
+[data-theme="dark"] .bg-gray-100 {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+[data-theme="dark"] .bg-white:focus,
+[data-theme="dark"] .bg-gray-50:focus {
+  background-color: var(--color-bg-surface) !important;
+}
+
+[data-theme="dark"] .text-gray-700,
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-gray-800,
+[data-theme="dark"] .text-gray-900 {
+  color: var(--color-text-primary) !important;
+}
+
+[data-theme="dark"] .text-gray-500,
+[data-theme="dark"] .text-gray-400 {
+  color: var(--color-text-tertiary) !important;
+}
+
+[data-theme="dark"] .border-gray-200,
+[data-theme="dark"] .border-gray-300 {
+  border-color: var(--color-border-primary) !important;
+}
+
+/* ULTIMATE OVERRIDE - Maximum CSS specificity */
+html[data-theme="dark"] .bg-white {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+html[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+html[data-theme="dark"] .bg-gray-100 {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+html[data-theme="dark"] .bg-gray-200 {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+/* Fix due date badge backgrounds - make them much softer for dark mode */
+html[data-theme="dark"] .bg-red-50 {
+  background-color: rgba(220, 38, 38, 0.15) !important;
+}
+
+html[data-theme="dark"] .bg-orange-50 {
+  background-color: rgba(234, 88, 12, 0.15) !important;
+}
+
+html[data-theme="dark"] .bg-yellow-50 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+}
+
+html[data-theme="dark"] .bg-green-50 {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+}
+
+html[data-theme="dark"] .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+html[data-theme="dark"] .text-gray-700 {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme="dark"] .text-gray-500 {
+  color: var(--color-text-tertiary) !important;
+}
+
+html[data-theme="dark"] .text-gray-400 {
+  color: var(--color-text-tertiary) !important;
+}
+
+/* Fix navbar gradient backgrounds */
+html[data-theme="dark"] .from-blue-50 {
+  --tw-gradient-from: var(--color-bg-secondary) !important;
+}
+
+html[data-theme="dark"] .to-indigo-50 {
+  --tw-gradient-to: var(--color-bg-tertiary) !important;
+}
+
+html[data-theme="dark"] .bg-gradient-to-r.from-blue-50.to-indigo-50 {
+  background: var(--gradient-navbar) !important;
+}
+
+html[data-theme="dark"] .bg-gradient-to-r {
+  background: var(--gradient-navbar) !important;
+}
+
+/* Override body background that might be set by style tag */
+html[data-theme="dark"] body {
+  background: var(--gradient-bg) !important;
+  background-color: var(--color-bg-primary) !important;
+}
+
+/* Fix goal titles specifically */
+html[data-theme="dark"] .goal-title,
+html[data-theme="dark"] .goal-title-modern,
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2, 
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4 {
+  color: var(--color-text-primary) !important;
+}
+
+/* ================================================
+   DARK MODE PROGRESS CIRCLE FIXES
+   ================================================ */
+
+/* Fix progress circle inner backgrounds for dark mode */
+[data-theme="dark"] .compact-progress-inner {
+  background: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border-secondary) !important;
+}
+
+[data-theme="dark"] .modern-progress-circle .w-14 {
+  background: var(--color-bg-elevated) !important;
+}
+
+/* Fix target date card backgrounds for dark mode */
+[data-theme="dark"] .target-date-card {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border-secondary) !important;
+}
+
+/* Fix progress stats section backgrounds for dark mode */
+[data-theme="dark"] .progress-stats-section,
+[data-theme="dark"] .compact-progress-section {
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-border-secondary) !important;
+}
+
+/* Fix progress circle stroke colors for dark mode SVG elements */
+[data-theme="dark"] .progress-stats-section circle:first-child {
+  stroke: var(--color-border-primary) !important;
+}
+
+/* Fix subgoal completion badge backgrounds */
+[data-theme="dark"] .bg-blue-100 {
+  background-color: var(--color-info-bg) !important;
+}
+
+[data-theme="dark"] .text-blue-800 {
+  color: var(--color-info) !important;
+}
+
+/* Fix progress bar backgrounds in dark mode */
+[data-theme="dark"] .bg-gray-200 {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+/* Override any remaining hardcoded white backgrounds in goal cards */
+[data-theme="dark"] .goal-card-grid .bg-white,
+[data-theme="dark"] .modern-goal-card .bg-white {
+  background-color: var(--color-bg-surface) !important;
+}
+
+/* Fix any remaining text that should be light in dark mode */
+html[data-theme="dark"] .text-black {
+  color: var(--color-text-primary) !important;
+}
+
+html[data-theme="dark"] .text-gray-800,
+html[data-theme="dark"] .text-gray-900 {
+  color: var(--color-text-primary) !important;
+}
+
+/* Fix header border and shadow */
+html[data-theme="dark"] .border-gray-200 {
+  border-color: var(--color-border-primary) !important;
+}
+
+/* Override header inline shadow and force dark background */
+html[data-theme="dark"] header {
+  background: var(--gradient-navbar) !important;
+  background-image: var(--gradient-navbar) !important;
+  box-shadow: 0 1px 3px 0 var(--color-shadow-md) !important;
+  border-bottom-color: var(--color-border-primary) !important;
+}
+
+/* Force override the Tailwind gradient classes on header */
+html[data-theme="dark"] header.bg-gradient-to-r.from-blue-50.to-indigo-50 {
+  background: var(--gradient-navbar) !important;
+  background-image: var(--gradient-navbar) !important;
+}
+
+/* ULTIMATE WHITE ELIMINATION - Make all whites softer */
+html[data-theme="dark"] * {
+  /* Force softer backgrounds for any remaining bright elements */
+}
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] [style*="background: white"],
+html[data-theme="dark"] [style*="background-color: white"],
+html[data-theme="dark"] [style*="background: #fff"],
+html[data-theme="dark"] [style*="background-color: #fff"] {
+  background-color: var(--color-bg-surface) !important;
+}
+
+/* Target date and progress inner circles - make them softer */
+html[data-theme="dark"] .compact-progress-inner,
+html[data-theme="dark"] .progress-inner,
+html[data-theme="dark"] .target-date-card,
+html[data-theme="dark"] .w-14.bg-white {
+  background-color: var(--color-bg-elevated) !important;
+}
+
+/* Make sure all card backgrounds are soft */
+html[data-theme="dark"] .modern-card,
+html[data-theme="dark"] .goal-card,
+html[data-theme="dark"] .card {
+  background-color: var(--color-bg-secondary) !important;
+}
+
+/* Dropdown specific background fixes */
+#filter-dropdown,
+#sort-dropdown,
+#tag-filter-dropdown {
+  background-color: var(--color-bg-surface) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+/* Filter and sort options */
+.filter-option,
+.sort-option,
+.tag-filter-option {
+  color: var(--color-text-secondary);
+}
+
+/* View toggle container */
+.bg-gray-100 {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+/* Filter buttons hover states */
+.hover\:bg-gray-50:hover {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: var(--color-interactive-secondary) !important;
+}
+
+/* Focus states for filter buttons */
+.focus\:bg-white:focus {
+  background-color: var(--color-bg-surface) !important;
+}
+
+/* Dropdown menu items */
+.bg-white {
+  background-color: var(--color-bg-surface);
+}
+
+/* Gray backgrounds for various UI elements */
+.bg-gray-50 {
+  background-color: var(--color-bg-tertiary);
+}
+
+/* Inline subgoal form in edit modal */
+.bg-blue-50 {
+  background-color: var(--color-info-bg);
+}
+
+.border-blue-200 {
+  border-color: var(--color-info);
+}
+
+.text-blue-600 {
+  color: var(--color-info);
+}
+
+/* Gray text colors */
+.text-gray-400 {
+  color: var(--color-text-muted);
+}
+
+.text-gray-500 {
+  color: var(--color-text-tertiary);
+}
+
+.text-gray-700 {
+  color: var(--color-text-secondary);
 }
 
 /* Fix specific filter bar elements */
 .bg-white.rounded-xl.border.border-gray-200 {
-  border-color: #cbd5e1 !important;
+  border-color: var(--color-border-primary) !important;
 }
 
 /* Fix any remaining pale borders */
 *[class*="border-gray-200"],
 *[class*="border-gray-100"] {
-  border-color: #cbd5e1 !important;
+  border-color: var(--color-border-primary) !important;
 }
 
 /* Fix filter dropdown buttons specifically - they use border-0 */
 .modern-filter-btn {
-  border: 1px solid #cbd5e1 !important; /* Add visible border */
+  border: 1px solid var(--color-border-primary) !important;
 }
 
 .modern-filter-btn:hover {
-  border-color: #9ca3af !important; /* Slightly darker on hover */
+  border-color: var(--color-border-secondary) !important;
 }
 
 .modern-filter-btn:focus,
 .modern-filter-btn.active {
-  border-color: #3b82f6 !important; /* Blue border when focused/active */
+  border-color: var(--color-border-focus) !important;
 }
+
+/* ================================================
+   COMPREHENSIVE DARK MODE FIXES FOR DASHBOARD
+   ================================================ */
+
+/* Main filter bar container */
+.bg-white.rounded-xl.border.border-gray-200,
+.bg-white.rounded-xl {
+  background-color: var(--color-bg-surface) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+/* Search input specific styling */
+#goal-search {
+  background-color: var(--color-bg-tertiary) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+#goal-search:focus {
+  background-color: var(--color-bg-surface) !important;
+  border-color: var(--color-border-focus) !important;
+}
+
+#goal-search::placeholder {
+  color: var(--color-text-muted) !important;
+}
+
+/* Filter buttons (All Goals, All Tags, Recently Updated) */
+#filter-dropdown-btn,
+#tag-filter-dropdown-btn,
+#sort-dropdown-btn {
+  background-color: var(--color-bg-tertiary) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+#filter-dropdown-btn:hover,
+#tag-filter-dropdown-btn:hover,
+#sort-dropdown-btn:hover {
+  background-color: var(--color-interactive-secondary) !important;
+  border-color: var(--color-border-secondary) !important;
+}
+
+/* View toggle specific overrides */
+#grid-view-btn,
+#list-view-btn {
+  background-color: transparent !important;
+  color: var(--color-text-tertiary) !important;
+  border: none !important;
+}
+
+#grid-view-btn:hover,
+#list-view-btn:hover {
+  color: var(--color-text-secondary) !important;
+}
+
+#grid-view-btn.active,
+#list-view-btn.active {
+  background-color: var(--color-bg-surface) !important;
+  color: var(--color-text-primary) !important;
+  box-shadow: 0 2px 4px var(--color-shadow-sm) !important;
+}
+
+/* View toggle container */
+.flex.bg-gray-100.rounded-lg {
+  background-color: var(--color-bg-tertiary) !important;
+}
+
+/* Tag management and New Goal buttons already use btn-secondary and btn-primary which have CSS variables */
