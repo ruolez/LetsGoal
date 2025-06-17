@@ -746,34 +746,34 @@ function renderGoalCardGrid(goal) {
                     ` : ''}
                 </div>
                 
-                <!-- Modern Progress and Date Section -->
-                <div class="mt-3 mb-1">
+                <!-- Enhanced Progress and Date Section -->
+                <div class="mt-4 mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="flex items-center justify-between">
                         <!-- Progress Section -->
-                        <div class="flex items-center gap-3">
-                            <!-- Modern Progress Circle -->
-                            <div class="relative w-8 h-8">
-                                <svg class="w-8 h-8 transform -rotate-90" viewBox="0 0 32 32">
-                                    <circle cx="16" cy="16" r="14" stroke="#f3f4f6" stroke-width="3" fill="none"/>
-                                    <circle cx="16" cy="16" r="14" 
+                        <div class="flex items-center gap-4">
+                            <!-- Larger Progress Circle -->
+                            <div class="relative w-12 h-12">
+                                <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 48 48">
+                                    <circle cx="24" cy="24" r="20" stroke="#e5e7eb" stroke-width="4" fill="none"/>
+                                    <circle cx="24" cy="24" r="20" 
                                             stroke="${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}" 
-                                            stroke-width="3" 
+                                            stroke-width="4" 
                                             fill="none"
-                                            stroke-dasharray="${2 * Math.PI * 14}"
-                                            stroke-dashoffset="${2 * Math.PI * 14 * (1 - goal.progress / 100)}"
+                                            stroke-dasharray="${2 * Math.PI * 20}"
+                                            stroke-dashoffset="${2 * Math.PI * 20 * (1 - goal.progress / 100)}"
                                             stroke-linecap="round"/>
                                 </svg>
                                 <div class="absolute inset-0 flex items-center justify-center">
-                                    <span class="text-xs font-bold text-gray-700">${Math.round(goal.progress)}%</span>
+                                    <span class="text-sm font-bold text-gray-800">${Math.round(goal.progress)}%</span>
                                 </div>
                             </div>
                             <!-- Progress Details -->
-                            <div class="flex flex-col">
-                                <span class="text-xs font-medium text-gray-600">
+                            <div class="flex flex-col gap-1">
+                                <span class="text-sm font-semibold text-gray-800">
                                     ${goal.subgoals.filter(sg => sg.status === 'achieved').length} of ${goal.subgoals.length} completed
                                 </span>
-                                <div class="w-16 h-1.5 bg-gray-200 rounded-full mt-1">
-                                    <div class="h-1.5 rounded-full transition-all duration-300" 
+                                <div class="w-24 h-2 bg-gray-200 rounded-full">
+                                    <div class="h-2 rounded-full transition-all duration-300" 
                                          style="width: ${goal.progress}%; background-color: ${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}"></div>
                                 </div>
                             </div>
@@ -782,9 +782,11 @@ function renderGoalCardGrid(goal) {
                         <!-- Target Date Section -->
                         ${goal.target_date ? `
                             <div class="text-right">
-                                <div class="text-xs text-gray-500 mb-1">Target</div>
-                                <div class="text-xs font-medium text-gray-700">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</div>
-                                ${formatDaysLeft(goal.target_date, goal.status)}
+                                <div class="text-xs font-medium text-gray-600 mb-1">Target Date</div>
+                                <div class="text-sm font-bold text-gray-800 mb-1">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</div>
+                                <div class="inline-block">
+                                    ${formatDaysLeft(goal.target_date, goal.status)}
+                                </div>
                             </div>
                         ` : ''}
                     </div>
