@@ -1475,11 +1475,10 @@ body.modal-open {
 
 /* Description container - always reserve space for 1 line */
 .description-container {
-  height: 1.12rem; /* Exactly 1 line: 0.8rem * 1.4 = 1.12rem */
+  min-height: 1.12rem; /* Exactly 1 line: 0.8rem * 1.4 = 1.12rem */
   display: flex;
   align-items: flex-start;
   margin-top: 8px;
-  overflow: hidden;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -1598,7 +1597,7 @@ body.modal-open {
   line-height: 1.4;
   color: #6b7280;
   margin: 0;
-  height: 1.12rem; /* Exactly 1 line: 0.8rem * 1.4 = 1.12rem */
+  padding: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
