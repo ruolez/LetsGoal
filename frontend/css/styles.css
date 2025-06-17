@@ -710,9 +710,12 @@ html {
 
 .tag-color-picker {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 0.5rem;
   margin-top: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0.5rem;
 }
 
 .color-option {
@@ -970,7 +973,7 @@ html {
   }
   
   .tag-color-picker {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
   
   .color-option {
