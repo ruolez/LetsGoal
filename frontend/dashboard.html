@@ -18,7 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         body {
@@ -32,15 +32,172 @@
     <header class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 sticky top-0 z-40" style="box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);">
         <div class="max-w-7xl mx-auto">
             <div class="flex items-center justify-between h-16 px-6">
-                <!-- Brand Section with Animated Focus Logo -->
+                <!-- Brand Section with Breathing Lotus Logo -->
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-3">
-                        <div class="relative animated-focus-logo">
-                            <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg focus-logo-container">
-                                <svg class="w-5 h-5 text-white focus-logo-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10" class="focus-ring-outer"/>
-                                    <circle cx="12" cy="12" r="6" class="focus-ring-middle"/>
-                                    <circle cx="12" cy="12" r="2" class="focus-ring-inner"/>
+                        <div class="lotus-wrapper">
+                            <div class="breathing-lotus">
+                                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                                    <defs>
+                                        <linearGradient id="breath1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#667eea"/>
+                                            <stop offset="50%" style="stop-color:#764ba2"/>
+                                            <stop offset="100%" style="stop-color:#f093fb"/>
+                                        </linearGradient>
+                                        <linearGradient id="breath2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#4facfe"/>
+                                            <stop offset="100%" style="stop-color:#00f2fe"/>
+                                        </linearGradient>
+                                        <radialGradient id="breathCore" cx="50%" cy="50%">
+                                            <stop offset="0%" style="stop-color:#ffffff" stop-opacity="0.9"/>
+                                            <stop offset="70%" style="stop-color:#ffd700" stop-opacity="0.6"/>
+                                            <stop offset="100%" style="stop-color:#ff6b6b" stop-opacity="0.8"/>
+                                        </radialGradient>
+                                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                            <feMerge>
+                                                <feMergeNode in="coloredBlur"/>
+                                                <feMergeNode in="SourceGraphic"/>
+                                            </feMerge>
+                                        </filter>
+                                    </defs>
+                                    
+                                    <!-- Breathing central lotus -->
+                                    <g id="breathingCore" transform-origin="60 60">
+                                        <animateTransform 
+                                            attributeName="transform" 
+                                            attributeType="XML" 
+                                            type="scale" 
+                                            values="1;1.2;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                        
+                                        <circle cx="60" cy="60" r="15" fill="url(#breathCore)" opacity="0.8" filter="url(#glow)"/>
+                                        <circle cx="60" cy="60" r="10" fill="rgba(255,255,255,0.4)"/>
+                                        <circle cx="60" cy="60" r="5" fill="url(#breath2)"/>
+                                        
+                                        <circle cx="60" cy="60" r="3" fill="white" opacity="0.9">
+                                            <animate attributeName="opacity" values="0.9;0.5;0.9" dur="8s" repeatCount="indefinite"/>
+                                        </circle>
+                                    </g>
+                                    
+                                    <!-- Lotus petals -->
+                                    <g id="petals" transform-origin="60 60">
+                                        <animateTransform 
+                                            attributeName="transform" 
+                                            attributeType="XML" 
+                                            type="scale" 
+                                            values="0.9;1.1;0.9" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"
+                                            begin="1s"/>
+                                        
+                                        <g transform="rotate(0 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                        <g transform="rotate(45 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                        <g transform="rotate(90 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                        <g transform="rotate(135 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                        <g transform="rotate(180 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                        <g transform="rotate(225 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                        <g transform="rotate(270 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                        <g transform="rotate(315 60 60)">
+                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
+                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
+                                        </g>
+                                    </g>
+                                    
+                                    <!-- Outer completion markers -->
+                                    <g id="markers" transform-origin="60 60">
+                                        <animateTransform 
+                                            attributeName="transform" 
+                                            attributeType="XML" 
+                                            type="scale" 
+                                            values="1;0.8;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"
+                                            begin="2s"/>
+                                        
+                                        <g transform="rotate(30 60 60)">
+                                            <circle cx="60" cy="18" r="3" fill="#ffd700" filter="url(#glow)"/>
+                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
+                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#ffd700" stroke-width="0.5" fill="none"/>
+                                        </g>
+                                        <g transform="rotate(90 60 60)">
+                                            <circle cx="60" cy="18" r="3" fill="#4facfe" filter="url(#glow)"/>
+                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
+                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#4facfe" stroke-width="0.5" fill="none"/>
+                                        </g>
+                                        <g transform="rotate(150 60 60)">
+                                            <circle cx="60" cy="18" r="3" fill="#ffd700" filter="url(#glow)"/>
+                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
+                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#ffd700" stroke-width="0.5" fill="none"/>
+                                        </g>
+                                        <g transform="rotate(210 60 60)">
+                                            <circle cx="60" cy="18" r="3" fill="#f093fb" opacity="0.6"/>
+                                            <circle cx="60" cy="18" r="1" fill="rgba(255,255,255,0.7)"/>
+                                        </g>
+                                        <g transform="rotate(270 60 60)">
+                                            <circle cx="60" cy="18" r="3" fill="#4facfe" filter="url(#glow)"/>
+                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
+                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#4facfe" stroke-width="0.5" fill="none"/>
+                                        </g>
+                                        <g transform="rotate(330 60 60)">
+                                            <circle cx="60" cy="18" r="3" fill="#ffd700" filter="url(#glow)"/>
+                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
+                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#ffd700" stroke-width="0.5" fill="none"/>
+                                        </g>
+                                    </g>
+                                    
+                                    <!-- Pulsing energy rings -->
+                                    <circle cx="60" cy="60" r="25" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                                    <circle cx="60" cy="60" r="35" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+                                    
+                                    <circle cx="60" cy="60" r="25" fill="none" stroke="url(#breath2)" stroke-width="2" opacity="0.6">
+                                        <animate attributeName="r" values="25;30;25" dur="6s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="6s" repeatCount="indefinite"/>
+                                    </circle>
+                                    
+                                    <circle cx="60" cy="60" r="35" fill="none" stroke="url(#breath1)" stroke-width="1" opacity="0.4">
+                                        <animate attributeName="r" values="35;40;35" dur="8s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.4;0.1;0.4" dur="8s" repeatCount="indefinite"/>
+                                    </circle>
+                                    
+                                    <!-- Floating particles -->
+                                    <circle cx="85" cy="35" r="1" fill="#ffd700" opacity="0.8">
+                                        <animate attributeName="cy" values="35;25;35" dur="10s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="10s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="35" cy="85" r="1.5" fill="#4facfe" opacity="0.6">
+                                        <animate attributeName="cx" values="35;45;35" dur="12s" repeatCount="indefinite"/>
+                                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="12s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="85" cy="85" r="1" fill="white" opacity="0.7">
+                                        <animate attributeName="cy" values="85;75;85" dur="8s" repeatCount="indefinite"/>
+                                        <animate attributeName="cx" values="85;75;85" dur="8s" repeatCount="indefinite"/>
+                                    </circle>
+                                    <circle cx="35" cy="35" r="1.2" fill="#f093fb" opacity="0.5">
+                                        <animate attributeName="cy" values="35;25;35" dur="14s" repeatCount="indefinite"/>
+                                    </circle>
                                 </svg>
                             </div>
                         </div>
@@ -51,14 +208,16 @@
                     </div>
                 </div>
 
-                <!-- Floating Quote Bubble -->
+                <!-- Floating Quote -->
                 <div class="hidden lg:block flex-1 px-8">
-                    <div class="max-w-md mx-auto">
-                        <div class="relative bg-white rounded-full px-6 py-3 shadow-lg border border-gray-100 floating-quote">
-                            <p id="daily-quote" class="text-sm font-medium text-gray-700 text-center">
+                    <div class="max-w-lg mx-auto">
+                        <div class="floating-quote text-center">
+                            <p id="daily-quote" class="text-sm font-medium text-gray-700">
                                 Loading inspiration...
                             </p>
-                            <div class="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rounded-full quote-indicator"></div>
+                            <div id="quote-author" class="quote-author mt-2">
+                                — Author
+                            </div>
                         </div>
                     </div>
                 </div>

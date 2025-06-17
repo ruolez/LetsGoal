@@ -188,56 +188,1532 @@ function applySettingsToUI() {
 
 // Dashboard functionality confirmed working
 
-// Professional motivational quotes
+// 365 Inspirational quotes about achieving goals from famous people
 const motivationalQuotes = [
-    "The successful person has the habit of doing the things failures don't like to do.",
-    "Success is the progressive realization of a worthy goal or ideal.",
-    "Goals are dreams with deadlines and action plans.",
-    "Excellence is never an accident. It is always the result of high intention.",
-    "The difference between ordinary and extraordinary is that little extra.",
-    "Success is where preparation and opportunity meet.",
-    "A goal properly set is halfway reached.",
-    "The future belongs to those who prepare for it today."
+    // Business Leaders & Entrepreneurs (Days 1-40)
+    {
+        text: "The way to get started is to quit talking and begin doing.",
+        author: "Walt Disney"
+    },
+    {
+        text: "Innovation distinguishes between a leader and a follower.",
+        author: "Steve Jobs"
+    },
+    {
+        text: "Your work is going to fill a large part of your life, and the only way to be truly satisfied is to do what you believe is great work.",
+        author: "Steve Jobs"
+    },
+    {
+        text: "The biggest risk is not taking any risk... In a world that's changing quickly, the only strategy that is guaranteed to fail is not taking risks.",
+        author: "Mark Zuckerberg"
+    },
+    {
+        text: "Success is a lousy teacher. It seduces smart people into thinking they can't lose.",
+        author: "Bill Gates"
+    },
+    {
+        text: "Don't be afraid to give up the good to go for the great.",
+        author: "John D. Rockefeller"
+    },
+    {
+        text: "The successful warrior is the average man with laser-like focus.",
+        author: "Bruce Lee"
+    },
+    {
+        text: "I have not failed. I've just found 10,000 ways that won't work.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Genius is one percent inspiration and ninety-nine percent perspiration.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Many of life's failures are people who did not realize how close they were to success when they gave up.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "The whole secret of a successful life is to find out what is one's destiny to do, and then do it.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Whether you think you can or you think you can't, you're right.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Coming together is a beginning; keeping together is progress; working together is success.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Quality means doing it right when no one is looking.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Obstacles are those frightful things you see when you take your eyes off your goal.",
+        author: "Henry Ford"
+    },
+    {
+        text: "It's fine to celebrate success but it is more important to heed the lessons of failure.",
+        author: "Bill Gates"
+    },
+    {
+        text: "If you are born poor it's not your mistake, but if you die poor it's your mistake.",
+        author: "Bill Gates"
+    },
+    {
+        text: "We always overestimate the change that will occur in the next two years and underestimate the change that will occur in the next ten.",
+        author: "Bill Gates"
+    },
+    {
+        text: "Your most unhappy customers are your greatest source of learning.",
+        author: "Bill Gates"
+    },
+    {
+        text: "As we look ahead into the next century, leaders will be those who empower others.",
+        author: "Bill Gates"
+    },
+    {
+        text: "The secret of change is to focus all of your energy not on fighting the old, but on building the new.",
+        author: "Socrates"
+    },
+    {
+        text: "I can accept failure, everyone fails at something. But I can't accept not trying.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "Talent wins games, but teamwork and intelligence win championships.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "I've missed more than 9000 shots in my career. I've lost almost 300 games. 26 times, I've been trusted to take the game winning shot and missed. I've failed over and over and over again in my life. And that is why I succeed.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "Some people want it to happen, some wish it would happen, others make it happen.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "Don't let what you cannot do interfere with what you can do.",
+        author: "John Wooden"
+    },
+    {
+        text: "Success is peace of mind, which is a direct result of self-satisfaction in knowing you made the effort to become the best of which you are capable.",
+        author: "John Wooden"
+    },
+    {
+        text: "The difference between a successful person and others is not a lack of strength, not a lack of knowledge, but rather a lack in will.",
+        author: "Vince Lombardi"
+    },
+    {
+        text: "Winners never quit and quitters never win.",
+        author: "Vince Lombardi"
+    },
+    {
+        text: "Perfection is not attainable, but if we chase perfection we can catch excellence.",
+        author: "Vince Lombardi"
+    },
+    {
+        text: "The price of success is hard work, dedication to the job at hand, and the determination that whether we win or lose, we have applied the best of ourselves to the task at hand.",
+        author: "Vince Lombardi"
+    },
+    {
+        text: "Individual commitment to a group effort – that is what makes a team work, a company work, a society work, a civilization work.",
+        author: "Vince Lombardi"
+    },
+    {
+        text: "If you want something you've never had, you must be willing to do something you've never done.",
+        author: "Thomas Jefferson"
+    },
+    {
+        text: "I'm a great believer in luck, and I find the harder I work, the more I have of it.",
+        author: "Thomas Jefferson"
+    },
+    {
+        text: "Nothing can stop the man with the right mental attitude from achieving his goal; nothing on earth can help the man with the wrong mental attitude.",
+        author: "Thomas Jefferson"
+    },
+    {
+        text: "Do what you can, with what you have, where you are.",
+        author: "Theodore Roosevelt"
+    },
+    {
+        text: "It is not the critic who counts; not the man who points out how the strong man stumbles, or where the doer of deeds could have done them better. The credit belongs to the man who is actually in the arena.",
+        author: "Theodore Roosevelt"
+    },
+    {
+        text: "Believe you can and you're halfway there.",
+        author: "Theodore Roosevelt"
+    },
+    {
+        text: "The only man who never makes a mistake is the man who never does anything.",
+        author: "Theodore Roosevelt"
+    },
+    {
+        text: "Far and away the best prize that life offers is the chance to work hard at work worth doing.",
+        author: "Theodore Roosevelt"
+    },
+
+    // Historical Figures & Presidents (Days 41-80)
+    {
+        text: "Success consists of going from failure to failure without loss of enthusiasm.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "The pessimist sees difficulty in every opportunity. The optimist sees opportunity in every difficulty.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "Never give in--never, never, never, never, in nothing great or small, large or petty, never give in except to convictions of honour and good sense.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "Kites rise highest against the wind, not with it.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "Attitude is a little thing that makes a big difference.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "The empires of the future are the empires of the mind.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "You have power over your mind - not outside events. Realize this, and you will find strength.",
+        author: "Marcus Aurelius"
+    },
+    {
+        text: "The best revenge is not to be like your enemy.",
+        author: "Marcus Aurelius"
+    },
+    {
+        text: "Very little is needed to make a happy life; it is all within yourself, in your way of thinking.",
+        author: "Marcus Aurelius"
+    },
+    {
+        text: "What we do now echoes in eternity.",
+        author: "Marcus Aurelius"
+    },
+    {
+        text: "If you want to improve, be content to be thought foolish and stupid with regard to external things.",
+        author: "Epictetus"
+    },
+    {
+        text: "No man is free who is not master of himself.",
+        author: "Epictetus"
+    },
+    {
+        text: "It's not what happens to you, but how you react to it that matters.",
+        author: "Epictetus"
+    },
+    {
+        text: "First say to yourself what you would be; and then do what you have to do.",
+        author: "Epictetus"
+    },
+    {
+        text: "Nearly all men can stand adversity, but if you want to test a man's character, give him power.",
+        author: "Abraham Lincoln"
+    },
+    {
+        text: "Whatever you are, be a good one.",
+        author: "Abraham Lincoln"
+    },
+    {
+        text: "I am a slow walker, but I never walk back.",
+        author: "Abraham Lincoln"
+    },
+    {
+        text: "The best way to predict your future is to create it.",
+        author: "Abraham Lincoln"
+    },
+    {
+        text: "My great concern is not whether you have failed, but whether you are content with your failure.",
+        author: "Abraham Lincoln"
+    },
+    {
+        text: "Give me six hours to chop down a tree and I will spend the first four sharpening the axe.",
+        author: "Abraham Lincoln"
+    },
+    {
+        text: "Most folks are as happy as they make up their minds to be.",
+        author: "Abraham Lincoln"
+    },
+    {
+        text: "Ask not what your country can do for you – ask what you can do for your country.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "Efforts and courage are not enough without purpose and direction.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "Change is the law of life. And those who look only to the past or present are certain to miss the future.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "Leadership and learning are indispensable to each other.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "Let us not seek the Republican answer or the Democratic answer, but the right answer.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "The Chinese use two brush strokes to write the word 'crisis.' One brush stroke stands for danger; the other for opportunity.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "As we express our gratitude, we must never forget that the highest appreciation is not to utter words, but to live by them.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "Conformity is the jailer of freedom and the enemy of growth.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "The time to repair the roof is when the sun is shining.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "Energy and persistence conquer all things.",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "An investment in knowledge pays the best interest.",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "Tell me and I forget, teach me and I may remember, involve me and I learn.",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "Well done is better than well said.",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "By failing to prepare, you are preparing to fail.",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "Either write something worth reading or do something worth writing.",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "Hide not your talents, they for use were made. What's a sundial in the shade?",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "The Constitution only gives people the right to pursue happiness. You have to catch it yourself.",
+        author: "Benjamin Franklin"
+    },
+    {
+        text: "It is during our darkest moments that we must focus to see the light.",
+        author: "Aristotle"
+    },
+    {
+        text: "Excellence is never an accident. It is always the result of high intention, sincere effort, and intelligent execution.",
+        author: "Aristotle"
+    },
+
+    // Civil Rights Leaders & Social Activists (Days 81-100)
+    {
+        text: "The ultimate measure of a man is not where he stands in moments of comfort and convenience, but where he stands at times of challenge and controversy.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "Faith is taking the first step even when you don't see the whole staircase.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "If you can't fly then run, if you can't run then walk, if you can't walk then crawl, but whatever you do you have to keep moving forward.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "Life's most persistent and urgent question is: 'What are you doing for others?'",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "Intelligence plus character-that is the goal of true education.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "We must accept finite disappointment, but never lose infinite hope.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "Be yourself; everyone else is already taken.",
+        author: "Oscar Wilde"
+    },
+    {
+        text: "We are all in the gutter, but some of us are looking at the stars.",
+        author: "Oscar Wilde"
+    },
+    {
+        text: "I can resist everything except temptation.",
+        author: "Oscar Wilde"
+    },
+    {
+        text: "Experience is merely the name men gave to their mistakes.",
+        author: "Oscar Wilde"
+    },
+    {
+        text: "No one can make you feel inferior without your consent.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "The future belongs to those who believe in the beauty of their dreams.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "You must do the things you think you cannot do.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "It is better to light a candle than curse the darkness.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "Great minds discuss ideas; average minds discuss events; small minds discuss people.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "You gain strength, courage, and confidence by every experience in which you really stop to look fear in the face.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "The purpose of life is not to be happy. It is to be useful, to be honorable, to be compassionate, to have it make some difference that you have lived and lived well.",
+        author: "Ralph Waldo Emerson"
+    },
+    {
+        text: "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+        author: "Ralph Waldo Emerson"
+    },
+    {
+        text: "What you do speaks so loudly that I cannot hear what you say.",
+        author: "Ralph Waldo Emerson"
+    },
+    {
+        text: "The only way to have a friend is to be one.",
+        author: "Ralph Waldo Emerson"
+    },
+
+    // Scientists & Inventors (Days 101-140)
+    {
+        text: "Imagination is more important than knowledge.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Try not to become a person of success, but rather try to become a person of value.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "It is not that I'm so smart. But I stay with the questions much longer.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Great spirits have always encountered violent opposition from mediocre minds.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Learn from yesterday, live for today, hope for tomorrow. The important thing is not to stop questioning.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Logic will get you from A to B. Imagination will take you everywhere.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "A person who never made a mistake never tried anything new.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "The important thing is not to stop questioning. Curiosity has its own reason for existing.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Weakness of attitude becomes weakness of character.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "In the middle of difficulty lies opportunity.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Life is like riding a bicycle. To keep your balance, you must keep moving.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Once we accept our limits, we go beyond them.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Peace cannot be kept by force; it can only be achieved by understanding.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Strive not to be a success, but rather to be of value.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "The true sign of intelligence is not knowledge but imagination.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Opportunity is missed by most people because it is dressed in overalls and looks like work.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "There's a way to do it better - find it.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "I find out what the world needs. Then I go ahead and try to invent it.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "The three great essentials to achieve anything worthwhile are: Hard work, Stick-to-itiveness, and Common sense.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Results! Why, man, I have gotten a lot of results. I know several thousand ways that won't work.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Everything comes to him who hustles while he waits.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "The doctor of the future will give no medicine, but will interest his patients in the care of the human frame, in diet, and in the cause and prevention of disease.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "To invent, you need a good imagination and a pile of junk.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Being busy does not always mean real work. The object of all work is production or accomplishment.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Non-violence is a weapon of the strong.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "Be the change that you wish to see in the world.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "Live as if you were to die tomorrow. Learn as if you were to live forever.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "The weak can never forgive. Forgiveness is the attribute of the strong.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "Happiness is when what you think, what you say, and what you do are in harmony.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "In a gentle way, you can shake the world.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "The best way to find yourself is to lose yourself in the service of others.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "An eye for an eye only ends up making the whole world blind.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "First they ignore you, then they laugh at you, then they fight you, then you win.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "You must be the change you wish to see in the world.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "It does not matter how slowly you go as long as you do not stop.",
+        author: "Confucius"
+    },
+    {
+        text: "Our greatest glory is not in never falling, but in rising every time we fall.",
+        author: "Confucius"
+    },
+    {
+        text: "The man who moves a mountain begins by carrying away small stones.",
+        author: "Confucius"
+    },
+    {
+        text: "When we see men of worth, we should think of equaling them; when we see men of a contrary character, we should turn inwards and examine ourselves.",
+        author: "Confucius"
+    },
+    {
+        text: "Real knowledge is to know the extent of one's ignorance.",
+        author: "Confucius"
+    },
+
+    // Authors & Writers (Days 141-180)
+    {
+        text: "The secret of getting ahead is getting started.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Courage is resistance to fear, mastery of fear - not absence of fear.",
+        author: "Mark Twain"
+    },
+    {
+        text: "If you tell the truth, you don't have to remember anything.",
+        author: "Mark Twain"
+    },
+    {
+        text: "The two most important days in your life are the day you are born and the day you find out why.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Kindness is the language which the deaf can hear and the blind can see.",
+        author: "Mark Twain"
+    },
+    {
+        text: "The best way to cheer yourself up is to try to cheer somebody else up.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Don't go around saying the world owes you a living. The world owes you nothing. It was here first.",
+        author: "Mark Twain"
+    },
+    {
+        text: "It is better to keep your mouth closed and let people think you are a fool than to open it and remove all doubt.",
+        author: "Mark Twain"
+    },
+    {
+        text: "The difference between the almost right word and the right word is really a large matter.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Age is an issue of mind over matter. If you don't mind, it doesn't matter.",
+        author: "Mark Twain"
+    },
+    {
+        text: "A lie can travel halfway around the world while the truth is putting on its shoes.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Good friends, good books, and a sleepy conscience: this is the ideal life.",
+        author: "Mark Twain"
+    },
+    {
+        text: "The fear of death follows from the fear of life. A man who lives fully is prepared to die at any time.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Everyone is a moon, and has a dark side which he never shows to anybody.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Whenever you find yourself on the side of the majority, it is time to pause and reflect.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Twenty years from now you will be more disappointed by the things that you didn't do than by the ones you did do.",
+        author: "Mark Twain"
+    },
+    {
+        text: "I can live for two months on a good compliment.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+        author: "Winston Churchill"
+    },
+    {
+        text: "It is not the size of a man but the size of his heart that matters.",
+        author: "Evander Holyfield"
+    },
+    {
+        text: "You have been critical of yourself for years, and it hasn't worked. Try approving of yourself and see what happens.",
+        author: "Louise Hay"
+    },
+    {
+        text: "The greatest glory in living lies not in never falling, but in rising every time we fall.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "There is no passion to be found playing small – in settling for a life that is less than the one you are capable of living.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "It always seems impossible until it's done.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "I learned that courage was not the absence of fear, but the triumph over it.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "Education is the most powerful weapon which you can use to change the world.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "A winner is a dreamer who never gives up.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "There can be no keener revelation of a society's soul than the way in which it treats its children.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "If you want to make peace with your enemy, you have to work with your enemy. Then he becomes your partner.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "Money won't create success, the freedom to make it will.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "I never lose. I either win or learn.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "Resentment is like drinking poison and then hoping it will kill your enemies.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "Lead from the back — and let others believe they are in front.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "What counts in life is not the mere fact that we have lived. It is what difference we have made to the lives of others.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "There is nothing like returning to a place that remains unchanged to find the ways in which you yourself have altered.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "If you talk to a man in a language he understands, that goes to his head. If you talk to him in his language, that goes to his heart.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "I am fundamentally an optimist. Whether that comes from nature or nurture, I cannot say.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "For to be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "Courage is not the absence of fear, but action in spite of it.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "A good head and a good heart are always a formidable combination.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "After climbing a great hill, one only finds that there are many more hills to climb.",
+        author: "Nelson Mandela"
+    },
+    {
+        text: "I have walked that long road to freedom. I have tried not to falter; I have made missteps along the way.",
+        author: "Nelson Mandela"
+    },
+
+    // Modern Leaders & Entrepreneurs (Days 181-220)
+    {
+        text: "The greatest risk is not taking any risk... In a world that's changing quickly, the only strategy that is guaranteed to fail is not taking risks.",
+        author: "Mark Zuckerberg"
+    },
+    {
+        text: "Move fast and break things. Unless you are breaking stuff, you are not moving fast enough.",
+        author: "Mark Zuckerberg"
+    },
+    {
+        text: "The biggest risk is not taking any risk.",
+        author: "Mark Zuckerberg"
+    },
+    {
+        text: "People can be really smart or have skills that are directly applicable, but if they don't really believe in it, then they are not going to really work hard.",
+        author: "Mark Zuckerberg"
+    },
+    {
+        text: "I think a simple rule of business is, if you do the things that are easier first, then you can actually make a lot of progress.",
+        author: "Mark Zuckerberg"
+    },
+    {
+        text: "When you want to change things, you can't please everyone. If you do please everyone, you aren't making enough progress.",
+        author: "Elon Musk"
+    },
+    {
+        text: "If something is important enough, even if the odds are against you, you should still do it.",
+        author: "Elon Musk"
+    },
+    {
+        text: "I think it's very important to have a feedback loop, where you're constantly thinking about what you've done and how you could be doing it better.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Persistence is very important. You should not give up unless you are forced to give up.",
+        author: "Elon Musk"
+    },
+    {
+        text: "When something is important enough, you do it even if the odds are not in your favor.",
+        author: "Elon Musk"
+    },
+    {
+        text: "I could either watch it happen or be a part of it.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Failure is an option here. If things are not failing, you are not innovating enough.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Some people don't like change, but you need to embrace change if the alternative is disaster.",
+        author: "Elon Musk"
+    },
+    {
+        text: "It's OK to have your eggs in one basket as long as you control what happens to that basket.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Life is too short for long-term grudges.",
+        author: "Elon Musk"
+    },
+    {
+        text: "I don't create companies for the sake of creating companies, but to get things done.",
+        author: "Elon Musk"
+    },
+    {
+        text: "The first step is to establish that something is possible; then probability will occur.",
+        author: "Elon Musk"
+    },
+    {
+        text: "If you're trying to create a company, it's like baking a cake. You have to have all the ingredients in the right proportion.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Really pay attention to negative feedback and solicit it, particularly from friends.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Work like hell. I mean you just have to put in 80 to 100 hour weeks every week.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Great companies are built on great products.",
+        author: "Elon Musk"
+    },
+    {
+        text: "I think it is possible for ordinary people to choose to be extraordinary.",
+        author: "Elon Musk"
+    },
+    {
+        text: "Your worth consists in what you are and not in what you have.",
+        author: "Thomas Edison"
+    },
+    {
+        text: "Don't let yesterday take up too much of today.",
+        author: "Will Rogers"
+    },
+    {
+        text: "You learn more from failure than from success. Don't let it stop you. Failure builds character.",
+        author: "Unknown"
+    },
+    {
+        text: "It's not whether you get knocked down, it's whether you get up.",
+        author: "Vince Lombardi"
+    },
+    {
+        text: "If you are working on something that you really care about, you don't have to be pushed. The vision pulls you.",
+        author: "Steve Jobs"
+    },
+    {
+        text: "People who are crazy enough to think they can change the world, are the ones who do.",
+        author: "Rob Siltanen"
+    },
+    {
+        text: "We don't make mistakes, just happy little accidents.",
+        author: "Bob Ross"
+    },
+    {
+        text: "Failure will never overtake me if my determination to succeed is strong enough.",
+        author: "Og Mandino"
+    },
+    {
+        text: "Entrepreneurs are great at dealing with uncertainty and also very good at minimizing risk. That's the classic entrepreneur.",
+        author: "Mohnish Pabrai"
+    },
+    {
+        text: "We may encounter many defeats but we must not be defeated.",
+        author: "Maya Angelou"
+    },
+    {
+        text: "Knowing what must be done does away with fear.",
+        author: "Rosa Parks"
+    },
+    {
+        text: "I can't change the direction of the wind, but I can adjust my sails to always reach my destination.",
+        author: "Jimmy Dean"
+    },
+    {
+        text: "If you look at what you have in life, you'll always have more.",
+        author: "Oprah Winfrey"
+    },
+    {
+        text: "What I know for sure is that what you give comes back to you.",
+        author: "Oprah Winfrey"
+    },
+    {
+        text: "Everyone wants to ride with you in the limo, but what you want is someone who will take the bus with you when the limo breaks down.",
+        author: "Oprah Winfrey"
+    },
+    {
+        text: "Turn your wounds into wisdom.",
+        author: "Oprah Winfrey"
+    },
+    {
+        text: "The biggest adventure you can take is to live the life of your dreams.",
+        author: "Oprah Winfrey"
+    },
+    {
+        text: "Real integrity is doing the right thing, knowing that nobody's going to know whether you did it or not.",
+        author: "Oprah Winfrey"
+    },
+
+    // Sports Champions & Athletes (Days 221-260)
+    {
+        text: "Champions aren't made in gyms. Champions are made from something deep inside them - a desire, a dream, a vision.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "Float like a butterfly, sting like a bee.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "Don't count the days, make the days count.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "It's not bragging if you can back it up.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "Service to others is the rent you pay for your room here on earth.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "If my mind can conceive it, and my heart can believe it—then I can achieve it.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "Impossible is just an opinion.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "He who is not courageous enough to take risks will accomplish nothing in life.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "I hated every minute of training, but I said, 'Don't quit. Suffer now and live the rest of your life as a champion.'",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "The man who has no imagination has no wings.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "A man who views the world the same at fifty as he did at twenty has wasted thirty years of his life.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "The fight is won or lost far away from witnesses—behind the lines, in the gym, and out there on the road, long before I dance under those lights.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "To be a great champion you must believe you are the best. If you're not, pretend you are.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "Age is whatever you think it is. You are as old as you think you are.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "I am the greatest, I said that even before I knew I was.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "What keeps me going is goals.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "Only a man who knows what it is like to be defeated can reach down to the bottom of his soul and come up with the extra ounce of power it takes to win when the match is even.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "It isn't the mountains ahead to climb that wear you out; it's the pebble in your shoe.",
+        author: "Muhammad Ali"
+    },
+    {
+        text: "I never think of the future - it comes soon enough.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "Education is what remains after one has forgotten what one has learned in school.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "To be successful you have to be selfish, or else you never achieve. And once you get to your highest level, then you have to be unselfish.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "I've always believed that if you put in the work, the results will come.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "My attitude is that if you push me towards something that you think is a weakness, then I will turn that perceived weakness into a strength.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "I can accept failure, everyone fails at something. But I can't accept not trying.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "Obstacles don't have to stop you. If you run into a wall, don't turn around and give up. Figure out how to climb it, go through it, or work around it.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "Always turn a negative situation into a positive situation.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "If you're trying to achieve, there will be roadblocks. I've had them; everybody has had them. But obstacles don't have to stop you.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "Step by step. I can't think of any other way of accomplishing anything.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "I've never been afraid to fail.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "The game is my wife. It demands loyalty and responsibility, and it gives me back fulfillment and peace.",
+        author: "Michael Jordan"
+    },
+    {
+        text: "Champions keep playing until they get it right.",
+        author: "Billie Jean King"
+    },
+    {
+        text: "Pressure is a privilege.",
+        author: "Billie Jean King"
+    },
+    {
+        text: "I think self-awareness is probably the most important thing towards being a champion.",
+        author: "Billie Jean King"
+    },
+    {
+        text: "Victory belongs to the most persevering.",
+        author: "Napoleon Bonaparte"
+    },
+    {
+        text: "A leader is a dealer in hope.",
+        author: "Napoleon Bonaparte"
+    },
+    {
+        text: "Impossible is a word to be found only in the dictionary of fools.",
+        author: "Napoleon Bonaparte"
+    },
+    {
+        text: "The harder the conflict, the more glorious the triumph.",
+        author: "Thomas Paine"
+    },
+    {
+        text: "What we obtain too cheap, we esteem too lightly.",
+        author: "Thomas Paine"
+    },
+    {
+        text: "I love the man that can smile in trouble, that can gather strength from distress, and grow brave by reflection.",
+        author: "Thomas Paine"
+    },
+    {
+        text: "The real man smiles in trouble, gathers strength from distress, and grows brave by reflection.",
+        author: "Thomas Paine"
+    },
+
+    // Philosophers & Thinkers (Days 261-300)
+    {
+        text: "The only true wisdom is in knowing you know nothing.",
+        author: "Socrates"
+    },
+    {
+        text: "An unexamined life is not worth living.",
+        author: "Socrates"
+    },
+    {
+        text: "The only good is knowledge and the only evil is ignorance.",
+        author: "Socrates"
+    },
+    {
+        text: "Wonder is the beginning of wisdom.",
+        author: "Socrates"
+    },
+    {
+        text: "By all means, marry. If you get a good wife, you'll become happy; if you get a bad one, you'll become a philosopher.",
+        author: "Socrates"
+    },
+    {
+        text: "There is only one good, knowledge, and one evil, ignorance.",
+        author: "Socrates"
+    },
+    {
+        text: "To find yourself, think for yourself.",
+        author: "Socrates"
+    },
+    {
+        text: "Beware the barrenness of a busy life.",
+        author: "Socrates"
+    },
+    {
+        text: "Understanding a question is half an answer.",
+        author: "Socrates"
+    },
+    {
+        text: "I cannot teach anybody anything. I can only make them think.",
+        author: "Socrates"
+    },
+    {
+        text: "He is richest who is content with the least, for content is the wealth of nature.",
+        author: "Socrates"
+    },
+    {
+        text: "The way to gain a good reputation is to endeavor to be what you desire to appear.",
+        author: "Socrates"
+    },
+    {
+        text: "When the debate is lost, slander becomes the tool of the loser.",
+        author: "Socrates"
+    },
+    {
+        text: "Employ your time in improving yourself by other men's writings, so that you shall gain easily what others have labored hard for.",
+        author: "Socrates"
+    },
+    {
+        text: "The greatest way to live with honor in this world is to be what we pretend to be.",
+        author: "Socrates"
+    },
+    {
+        text: "Smart people learn from everything and everyone, average people from their experiences, stupid people already have all the answers.",
+        author: "Socrates"
+    },
+    {
+        text: "Strong minds discuss ideas, average minds discuss events, weak minds discuss people.",
+        author: "Socrates"
+    },
+    {
+        text: "If you don't get what you want, you suffer; if you get what you don't want, you suffer.",
+        author: "Socrates"
+    },
+    {
+        text: "Sometimes you win, sometimes you learn.",
+        author: "John Maxwell"
+    },
+    {
+        text: "A leader is one who knows the way, goes the way, and shows the way.",
+        author: "John Maxwell"
+    },
+    {
+        text: "Everything rises and falls on leadership.",
+        author: "John Maxwell"
+    },
+    {
+        text: "The greatest mistake we make is living in constant fear that we will make one.",
+        author: "John Maxwell"
+    },
+    {
+        text: "People may hear your words, but they feel your attitude.",
+        author: "John Maxwell"
+    },
+    {
+        text: "A man must be big enough to admit his mistakes, smart enough to profit from them, and strong enough to correct them.",
+        author: "John Maxwell"
+    },
+    {
+        text: "The pessimist complains about the wind. The optimist expects it to change. The leader adjusts the sails.",
+        author: "John Maxwell"
+    },
+    {
+        text: "Change is inevitable. Growth is optional.",
+        author: "John Maxwell"
+    },
+    {
+        text: "Leadership is not about titles, positions or flowcharts. It is about one life influencing another.",
+        author: "John Maxwell"
+    },
+    {
+        text: "The secret of your success is determined by your daily agenda.",
+        author: "John Maxwell"
+    },
+    {
+        text: "We cannot become what we need to be by remaining what we are.",
+        author: "John Maxwell"
+    },
+    {
+        text: "You'll never change your life until you change something you do daily.",
+        author: "John Maxwell"
+    },
+    {
+        text: "Dreams don't work unless you do.",
+        author: "John Maxwell"
+    },
+    {
+        text: "If you want to do a few small things right, do them yourself. If you want to do great things and make a big impact, learn to delegate.",
+        author: "John Maxwell"
+    },
+    {
+        text: "Most people want to avoid pain, and discipline is usually painful.",
+        author: "John Maxwell"
+    },
+    {
+        text: "The difference between average people and achieving people is their perception of and response to failure.",
+        author: "John Maxwell"
+    },
+    {
+        text: "If you are not making the progress that you would like to make and are capable of making, it is simply because your goals are not clearly defined.",
+        author: "Paul Meyer"
+    },
+    {
+        text: "Whatever you vividly imagine, ardently desire, sincerely believe, and enthusiastically act upon must inevitably come to pass!",
+        author: "Paul Meyer"
+    },
+    {
+        text: "Productivity is never an accident. It is always the result of a commitment to excellence, intelligent planning, and focused effort.",
+        author: "Paul Meyer"
+    },
+    {
+        text: "Determine what specific goal you want to achieve. Then dedicate yourself to its attainment with unswerving singleness of purpose, the trenchant zeal of a crusader.",
+        author: "Paul Meyer"
+    },
+
+    // Modern Visionaries & CEOs (Days 301-340)
+    {
+        text: "Your most unhappy customers are your greatest source of learning.",
+        author: "Bill Gates"
+    },
+    {
+        text: "Most people overestimate what they can do in one year and underestimate what they can do in ten years.",
+        author: "Bill Gates"
+    },
+    {
+        text: "Success is a lousy teacher. It seduces smart people into thinking they can't lose.",
+        author: "Bill Gates"
+    },
+    {
+        text: "We always overestimate the change that will occur in the next two years and underestimate the change that will occur in the next ten.",
+        author: "Bill Gates"
+    },
+    {
+        text: "If you are born poor it's not your mistake, but if you die poor it's your mistake.",
+        author: "Bill Gates"
+    },
+    {
+        text: "As we look ahead into the next century, leaders will be those who empower others.",
+        author: "Bill Gates"
+    },
+    {
+        text: "Don't compare yourself with anyone in this world... if you do so, you are insulting yourself.",
+        author: "Bill Gates"
+    },
+    {
+        text: "I believe that if you show people the problems and ask them to act, they will act.",
+        author: "Bill Gates"
+    },
+    {
+        text: "Treatment without prevention is simply unsustainable.",
+        author: "Bill Gates"
+    },
+    {
+        text: "Information technology and business are becoming inextricably interwoven. I don't think anybody can talk meaningfully about one without the talking about the other.",
+        author: "Bill Gates"
+    },
+    {
+        text: "We make the future sustainable when we invest in the poor, not when we insist on their suffering.",
+        author: "Bill Gates"
+    },
+    {
+        text: "The advance of technology is based on making it fit in so that you don't really even notice it, so it's part of everyday life.",
+        author: "Bill Gates"
+    },
+    {
+        text: "If I'd asked customers what they wanted, they would have said a faster horse.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Failure is simply the opportunity to begin again, this time more intelligently.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Thinking is the hardest work there is, which is probably the reason why so few engage in it.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Anyone who stops learning is old, whether at twenty or eighty. Anyone who keeps learning stays young.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Don't find fault, find a remedy; anybody can complain.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Most people spend more time and energy going around problems than in trying to solve them.",
+        author: "Henry Ford"
+    },
+    {
+        text: "If everyone is moving forward together, then success takes care of itself.",
+        author: "Henry Ford"
+    },
+    {
+        text: "The only real mistake is the one from which we learn nothing.",
+        author: "Henry Ford"
+    },
+    {
+        text: "A business that makes nothing but money is a poor business.",
+        author: "Henry Ford"
+    },
+    {
+        text: "Vision without execution is just hallucination.",
+        author: "Henry Ford"
+    },
+    {
+        text: "I will build a car for the great multitude.",
+        author: "Henry Ford"
+    },
+    {
+        text: "If you always do what interests you, at least one person is pleased.",
+        author: "Katharine Hepburn"
+    },
+    {
+        text: "The time for action is now. It's never too late to do something.",
+        author: "Antoine de Saint-Exupéry"
+    },
+    {
+        text: "A goal is not always meant to be reached, it often serves simply as something to aim at.",
+        author: "Bruce Lee"
+    },
+    {
+        text: "Do not pray for easy lives. Pray to be stronger men.",
+        author: "John F. Kennedy"
+    },
+    {
+        text: "In the end, we will remember not the words of our enemies, but the silence of our friends.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "If you want to lift yourself up, lift up someone else.",
+        author: "Booker T. Washington"
+    },
+    {
+        text: "Excellence is never an accident. It is always the result of high intention, sincere effort, and intelligent execution; it represents the wise choice of many alternatives.",
+        author: "Aristotle"
+    },
+    {
+        text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        author: "Aristotle"
+    },
+    {
+        text: "There is only one way to avoid criticism: do nothing, say nothing, and be nothing.",
+        author: "Aristotle"
+    },
+    {
+        text: "Knowing yourself is the beginning of all wisdom.",
+        author: "Aristotle"
+    },
+    {
+        text: "The roots of education are bitter, but the fruit is sweet.",
+        author: "Aristotle"
+    },
+    {
+        text: "Quality is not an act, it is a habit.",
+        author: "Aristotle"
+    },
+    {
+        text: "The whole is greater than the sum of its parts.",
+        author: "Aristotle"
+    },
+    {
+        text: "Pleasure in the job puts perfection in the work.",
+        author: "Aristotle"
+    },
+    {
+        text: "Hope is a waking dream.",
+        author: "Aristotle"
+    },
+    {
+        text: "The aim of art is to represent not the outward appearance of things, but their inward significance.",
+        author: "Aristotle"
+    },
+    {
+        text: "Educating the mind without educating the heart is no education at all.",
+        author: "Aristotle"
+    },
+    {
+        text: "Patience is bitter, but its fruit is sweet.",
+        author: "Aristotle"
+    },
+    {
+        text: "The educated differ from the uneducated as much as the living differ from the dead.",
+        author: "Aristotle"
+    },
+
+    // Wisdom & Final Inspirations (Days 341-365)
+    {
+        text: "Be yourself; everyone else is already taken.",
+        author: "Oscar Wilde"
+    },
+    {
+        text: "Two things are infinite: the universe and human stupidity; and I'm not sure about the universe.",
+        author: "Albert Einstein"
+    },
+    {
+        text: "So many books, so little time.",
+        author: "Frank Zappa"
+    },
+    {
+        text: "A room without books is like a body without a soul.",
+        author: "Marcus Tullius Cicero"
+    },
+    {
+        text: "You only live once, but if you do it right, once is enough.",
+        author: "Mae West"
+    },
+    {
+        text: "Be the change that you wish to see in the world.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "In three words I can sum up everything I've learned about life: it goes on.",
+        author: "Robert Frost"
+    },
+    {
+        text: "If you want to know what a man's like, take a good look at how he treats his inferiors, not his equals.",
+        author: "J.K. Rowling"
+    },
+    {
+        text: "If you tell the truth, you don't have to remember anything.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Friendship is the only cement that will ever hold the world together.",
+        author: "Woodrow Wilson"
+    },
+    {
+        text: "A friend is someone who knows all about you and still loves you.",
+        author: "Elbert Hubbard"
+    },
+    {
+        text: "To live is the rarest thing in the world. Most people just exist.",
+        author: "Oscar Wilde"
+    },
+    {
+        text: "Always forgive your enemies; nothing annoys them so much.",
+        author: "Oscar Wilde"
+    },
+    {
+        text: "Live as if you were to die tomorrow. Learn as if you were to live forever.",
+        author: "Mahatma Gandhi"
+    },
+    {
+        text: "Darkness cannot drive out darkness: only light can do that. Hate cannot drive out hate: only love can do that.",
+        author: "Martin Luther King Jr."
+    },
+    {
+        text: "Yesterday is history, tomorrow is a mystery, today is a gift of God, which is why we call it the present.",
+        author: "Bill Keane"
+    },
+    {
+        text: "It is better to be hated for what you are than to be loved for what you are not.",
+        author: "André Gide"
+    },
+    {
+        text: "I have not failed. I've just found 10,000 ways that won't work.",
+        author: "Thomas A. Edison"
+    },
+    {
+        text: "A woman is like a tea bag; you never know how strong it is until it's in hot water.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "A day without sunshine is like, you know, night.",
+        author: "Steve Martin"
+    },
+    {
+        text: "The person, be it gentleman or lady, who has not pleasure in a good novel, must be intolerably stupid.",
+        author: "Jane Austen"
+    },
+    {
+        text: "Good friends, good books, and a sleepy conscience: this is the ideal life.",
+        author: "Mark Twain"
+    },
+    {
+        text: "Life is what happens to you while you're busy making other plans.",
+        author: "John Lennon"
+    },
+    {
+        text: "The future belongs to those who believe in the beauty of their dreams.",
+        author: "Eleanor Roosevelt"
+    },
+    {
+        text: "It is during our darkest moments that we must focus to see the light.",
+        author: "Aristotle"
+    }
 ];
 
 // Predefined color palette for tags
 const tagColors = [
-    { name: 'Blue', value: '#3B82F6' },
-    { name: 'Green', value: '#10B981' },
-    { name: 'Purple', value: '#8B5CF6' },
-    { name: 'Orange', value: '#F59E0B' },
+    // Reds
     { name: 'Red', value: '#EF4444' },
-    { name: 'Pink', value: '#EC4899' },
-    { name: 'Indigo', value: '#6366F1' },
-    { name: 'Teal', value: '#14B8A6' },
-    { name: 'Yellow', value: '#EAB308' },
-    { name: 'Lime', value: '#84CC16' },
-    { name: 'Cyan', value: '#06B6D4' },
-    { name: 'Rose', value: '#F43F5E' },
-    { name: 'Violet', value: '#7C3AED' },
-    { name: 'Emerald', value: '#059669' },
-    { name: 'Amber', value: '#D97706' },
-    { name: 'Sky', value: '#0EA5E9' },
-    { name: 'Slate', value: '#64748B' },
-    { name: 'Stone', value: '#78716C' },
-    { name: 'Neutral', value: '#737373' },
-    { name: 'Zinc', value: '#71717A' },
-    { name: 'Coral', value: '#FF7F7F' },
-    { name: 'Mint', value: '#98FB98' },
-    { name: 'Lavender', value: '#DDA0DD' },
-    { name: 'Peach', value: '#FFCBA4' },
-    { name: 'Turquoise', value: '#40E0D0' },
-    { name: 'Gold', value: '#FFD700' },
     { name: 'Crimson', value: '#DC143C' },
+    { name: 'Pink', value: '#EC4899' },
+    { name: 'Coral', value: '#FF6B6B' },
+    
+    // Oranges & Yellows
+    { name: 'Orange', value: '#FF8C42' },
+    { name: 'Amber', value: '#FFA500' },
+    { name: 'Yellow', value: '#FFD93D' },
+    { name: 'Gold', value: '#FFD700' },
+    
+    // Greens
+    { name: 'Lime', value: '#32CD32' },
+    { name: 'Green', value: '#10B981' },
     { name: 'Forest', value: '#228B22' },
-    { name: 'Royal', value: '#4169E1' },
-    { name: 'Magenta', value: '#FF00FF' },
-    { name: 'Navy', value: '#000080' },
-    { name: 'Olive', value: '#808000' },
-    { name: 'Maroon', value: '#800000' },
-    { name: 'Silver', value: '#C0C0C0' },
-    { name: 'Chocolate', value: '#D2691E' },
-    { name: 'Khaki', value: '#F0E68C' }
+    { name: 'Teal', value: '#20B2AA' },
+    
+    // Blues
+    { name: 'Cyan', value: '#00CED1' },
+    { name: 'Blue', value: '#3B82F6' },
+    { name: 'Navy', value: '#1E3A8A' },
+    { name: 'Sky', value: '#87CEEB' },
+    
+    // Purples & Others
+    { name: 'Purple', value: '#8B5CF6' },
+    { name: 'Violet', value: '#9400D3' },
+    { name: 'Brown', value: '#8B4513' },
+    { name: 'Gray', value: '#6B7280' }
 ];
 
 // Initialize dashboard
@@ -1165,7 +2641,8 @@ document.addEventListener('click', function(event) {
 function setDailyQuote() {
     const today = new Date().getDate();
     const quote = motivationalQuotes[today % motivationalQuotes.length];
-    document.getElementById('daily-quote').innerHTML = quote;
+    document.getElementById('daily-quote').innerHTML = quote.text;
+    document.getElementById('quote-author').innerHTML = `— ${quote.author}`;
 }
 
 // Modal functions - make globally accessible
@@ -2765,6 +4242,9 @@ window.showTagManagementModal = function() {
     
     // Reset form state
     cancelTagForm();
+    
+    // Add ESC key listener when modal opens
+    document.addEventListener('keydown', handleTagModalEscape);
 }
 
 // Close tag management modal
@@ -2772,6 +4252,19 @@ window.closeTagManagementModal = function() {
     const modal = document.getElementById('tag-management-modal');
     modal.classList.add('hidden');
     cancelTagForm();
+    
+    // Remove ESC key listener when modal closes
+    document.removeEventListener('keydown', handleTagModalEscape);
+}
+
+// Handle ESC key press in tag modal
+function handleTagModalEscape(event) {
+    if (event.key === 'Escape') {
+        const modal = document.getElementById('tag-management-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            closeTagManagementModal();
+        }
+    }
 }
 
 // Initialize color picker

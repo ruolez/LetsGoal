@@ -562,48 +562,13 @@
   }
 }
 
-/* Animated Focus Logo Styling */
-@keyframes focus-ripple {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
-}
-
-@keyframes focus-pulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-@keyframes focus-ring-animate {
-  0% {
-    stroke-dasharray: 0 63;
-    stroke-dashoffset: 0;
-  }
-  50% {
-    stroke-dasharray: 31.5 31.5;
-    stroke-dashoffset: -15.75;
-  }
-  100% {
-    stroke-dasharray: 0 63;
-    stroke-dashoffset: -63;
-  }
-}
-
+/* Breathing Lotus Logo Styling */
 @keyframes float-gentle {
   0%, 100% {
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
   }
 }
 
@@ -618,87 +583,109 @@
   }
 }
 
-.animated-focus-logo {
-  position: relative;
+@keyframes quote-glow {
+  0%, 100% {
+    text-shadow: 0 0 15px rgba(59, 130, 246, 0.6), 0 0 30px rgba(147, 51, 234, 0.4), 0 0 45px rgba(168, 85, 247, 0.3) !important;
+    filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.4));
+  }
+  50% {
+    text-shadow: 0 0 25px rgba(59, 130, 246, 1), 0 0 50px rgba(147, 51, 234, 0.8), 0 0 75px rgba(168, 85, 247, 0.6) !important;
+    filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.7));
+  }
 }
 
-.focus-logo-container {
-  animation: focus-pulse 3s ease-in-out infinite;
-  position: relative;
-  transition: all 0.3s ease;
+@keyframes lotus-glow {
+  0%, 100% {
+    filter: drop-shadow(0 2px 8px rgba(102, 126, 234, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 4px 12px rgba(118, 75, 162, 0.4));
+  }
 }
 
-.focus-logo-container:hover {
-  transform: scale(1.1);
-  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+.lotus-wrapper {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.focus-logo-container::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: conic-gradient(from 0deg, transparent, rgba(16, 185, 129, 0.3), transparent);
-  border-radius: 50%;
-  animation: focus-ripple 2s linear infinite;
-  z-index: -1;
+.breathing-lotus svg {
+  width: 100%;
+  height: 100%;
+  animation: lotus-glow 4s ease-in-out infinite;
 }
 
-.focus-ring-outer {
-  stroke: currentColor;
-  stroke-width: 1.5;
-  opacity: 0.8;
-  animation: focus-ring-animate 4s ease-in-out infinite;
-  stroke-dasharray: 0 63;
-}
-
-.focus-ring-middle {
-  stroke: currentColor;
-  stroke-width: 2;
-  opacity: 0.9;
-  animation: focus-ring-animate 3s ease-in-out infinite 0.5s;
-  stroke-dasharray: 0 38;
-}
-
-.focus-ring-inner {
-  stroke: currentColor;
-  stroke-width: 2.5;
-  fill: currentColor;
-  opacity: 1;
-  animation: focus-pulse 2s ease-in-out infinite 1s;
-}
-
-/* Floating Quote Bubble Styling */
+/* Compact Quote Text Styling */
 .floating-quote {
-  animation: float-gentle 4s ease-in-out infinite;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-  padding: 0.5rem 1.25rem !important;
+  animation: float-gentle 6s ease-in-out infinite;
+  padding: 0.25rem 1rem !important;
+  background: transparent !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
 }
 
 .floating-quote p {
-  font-size: 0.75rem !important;
-  color: #9ca3af !important;
+  font-size: 0.8125rem !important;
+  color: #2d3748 !important;
   font-weight: 400 !important;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.4;
+  font-family: 'Montserrat', 'Arial', sans-serif !important;
+  font-style: italic !important;
+  letter-spacing: 0.01em;
+  text-shadow: none !important;
+  position: relative;
+  animation: none;
+  filter: none;
 }
 
-.floating-quote:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 1);
+.floating-quote p::before {
+  content: '"';
+  position: absolute;
+  left: -0.6em;
+  top: -0.05em;
+  font-size: 1.1em;
+  color: #64748b;
+  opacity: 0.7;
+  font-weight: 400;
+  text-shadow: none !important;
+  animation: none;
+  filter: none;
 }
 
-.floating-quote:hover p {
-  color: #6b7280 !important;
+.floating-quote p::after {
+  content: '"';
+  position: absolute;
+  right: -0.6em;
+  bottom: -0.1em;
+  font-size: 1.1em;
+  color: #64748b;
+  opacity: 0.7;
+  font-weight: 400;
+  text-shadow: none !important;
+  animation: none;
+  filter: none;
 }
 
 .quote-indicator {
   animation: quote-pulse 2s ease-in-out infinite;
+}
+
+/* Compact Quote Author Styling */
+.quote-author {
+  font-size: 0.75rem !important;
+  color: #64748b !important;
+  font-weight: 400 !important;
+  font-family: 'Crimson Text', 'Times New Roman', serif !important;
+  font-style: normal !important;
+  letter-spacing: 0.02em;
+  text-align: center;
+  margin-top: 0.125rem;
+  opacity: 0.7;
+  line-height: 1.2;
 }
 
 /* User Avatar Enhancement */
@@ -2055,7 +2042,7 @@ body.modal-open {
   background: transparent;
   color: #374151;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 400;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
