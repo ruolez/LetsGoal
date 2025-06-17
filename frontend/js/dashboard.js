@@ -797,7 +797,7 @@ function renderGoalCardGrid(goal) {
             <div class="flex flex-col flex-1 mt-4">
                 <!-- Quick Add Subgoal Input - now in consistent position -->
                 ${goal.status !== 'completed' ? `
-                    <div class="mb-4 px-1">
+                    <div class="mt-3 mb-4 px-1">
                         <input type="text" 
                                id="quick-subgoal-${goal.id}"
                                class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
