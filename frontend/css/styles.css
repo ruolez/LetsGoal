@@ -11,6 +11,12 @@
   z-index: 1;
 }
 
+.goals-grid .goal-card-grid {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
 /* Ensure 4 cards per row on larger screens */
 @media (min-width: 1200px) {
   .goals-grid {
@@ -311,6 +317,9 @@
               box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               border-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
   z-index: 1;
 }
 
@@ -1596,9 +1605,8 @@ body.modal-open {
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  transform-origin: left center;
-  transition: font-size 0.2s ease, transform 0.2s ease;
   box-sizing: border-box;
+  display: block;
 }
 
 /* Progress Stats Section */
