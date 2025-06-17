@@ -272,10 +272,6 @@ const motivationalQuotes = [
         author: "Mark Zuckerberg"
     },
     {
-        text: "Success is a lousy teacher. It seduces smart people into thinking they can't lose.",
-        author: "Bill Gates"
-    },
-    {
         text: "Don't be afraid to give up the good to go for the great.",
         author: "John D. Rockefeller"
     },
@@ -314,26 +310,6 @@ const motivationalQuotes = [
     {
         text: "Obstacles are those frightful things you see when you take your eyes off your goal.",
         author: "Henry Ford"
-    },
-    {
-        text: "It's fine to celebrate success but it is more important to heed the lessons of failure.",
-        author: "Bill Gates"
-    },
-    {
-        text: "If you are born poor it's not your mistake, but if you die poor it's your mistake.",
-        author: "Bill Gates"
-    },
-    {
-        text: "We always overestimate the change that will occur in the next two years and underestimate the change that will occur in the next ten.",
-        author: "Bill Gates"
-    },
-    {
-        text: "Your most unhappy customers are your greatest source of learning.",
-        author: "Bill Gates"
-    },
-    {
-        text: "As we look ahead into the next century, leaders will be those who empower others.",
-        author: "Bill Gates"
     },
     {
         text: "The secret of change is to focus all of your energy not on fighting the old, but on building the new.",
@@ -1475,54 +1451,6 @@ const motivationalQuotes = [
     },
 
     // Modern Visionaries & CEOs (Days 301-340)
-    {
-        text: "Your most unhappy customers are your greatest source of learning.",
-        author: "Bill Gates"
-    },
-    {
-        text: "Most people overestimate what they can do in one year and underestimate what they can do in ten years.",
-        author: "Bill Gates"
-    },
-    {
-        text: "Success is a lousy teacher. It seduces smart people into thinking they can't lose.",
-        author: "Bill Gates"
-    },
-    {
-        text: "We always overestimate the change that will occur in the next two years and underestimate the change that will occur in the next ten.",
-        author: "Bill Gates"
-    },
-    {
-        text: "If you are born poor it's not your mistake, but if you die poor it's your mistake.",
-        author: "Bill Gates"
-    },
-    {
-        text: "As we look ahead into the next century, leaders will be those who empower others.",
-        author: "Bill Gates"
-    },
-    {
-        text: "Don't compare yourself with anyone in this world... if you do so, you are insulting yourself.",
-        author: "Bill Gates"
-    },
-    {
-        text: "I believe that if you show people the problems and ask them to act, they will act.",
-        author: "Bill Gates"
-    },
-    {
-        text: "Treatment without prevention is simply unsustainable.",
-        author: "Bill Gates"
-    },
-    {
-        text: "Information technology and business are becoming inextricably interwoven. I don't think anybody can talk meaningfully about one without the talking about the other.",
-        author: "Bill Gates"
-    },
-    {
-        text: "We make the future sustainable when we invest in the poor, not when we insist on their suffering.",
-        author: "Bill Gates"
-    },
-    {
-        text: "The advance of technology is based on making it fit in so that you don't really even notice it, so it's part of everyday life.",
-        author: "Bill Gates"
-    },
     {
         text: "If I'd asked customers what they wanted, they would have said a faster horse.",
         author: "Henry Ford"
@@ -2795,8 +2723,11 @@ document.addEventListener('click', function(event) {
 
 // Set daily motivational quote
 function setDailyQuote() {
-    const today = new Date().getDate();
-    const quote = motivationalQuotes[today % motivationalQuotes.length];
+    // Calculate days since epoch to ensure daily rotation through all quotes
+    const today = new Date();
+    const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
+    const quoteIndex = daysSinceEpoch % motivationalQuotes.length;
+    const quote = motivationalQuotes[quoteIndex];
     document.getElementById('daily-quote').innerHTML = quote.text;
     document.getElementById('quote-author').innerHTML = `— ${quote.author}`;
 }
