@@ -509,7 +509,6 @@ body {
   z-index: 1;
 }
 
-.goal-card-grid:hover .expandable-goal-card,
 .goal-card-grid.sticky-hover .expandable-goal-card {
   transform: translateY(-4px);
   box-shadow: 0 15px 35px var(--color-shadow-lg), 
@@ -556,7 +555,6 @@ body {
 }
 
 /* Reveal hidden subgoals on card hover */
-.goal-card-grid:hover .hidden-subgoal,
 .goal-card-grid.sticky-hover .hidden-subgoal {
   opacity: 1;
   transform: translateY(0) scale(1);
@@ -571,7 +569,6 @@ body {
   opacity: 0.7;
 }
 
-.goal-card-grid:hover .hover-hint-item,
 .goal-card-grid.sticky-hover .hover-hint-item {
   opacity: 0;
   transform: translateY(-5px) scale(0.9);
@@ -668,7 +665,6 @@ html[data-theme="dark"] .subgoal-item:hover {
 }
 
 /* Enhanced visual feedback during expansion */
-.goal-card-grid:hover .subgoals-section.has-hidden-subgoals,
 .goal-card-grid.sticky-hover .subgoals-section.has-hidden-subgoals {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(99, 102, 241, 0.03) 100%);
   border-radius: 0.25rem;
@@ -686,7 +682,7 @@ html[data-theme="dark"] .subgoal-item:hover {
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  .goal-card-grid:hover .expandable-goal-card {
+  .goal-card-grid.sticky-hover .expandable-goal-card {
     transform: none !important;
     box-shadow: none !important;
     border-color: inherit !important;
@@ -716,11 +712,11 @@ html[data-theme="dark"] .subgoal-item:hover {
   will-change: transform, box-shadow, border-color;
 }
 
-.goal-card-grid:hover .expandable-goal-card {
+.goal-card-grid.sticky-hover .expandable-goal-card {
   will-change: transform, box-shadow, border-color;
 }
 
-.goal-card-grid:not(:hover) .expandable-goal-card {
+.goal-card-grid:not(.sticky-hover) .expandable-goal-card {
   will-change: auto;
 }
 
@@ -1032,7 +1028,7 @@ html {
     animation: none !important;
   }
   
-  .goal-card-grid:hover .subgoal-compact {
+  .goal-card-grid.sticky-hover .subgoal-compact {
     animation: none !important;
   }
 }

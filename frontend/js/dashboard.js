@@ -2148,6 +2148,20 @@ function renderGoals() {
     compressDescriptionText();
 }
 
+// Helper function to check if mouse is below quick add input
+function isMouseBelowQuickInput(mouseY, card) {
+    const quickInput = card.querySelector('.quick-subgoal-input');
+    if (!quickInput) {
+        // If no quick input (completed goals), allow expansion anywhere
+        return true;
+    }
+    
+    const inputRect = quickInput.getBoundingClientRect();
+    const inputBottom = inputRect.bottom;
+    
+    return mouseY > inputBottom;
+}
+
 // Setup sticky hover functionality for goal cards
 function setupStickyHover() {
     const goalCards = document.querySelectorAll('.goal-card-grid');
@@ -2155,17 +2169,29 @@ function setupStickyHover() {
     goalCards.forEach(card => {
         const goalId = card.getAttribute('data-goal-id');
         let hoverTimeout = null;
+        let isExpanded = false;
         
         // Restore sticky state if it was active before re-render
         if (stickyHoverStates.get(goalId)) {
             card.classList.add('sticky-hover');
+            isExpanded = true;
         }
         
-        // Mouse enter - immediately add sticky hover
+        // Mouse move - check if mouse is below quick input before expanding
+        card.addEventListener('mousemove', function(event) {
+            const shouldExpand = isMouseBelowQuickInput(event.clientY, this);
+            
+            if (shouldExpand && !isExpanded) {
+                clearTimeout(hoverTimeout);
+                this.classList.add('sticky-hover');
+                stickyHoverStates.set(goalId, true);
+                isExpanded = true;
+            }
+        });
+        
+        // Mouse enter - just clear timeout but don't auto-expand
         card.addEventListener('mouseenter', function() {
             clearTimeout(hoverTimeout);
-            this.classList.add('sticky-hover');
-            stickyHoverStates.set(goalId, true);
         });
         
         // Mouse leave - delay removal to allow for potential re-entry
@@ -2177,6 +2203,7 @@ function setupStickyHover() {
             hoverTimeout = setTimeout(() => {
                 self.classList.remove('sticky-hover');
                 stickyHoverStates.set(goalId, false);
+                isExpanded = false;
             }, 100);
         });
         
@@ -2188,6 +2215,7 @@ function setupStickyHover() {
                 clearTimeout(hoverTimeout);
                 card.classList.add('sticky-hover');
                 stickyHoverStates.set(goalId, true);
+                isExpanded = true;
                 
                 // Remove sticky hover after a longer delay to allow multiple interactions
                 hoverTimeout = setTimeout(() => {
@@ -2195,6 +2223,7 @@ function setupStickyHover() {
                     if (!card.matches(':hover')) {
                         card.classList.remove('sticky-hover');
                         stickyHoverStates.set(goalId, false);
+                        isExpanded = false;
                     }
                 }, 800); // Increased timeout for better UX
             });
@@ -2208,12 +2237,14 @@ function setupStickyHover() {
                 clearTimeout(hoverTimeout);
                 card.classList.add('sticky-hover');
                 stickyHoverStates.set(goalId, true);
+                isExpanded = true;
                 
                 // Remove sticky hover after a longer delay
                 hoverTimeout = setTimeout(() => {
                     if (!card.matches(':hover')) {
                         card.classList.remove('sticky-hover');
                         stickyHoverStates.set(goalId, false);
+                        isExpanded = false;
                     }
                 }, 800); // Increased timeout for better UX
             });
@@ -2226,6 +2257,7 @@ function setupStickyHover() {
                 clearTimeout(hoverTimeout);
                 card.classList.add('sticky-hover');
                 stickyHoverStates.set(goalId, true);
+                isExpanded = true;
             });
             
             quickInput.addEventListener('blur', function() {
@@ -2234,6 +2266,7 @@ function setupStickyHover() {
                     if (!card.matches(':hover') && document.activeElement !== quickInput) {
                         card.classList.remove('sticky-hover');
                         stickyHoverStates.set(goalId, false);
+                        isExpanded = false;
                     }
                 }, 1000); // Longer delay for input interactions
             });
@@ -2243,6 +2276,7 @@ function setupStickyHover() {
                 clearTimeout(hoverTimeout);
                 card.classList.add('sticky-hover');
                 stickyHoverStates.set(goalId, true);
+                isExpanded = true;
             });
         }
     });
