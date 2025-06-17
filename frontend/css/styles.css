@@ -1421,30 +1421,24 @@ body.modal-open {
     transform: translateY(0) scale(1);
     opacity: 0.95;
   }
-  30% {
-    transform: translateY(20%) scale(0.98);
-    opacity: 0.8;
-  }
-  60% {
-    transform: translateY(50%) scale(0.96);
-    opacity: 0.5;
-  }
-  80% {
-    transform: translateY(75%) scale(0.95);
-    opacity: 0.2;
+  50% {
+    transform: translateY(30%) scale(0.98);
+    opacity: 0.6;
   }
   100% {
-    transform: translateY(100%) scale(0.95);
+    transform: translateY(100%) scale(0.96);
     opacity: 0;
   }
 }
 
 .notification-animate-in {
   animation: gentle-slide-in 2.0s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transition: none !important; /* Disable conflicting transitions during animation */
 }
 
 .notification-animate-out {
-  animation: gentle-slide-out 1.8s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards;
+  animation: gentle-slide-out 1.8s ease-out forwards;
+  transition: none !important; /* Disable conflicting transitions during animation */
 }
 
 .notification-error {
