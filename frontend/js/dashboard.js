@@ -764,12 +764,12 @@ function renderGoalCardGrid(goal) {
                                             stroke-linecap="round"/>
                                 </svg>
                                 <div class="absolute inset-0 flex items-center justify-center">
-                                    <span class="text-sm font-bold text-gray-800">${Math.round(goal.progress)}%</span>
+                                    <span class="text-sm font-normal text-gray-800">${Math.round(goal.progress)}%</span>
                                 </div>
                             </div>
                             <!-- Progress Details -->
                             <div class="flex flex-col gap-1">
-                                <span class="text-sm font-semibold text-gray-800">
+                                <span class="text-xs font-medium text-gray-700">
                                     ${goal.subgoals.filter(sg => sg.status === 'achieved').length} of ${goal.subgoals.length} completed
                                 </span>
                                 <div class="w-24 h-2 bg-gray-200 rounded-full">
