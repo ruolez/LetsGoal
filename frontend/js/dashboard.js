@@ -745,6 +745,50 @@ function renderGoalCardGrid(goal) {
                         <p class="goal-description-modern" id="desc-${goal.id}">${goal.description}</p>
                     ` : ''}
                 </div>
+                
+                <!-- Modern Progress and Date Section -->
+                <div class="mt-3 mb-1">
+                    <div class="flex items-center justify-between">
+                        <!-- Progress Section -->
+                        <div class="flex items-center gap-3">
+                            <!-- Modern Progress Circle -->
+                            <div class="relative w-8 h-8">
+                                <svg class="w-8 h-8 transform -rotate-90" viewBox="0 0 32 32">
+                                    <circle cx="16" cy="16" r="14" stroke="#f3f4f6" stroke-width="3" fill="none"/>
+                                    <circle cx="16" cy="16" r="14" 
+                                            stroke="${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}" 
+                                            stroke-width="3" 
+                                            fill="none"
+                                            stroke-dasharray="${2 * Math.PI * 14}"
+                                            stroke-dashoffset="${2 * Math.PI * 14 * (1 - goal.progress / 100)}"
+                                            stroke-linecap="round"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-xs font-bold text-gray-700">${Math.round(goal.progress)}%</span>
+                                </div>
+                            </div>
+                            <!-- Progress Details -->
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-gray-600">
+                                    ${goal.subgoals.filter(sg => sg.status === 'achieved').length} of ${goal.subgoals.length} completed
+                                </span>
+                                <div class="w-16 h-1.5 bg-gray-200 rounded-full mt-1">
+                                    <div class="h-1.5 rounded-full transition-all duration-300" 
+                                         style="width: ${goal.progress}%; background-color: ${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Target Date Section -->
+                        ${goal.target_date ? `
+                            <div class="text-right">
+                                <div class="text-xs text-gray-500 mb-1">Target</div>
+                                <div class="text-xs font-medium text-gray-700">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</div>
+                                ${formatDaysLeft(goal.target_date, goal.status)}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
             </div>
             
             <!-- Flexible content area -->

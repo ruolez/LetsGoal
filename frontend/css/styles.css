@@ -1467,7 +1467,7 @@ body.modal-open {
 /* Card Header Section - Fixed height for perfect alignment */
 .card-header-section {
   padding: 4px 0;
-  height: 100px; /* Reduced from 120px since we now use 1 line instead of 2 */
+  height: 140px; /* Increased to accommodate description + progress section */
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
