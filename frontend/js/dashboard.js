@@ -728,6 +728,40 @@ function renderGoalCardGrid(goal) {
                 </div>
             </div>
             
+            <!-- Quick Actions -->
+            <div class="flex gap-2 mb-4 pb-2 border-b">
+                <button onclick="editGoal(${goal.id}); event.stopPropagation();" 
+                        class="flex-1 btn-secondary text-xs py-2">
+                    <i class="fas fa-edit mr-1"></i>
+                    Edit
+                </button>
+                ${goal.status !== 'completed' ? `
+                    <button onclick="updateGoalStatus(${goal.id}, 'completed'); event.stopPropagation();" 
+                            class="flex-1 btn-success text-xs py-2">
+                        <i class="fas fa-trophy mr-1"></i>
+                        Complete
+                    </button>
+                ` : ''}
+                <button onclick="deleteGoal(${goal.id}); event.stopPropagation();" 
+                        class="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors text-xs">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <!-- Quick Add Subgoal Input -->
+            ${goal.status !== 'completed' ? `
+                <div class="mb-3 px-1">
+                    <input type="text" 
+                           id="quick-subgoal-${goal.id}"
+                           class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
+                           placeholder="Add quick sub-goal..." 
+                           onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
+                           onclick="event.stopPropagation();"
+                           onfocus="event.stopPropagation(); maintainStickyHover(${goal.id})"
+                           onblur="event.stopPropagation();">
+                </div>
+            ` : ''}
+            
             <!-- Subgoals Preview with Pure CSS Hover Expansion -->
             ${goal.subgoals.length > 0 ? `
                 <div class="border-t pt-1.5 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
@@ -770,40 +804,6 @@ function renderGoalCardGrid(goal) {
                     <span class="text-sm text-gray-500">No sub-goals yet</span>
                 </div>
             `}
-            
-            <!-- Quick Add Subgoal Input -->
-            ${goal.status !== 'completed' ? `
-                <div class="mt-2 px-1">
-                    <input type="text" 
-                           id="quick-subgoal-${goal.id}"
-                           class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
-                           placeholder="Add quick sub-goal..." 
-                           onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
-                           onclick="event.stopPropagation();"
-                           onfocus="event.stopPropagation(); maintainStickyHover(${goal.id})"
-                           onblur="event.stopPropagation();">
-                </div>
-            ` : ''}
-            
-            <!-- Quick Actions -->
-            <div class="flex gap-2 mt-2 pt-1.5 border-t">
-                <button onclick="editGoal(${goal.id}); event.stopPropagation();" 
-                        class="flex-1 btn-secondary text-xs py-2">
-                    <i class="fas fa-edit mr-1"></i>
-                    Edit
-                </button>
-                ${goal.status !== 'completed' ? `
-                    <button onclick="updateGoalStatus(${goal.id}, 'completed'); event.stopPropagation();" 
-                            class="flex-1 btn-success text-xs py-2">
-                        <i class="fas fa-trophy mr-1"></i>
-                        Complete
-                    </button>
-                ` : ''}
-                <button onclick="deleteGoal(${goal.id}); event.stopPropagation();" 
-                        class="px-3 py-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors text-xs">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
             
         </div>
     `;
