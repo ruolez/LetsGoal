@@ -305,7 +305,7 @@
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  min-height: 200px;
+  min-height: 280px;
   position: relative;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
               box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -1449,9 +1449,13 @@ body.modal-open {
    MODERN CARD HEADER REDESIGN STYLES
    ================================================ */
 
-/* Card Header Section */
+/* Card Header Section - Ensure consistent alignment */
 .card-header-section {
   padding: 4px 0;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 /* Modern Goal Title */
@@ -1554,10 +1558,10 @@ body.modal-open {
   font-weight: 600;
 }
 
-/* Goal Description Modern */
+/* Goal Description Modern - Smaller text */
 .goal-description-modern {
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.4;
   color: #6b7280;
   margin: 0;
   display: -webkit-box;
@@ -1574,6 +1578,102 @@ body.modal-open {
   border-radius: 12px;
   padding: 16px;
   border: 1px solid #cbd5e1; /* Darker border for better visibility */
+}
+
+/* Compact Progress Section - New Design */
+.compact-progress-section {
+  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+  border-radius: 10px;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.compact-progress-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.compact-progress-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #cbd5e1;
+}
+
+.compact-progress-inner {
+  width: 30px;
+  height: 30px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.compact-progress-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.compact-progress-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.compact-date-container {
+  flex: 1;
+  text-align: right;
+}
+
+.compact-date-header {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 2px;
+}
+
+.compact-date-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.compact-days-remaining {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Days remaining colors for compact view */
+.compact-days-remaining.days-overdue {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.compact-days-remaining.days-today {
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.compact-days-remaining.days-upcoming {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.compact-days-remaining.days-future {
+  color: #059669;
+  font-weight: 500;
 }
 
 /* Modern Progress Circle */

@@ -693,7 +693,7 @@ function renderGoalCardGrid(goal) {
              data-goal-id="${goal.id}">
             
             <!-- Modern Header with Integrated Status -->
-            <div class="card-header-section mb-4">
+            <div class="card-header-section">
                 <div class="flex items-start justify-between gap-3 mb-2">
                     <div class="flex items-center gap-2 flex-1 min-w-0">
                         <div class="status-dot ${getStatusDotClass(goal.status)}" 
@@ -742,93 +742,65 @@ function renderGoalCardGrid(goal) {
                 ` : ''}
             </div>
             
-            <!-- Enhanced Progress and Target Date Section -->
-            <div class="progress-stats-section mb-4">
-                <div class="flex items-center gap-4">
-                    <!-- Enhanced Progress Circle -->
-                    <div class="modern-progress-circle">
-                        <div class="w-20 h-20 rounded-full flex items-center justify-center relative" 
-                             style="background: conic-gradient(${progressColor} ${goal.progress * 3.6}deg, #f1f5f9 ${goal.progress * 3.6}deg);">
-                            <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm">
-                                <span class="progress-percentage">${Math.round(goal.progress)}%</span>
-                            </div>
-                        </div>
-                        <div class="progress-label">Progress</div>
+            <!-- Flexible content area -->
+            <div class="flex flex-col flex-1 mt-4">
+                <!-- Quick Add Subgoal Input - now in consistent position -->
+                ${goal.status !== 'completed' ? `
+                    <div class="mb-4 px-1">
+                        <input type="text" 
+                               id="quick-subgoal-${goal.id}"
+                               class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
+                               placeholder="Add quick sub-goal..." 
+                               onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
+                               onclick="event.stopPropagation();"
+                               onfocus="event.stopPropagation(); maintainStickyHover(${goal.id})"
+                               onblur="event.stopPropagation();">
                     </div>
-                    
-                    <!-- Target Date Info Card -->
-                    <div class="flex-1">
-                        <div class="target-date-card">
-                            <div class="target-date-label">Target Date</div>
-                            <div class="target-date-value">
-                                ${goal.target_date ? parseLocalDate(goal.target_date).toLocaleDateString() : 'Not set'}
-                            </div>
-                            ${goal.target_date ? `
-                                <div class="days-remaining">
-                                    ${calculateDaysRemaining(goal.target_date)}
+                ` : ''}
+                
+                <!-- Subgoals Preview with Pure CSS Hover Expansion -->
+                ${goal.subgoals.length > 0 ? `
+                    <div class="border-t pt-1.5 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
+                        <div class="flex items-center justify-between mb-0.5">
+                            <span class="text-sm text-gray-600">Sub-goals</span>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
+                                ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length}
+                            </span>
+                        </div>
+                        
+                        <!-- Single Unified Subgoals List -->
+                        <div class="subgoals-list space-y-0">
+                            ${goal.subgoals.map((subgoal, index) => `
+                                <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= 3 ? 'hidden-subgoal' : 'visible-subgoal'}" 
+                                     style="--animation-delay: ${index * 0.05}s">
+                                    <div class="flex items-center w-full py-0.25">
+                                        <input type="checkbox" 
+                                               id="subgoal-${subgoal.id}"
+                                               class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
+                                               ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                               onclick="event.stopPropagation();"
+                                               onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
+                                        <span class="truncate flex-1 cursor-pointer text-sm" 
+                                              onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
+                                        ${formatDaysLeft(subgoal.target_date, subgoal.status)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                            
+                            ${hasHiddenSubgoals ? `
+                                <div class="hover-hint-item text-xs text-gray-400 mt-1">
+                                    <i class="fas fa-chevron-down mr-1"></i>
+                                    <span class="hint-text">+${goal.subgoals.length - 3} more (hover to expand)</span>
                                 </div>
                             ` : ''}
                         </div>
                     </div>
-                </div>
+                ` : `
+                    <div class="border-t pt-1.5 mt-auto text-center">
+                        <span class="text-sm text-gray-500">No sub-goals yet</span>
+                    </div>
+                `}
             </div>
-            
-            <!-- Quick Add Subgoal Input - moved to after progress section -->
-            ${goal.status !== 'completed' ? `
-                <div class="mb-4 px-1">
-                    <input type="text" 
-                           id="quick-subgoal-${goal.id}"
-                           class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
-                           placeholder="Add quick sub-goal..." 
-                           onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
-                           onclick="event.stopPropagation();"
-                           onfocus="event.stopPropagation(); maintainStickyHover(${goal.id})"
-                           onblur="event.stopPropagation();">
-                </div>
-            ` : ''}
-            
-            <!-- Subgoals Preview with Pure CSS Hover Expansion -->
-            ${goal.subgoals.length > 0 ? `
-                <div class="border-t pt-1.5 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
-                    <div class="flex items-center justify-between mb-0.5">
-                        <span class="text-sm text-gray-600">Sub-goals</span>
-                        <span class="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
-                            ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length}
-                        </span>
-                    </div>
-                    
-                    <!-- Single Unified Subgoals List -->
-                    <div class="subgoals-list space-y-0">
-                        ${goal.subgoals.map((subgoal, index) => `
-                            <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= 3 ? 'hidden-subgoal' : 'visible-subgoal'}" 
-                                 style="--animation-delay: ${index * 0.05}s">
-                                <div class="flex items-center w-full py-0.25">
-                                    <input type="checkbox" 
-                                           id="subgoal-${subgoal.id}"
-                                           class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
-                                           ${subgoal.status === 'achieved' ? 'checked' : ''}
-                                           onclick="event.stopPropagation();"
-                                           onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                    <span class="truncate flex-1 cursor-pointer text-sm" 
-                                          onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
-                                    ${formatDaysLeft(subgoal.target_date, subgoal.status)}
-                                </div>
-                            </div>
-                        `).join('')}
-                        
-                        ${hasHiddenSubgoals ? `
-                            <div class="hover-hint-item text-xs text-gray-400 mt-1">
-                                <i class="fas fa-chevron-down mr-1"></i>
-                                <span class="hint-text">+${goal.subgoals.length - 3} more (hover to expand)</span>
-                            </div>
-                        ` : ''}
-                    </div>
-                </div>
-            ` : `
-                <div class="border-t pt-1.5 mt-auto text-center">
-                    <span class="text-sm text-gray-500">No sub-goals yet</span>
-                </div>
-            `}
             
         </div>
     `;
@@ -1026,6 +998,46 @@ function calculateDaysRemaining(targetDate) {
         return `<span class="days-upcoming">${diffDays} days left</span>`;
     } else {
         return `<span class="days-future">${diffDays} days left</span>`;
+    }
+}
+
+function calculateDaysRemainingCompact(targetDate) {
+    if (!targetDate) return '';
+    
+    const today = new Date();
+    const target = parseLocalDate(targetDate);
+    const diffTime = target - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+        return `${Math.abs(diffDays)}d overdue`;
+    } else if (diffDays === 0) {
+        return `Due today`;
+    } else if (diffDays === 1) {
+        return `Due tomorrow`;
+    } else if (diffDays <= 7) {
+        return `${diffDays} days left`;
+    } else {
+        return `${diffDays} days left`;
+    }
+}
+
+function getDaysRemainingClass(targetDate) {
+    if (!targetDate) return '';
+    
+    const today = new Date();
+    const target = parseLocalDate(targetDate);
+    const diffTime = target - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+        return 'days-overdue';
+    } else if (diffDays === 0) {
+        return 'days-today';
+    } else if (diffDays <= 7) {
+        return 'days-upcoming';
+    } else {
+        return 'days-future';
     }
 }
 
