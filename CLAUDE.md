@@ -136,7 +136,7 @@ cd migrations && python rollback_event_tracking.py
 ### UI Interaction Patterns
 - **Clickable subgoal titles**: Clicking subgoal text toggles checkbox state
 - **Dedicated Edit button**: Goal cards use dedicated Edit button instead of click-to-edit
-- **Hover expansion**: Goal cards show hidden subgoals (4+) on hover without modal interference
+- **Position-based hover expansion**: Goal cards show hidden subgoals (4+) when mouse moves below quick add input
 - **Real-time progress**: Progress circles update immediately using conic-gradient backgrounds
 
 ### Critical Design Decisions
@@ -147,8 +147,8 @@ cd migrations && python rollback_event_tracking.py
 
 ### CSS Architecture
 - **Grid layout**: 4-column responsive grid with `minmax(320px, 1fr)` for goal cards
-- **CSS Grid with hover**: Pure CSS animations without DOM manipulation to prevent flickering
-- **Z-index hierarchy**: Dropdowns (`z-index: 9999`) > hover cards (`z-index: 2`) > normal cards (`z-index: 1`)
+- **Controlled expansion**: JavaScript-driven `.sticky-hover` class controls card expansion, no CSS `:hover`
+- **Z-index hierarchy**: Dropdowns (`z-index: 9999`) > expanded cards (`z-index: 2`) > normal cards (`z-index: 1`)
 - **Conic-gradient progress**: `conic-gradient(color deg, background deg)` for smooth progress circles
 
 ### API Integration Patterns
@@ -186,6 +186,23 @@ cd migrations && python rollback_event_tracking.py
 - **CSS keyframes**: `lotus-glow`, `float-gentle`, `quote-pulse` for smooth animations
 - **Performance optimized**: Hardware-accelerated transforms and SVG animations
 
+### Theme System Architecture
+- **Data-attribute based**: Uses `data-theme="dark"` on HTML element for theme switching
+- **CSS Custom Properties**: 60+ variables for comprehensive theming (--color-bg-primary, --color-text-primary, etc.)
+- **Smart initialization**: User preference → System preference → Light default
+- **Persistent storage**: `localStorage.getItem('theme')` for preference retention
+- **System integration**: Automatically responds to OS theme changes when no manual preference exists
+- **Smooth transitions**: Global 0.3s ease transitions for all theme-related properties
+- **Tailwind overrides**: High-specificity CSS rules to force dark mode on stubborn Tailwind classes
+- **Component theming**: Special handling for Chart.js, SVG gradients, and progress circles in dark mode
+
+### Goal Card Layout System
+- **Consistent heights**: Uses CSS Grid `minmax(350px, auto)` with spacer elements for uniform card appearance
+- **Subgoal sorting**: `sortSubgoalsForDisplay()` function moves completed subgoals to bottom of lists
+- **Position-based expansion**: Cards expand when mouse moves below quick add input without breaking grid layout
+- **Spacer system**: Empty divs maintain consistent card heights when subgoals count varies
+- **Progressive disclosure**: First 3 subgoals visible, remainder shown with "+N more (move mouse below input to expand)" hint
+
 ### Common Issues
 - **Modal conflicts**: Inline forms used instead of nested modals
 - **Form validation**: Hidden required fields can cause "invalid form control" errors
@@ -196,3 +213,7 @@ cd migrations && python rollback_event_tracking.py
 - **Event tracking**: All model changes automatically trigger event logging - no manual event creation needed
 - **SVG gradient IDs**: Ensure unique gradient IDs (breath1, breath2, breathCore) don't conflict with other SVGs
 - **Animation performance**: Lotus uses transform and filter animations for optimal GPU acceleration
+- **Subgoal ordering**: Always use `sortSubgoalsForDisplay()` when rendering subgoal lists to maintain completed-at-bottom behavior
+- **Dark mode compatibility**: When updating progress circles or charts, use theme-aware background colors via `document.documentElement.getAttribute('data-theme')`
+- **Position-based hover**: Use `isMouseBelowQuickInput()` helper function to check if expansion should trigger
+- **Sticky hover state**: Track expansion state with `isExpanded` variable to prevent flickering during mouse movement
