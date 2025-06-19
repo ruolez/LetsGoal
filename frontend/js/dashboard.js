@@ -2090,14 +2090,22 @@ function isMouseBelowQuickInput(mouseY, card) {
     return mouseY > inputBottom;
 }
 
-// Setup sticky hover functionality for goal cards
+// Setup smooth professional hover functionality
 function setupStickyHover() {
     const goalCards = document.querySelectorAll('.goal-card-grid');
     
     goalCards.forEach(card => {
         const goalId = card.getAttribute('data-goal-id');
-        let hoverTimeout = null;
         let isExpanded = false;
+        let animationFrame = null;
+        let expandTimeout = null;
+        let collapseTimeout = null;
+        let lastMouseY = 0;
+        let isInteracting = false;
+        
+        // Cache DOM queries for performance
+        const quickInput = card.querySelector('.quick-subgoal-input');
+        const inputBottom = quickInput ? quickInput.getBoundingClientRect().bottom : 0;
         
         // Restore sticky state if it was active before re-render
         if (stickyHoverStates.get(goalId)) {
@@ -2105,107 +2113,164 @@ function setupStickyHover() {
             isExpanded = true;
         }
         
-        // Mouse move - check if mouse is below quick input before expanding
-        card.addEventListener('mousemove', function(event) {
-            const shouldExpand = isMouseBelowQuickInput(event.clientY, this);
+        // Ultra-smooth 3-frame expansion per subgoal
+        const expandCard = () => {
+            if (isExpanded) return;
             
-            if (shouldExpand && !isExpanded) {
-                clearTimeout(hoverTimeout);
-                this.classList.add('sticky-hover');
-                stickyHoverStates.set(goalId, true);
-                isExpanded = true;
+            clearTimeout(collapseTimeout);
+            clearTimeout(expandTimeout);
+            
+            // Start card elevation immediately
+            card.classList.add('sticky-hover');
+            stickyHoverStates.set(goalId, true);
+            isExpanded = true;
+            
+            // Get all hidden subgoals for 3-frame reveal
+            const hiddenSubgoals = card.querySelectorAll('.hidden-subgoal');
+            
+            // 3-frame expansion: 0% → 33% → 66% → 100% height
+            hiddenSubgoals.forEach((subgoal, index) => {
+                const baseDelay = index * 30; // 30ms between each subgoal start
+                
+                // Frame 1: 33% height
+                setTimeout(() => {
+                    subgoal.classList.add('reveal-frame-1');
+                }, baseDelay);
+                
+                // Frame 2: 66% height  
+                setTimeout(() => {
+                    subgoal.classList.remove('reveal-frame-1');
+                    subgoal.classList.add('reveal-frame-2');
+                }, baseDelay + 30); // 30ms between frames
+                
+                // Frame 3: 100% height
+                setTimeout(() => {
+                    subgoal.classList.remove('reveal-frame-2');
+                    subgoal.classList.add('reveal-step');
+                }, baseDelay + 60); // 30ms between frames
+            });
+        };
+        
+        // Ultra-smooth 3-frame collapse per subgoal (reverse order)
+        const collapseCard = () => {
+            if (!isExpanded || isInteracting) return;
+            
+            clearTimeout(expandTimeout);
+            clearTimeout(collapseTimeout);
+            
+            card.classList.add('hover-exit');
+            
+            // Get all revealed subgoals for 3-frame collapse
+            const revealedSubgoals = card.querySelectorAll('.hidden-subgoal.reveal-step');
+            const reversedSubgoals = Array.from(revealedSubgoals).reverse();
+            
+            // 3-frame collapse: 100% → 66% → 33% → 0% height
+            reversedSubgoals.forEach((subgoal, index) => {
+                const baseDelay = index * 25; // 25ms between each subgoal start
+                
+                // Frame 1: 66% height
+                setTimeout(() => {
+                    subgoal.classList.remove('reveal-step');
+                    subgoal.classList.add('collapse-frame-1');
+                }, baseDelay);
+                
+                // Frame 2: 33% height
+                setTimeout(() => {
+                    subgoal.classList.remove('collapse-frame-1');
+                    subgoal.classList.add('collapse-frame-2');
+                }, baseDelay + 25); // 25ms between frames
+                
+                // Frame 3: 0% height (fully hidden)
+                setTimeout(() => {
+                    subgoal.classList.remove('collapse-frame-2');
+                }, baseDelay + 50); // 25ms between frames
+            });
+            
+            // Remove card classes after all subgoals are fully collapsed
+            const totalCollapseTime = reversedSubgoals.length * 100 + 75;
+            setTimeout(() => {
+                card.classList.remove('sticky-hover', 'hover-exit');
+                stickyHoverStates.set(goalId, false);
+                isExpanded = false;
+            }, totalCollapseTime);
+        };
+        
+        // Debounced position check with RAF
+        const checkMousePosition = (mouseY) => {
+            // Cancel pending animation frame
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            
+            animationFrame = requestAnimationFrame(() => {
+                const shouldExpand = isMouseBelowQuickInput(mouseY, card);
+                
+                if (shouldExpand && !isExpanded && !isInteracting) {
+                    expandTimeout = setTimeout(expandCard, 50); // Small delay for stability
+                } else if (!shouldExpand && isExpanded && !isInteracting) {
+                    collapseTimeout = setTimeout(collapseCard, 200); // Longer delay before starting collapse
+                }
+            });
+        };
+        
+        // Optimized mouse tracking
+        let mouseMoveThrottle = null;
+        card.addEventListener('mousemove', function(event) {
+            // Throttle mousemove to 60fps
+            if (!mouseMoveThrottle) {
+                mouseMoveThrottle = setTimeout(() => {
+                    mouseMoveThrottle = null;
+                    lastMouseY = event.clientY;
+                    checkMousePosition(event.clientY);
+                }, 16); // ~60fps
             }
         });
         
-        // Mouse enter - just clear timeout but don't auto-expand
-        card.addEventListener('mouseenter', function() {
-            clearTimeout(hoverTimeout);
-        });
-        
-        // Mouse leave - delay removal to allow for potential re-entry
+        // Clean animation on mouse leave
         card.addEventListener('mouseleave', function() {
-            const self = this;
-            clearTimeout(hoverTimeout);
-            
-            // Small delay to prevent flickering if user quickly moves mouse back
-            hoverTimeout = setTimeout(() => {
-                self.classList.remove('sticky-hover');
-                stickyHoverStates.set(goalId, false);
-                isExpanded = false;
-            }, 100);
+            clearTimeout(expandTimeout);
+            if (!isInteracting) {
+                collapseTimeout = setTimeout(collapseCard, 250); // Generous delay before collapse
+            }
         });
         
-        // When interacting with checkboxes, ensure sticky hover stays active
+        // Handle interactions
+        const startInteraction = () => {
+            isInteracting = true;
+            expandCard();
+        };
+        
+        const endInteraction = () => {
+            isInteracting = false;
+            // Check if we should collapse
+            setTimeout(() => {
+                if (!card.matches(':hover') && !isInteracting) {
+                    collapseCard();
+                }
+            }, 300);
+        };
+        
+        // Checkbox interactions
         const checkboxes = card.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                // Keep the card expanded while interacting
-                clearTimeout(hoverTimeout);
-                card.classList.add('sticky-hover');
-                stickyHoverStates.set(goalId, true);
-                isExpanded = true;
-                
-                // Remove sticky hover after a longer delay to allow multiple interactions
-                hoverTimeout = setTimeout(() => {
-                    // Only remove if mouse is not over the card
-                    if (!card.matches(':hover')) {
-                        card.classList.remove('sticky-hover');
-                        stickyHoverStates.set(goalId, false);
-                        isExpanded = false;
-                    }
-                }, 800); // Increased timeout for better UX
-            });
+            checkbox.addEventListener('change', startInteraction);
+            checkbox.addEventListener('blur', endInteraction);
         });
         
-        // Also handle clicking on subgoal text (which toggles checkboxes)
+        // Subgoal text clicks
         const subgoalTexts = card.querySelectorAll('.subgoal-item span.cursor-pointer');
         subgoalTexts.forEach(text => {
-            text.addEventListener('click', function() {
-                // Keep the card expanded while interacting
-                clearTimeout(hoverTimeout);
-                card.classList.add('sticky-hover');
-                stickyHoverStates.set(goalId, true);
-                isExpanded = true;
-                
-                // Remove sticky hover after a longer delay
-                hoverTimeout = setTimeout(() => {
-                    if (!card.matches(':hover')) {
-                        card.classList.remove('sticky-hover');
-                        stickyHoverStates.set(goalId, false);
-                        isExpanded = false;
-                    }
-                }, 800); // Increased timeout for better UX
+            text.addEventListener('click', () => {
+                startInteraction();
+                // Auto end after interaction
+                setTimeout(endInteraction, 500);
             });
         });
         
-        // Handle quick subgoal input interactions
-        const quickInput = card.querySelector('.quick-subgoal-input');
+        // Quick input interactions
         if (quickInput) {
-            quickInput.addEventListener('focus', function() {
-                clearTimeout(hoverTimeout);
-                card.classList.add('sticky-hover');
-                stickyHoverStates.set(goalId, true);
-                isExpanded = true;
-            });
-            
-            quickInput.addEventListener('blur', function() {
-                // Delay removal to allow for re-focus or other interactions
-                hoverTimeout = setTimeout(() => {
-                    if (!card.matches(':hover') && document.activeElement !== quickInput) {
-                        card.classList.remove('sticky-hover');
-                        stickyHoverStates.set(goalId, false);
-                        isExpanded = false;
-                    }
-                }, 1000); // Longer delay for input interactions
-            });
-            
-            quickInput.addEventListener('keydown', function() {
-                // Keep expanded while typing
-                clearTimeout(hoverTimeout);
-                card.classList.add('sticky-hover');
-                stickyHoverStates.set(goalId, true);
-                isExpanded = true;
-            });
+            quickInput.addEventListener('focus', startInteraction);
+            quickInput.addEventListener('blur', endInteraction);
         }
     });
 }
