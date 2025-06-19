@@ -2125,8 +2125,43 @@ function setupStickyHover() {
             stickyHoverStates.set(goalId, true);
             isExpanded = true;
             
-            // Get all hidden subgoals for 3-frame reveal
-            const hiddenSubgoals = card.querySelectorAll('.hidden-subgoal');
+            // Check if we need to dynamically create hidden subgoals
+            let hiddenSubgoals = card.querySelectorAll('.hidden-subgoal');
+            
+            if (hiddenSubgoals.length === 0) {
+                // Need to create hidden subgoals from stored data
+                const hiddenDataElement = card.querySelector('.hidden-subgoals-data');
+                if (hiddenDataElement) {
+                    const hiddenSubgoalsData = JSON.parse(hiddenDataElement.getAttribute('data-hidden-subgoals'));
+                    const subgoalsList = card.querySelector('.subgoals-list');
+                    const hoverHint = card.querySelector('.hover-hint-item');
+                    
+                    // Create and insert hidden subgoals before the hover hint
+                    hiddenSubgoalsData.forEach((subgoal, index) => {
+                        const subgoalElement = document.createElement('div');
+                        subgoalElement.className = `subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} hidden-subgoal`;
+                        subgoalElement.style.setProperty('--animation-delay', `${(index + 3) * 0.05}s`);
+                        subgoalElement.innerHTML = `
+                            <div class="flex items-center w-full py-0.25">
+                                <input type="checkbox" 
+                                       id="subgoal-${subgoal.id}"
+                                       class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
+                                       ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                       onclick="event.stopPropagation();"
+                                       onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goalId}); event.stopPropagation();">
+                                <span class="truncate flex-1 cursor-pointer text-sm" 
+                                      onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goalId});">${subgoal.title}</span>
+                                ${formatDaysLeft(subgoal.target_date, subgoal.status)}
+                            </div>`;
+                        
+                        // Insert before hover hint
+                        subgoalsList.insertBefore(subgoalElement, hoverHint);
+                    });
+                    
+                    // Update the hidden subgoals query
+                    hiddenSubgoals = card.querySelectorAll('.hidden-subgoal');
+                }
+            }
             
             // 3-frame expansion: 0% → 33% → 66% → 100% height
             hiddenSubgoals.forEach((subgoal, index) => {
@@ -2180,9 +2215,11 @@ function setupStickyHover() {
                     subgoal.classList.add('collapse-frame-2');
                 }, baseDelay + 25); // 25ms between frames
                 
-                // Frame 3: 0% height (fully hidden)
+                // Frame 3: 0% height (fully hidden) - then remove from DOM
                 setTimeout(() => {
                     subgoal.classList.remove('collapse-frame-2');
+                    // Remove from DOM immediately after collapse animation completes
+                    subgoal.remove();
                 }, baseDelay + 50); // 25ms between frames
             });
             
@@ -2192,6 +2229,7 @@ function setupStickyHover() {
                 card.classList.remove('sticky-hover', 'hover-exit');
                 stickyHoverStates.set(goalId, false);
                 isExpanded = false;
+                // Individual subgoals remove themselves during collapse animation
             }, totalCollapseTime);
         };
         
@@ -2424,10 +2462,10 @@ function renderGoalCardGrid(goal) {
                                 const visibleSlots = 3;
                                 let output = '';
                                 
-                                // Render actual subgoals
-                                sortedSubgoals.forEach((subgoal, index) => {
+                                // Only render visible subgoals initially (first 3)
+                                sortedSubgoals.slice(0, visibleSlots).forEach((subgoal, index) => {
                                     output += `
-                                        <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} ${index >= visibleSlots ? 'hidden-subgoal' : 'visible-subgoal'}" 
+                                        <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} visible-subgoal" 
                                              style="--animation-delay: ${index * 0.05}s">
                                             <div class="flex items-center w-full py-0.25">
                                                 <input type="checkbox" 
@@ -2442,6 +2480,13 @@ function renderGoalCardGrid(goal) {
                                             </div>
                                         </div>`;
                                 });
+                                
+                                // Store hidden subgoals data for later expansion (if any exist)
+                                if (sortedSubgoals.length > visibleSlots) {
+                                    const hiddenSubgoals = sortedSubgoals.slice(visibleSlots);
+                                    // Add hidden subgoals as data attribute for expansion logic
+                                    output += `<div class="hidden-subgoals-data" style="display: none;" data-hidden-subgoals='${JSON.stringify(hiddenSubgoals)}'></div>`;
+                                }
                                 
                                 // Add empty spacer divs to ensure consistent height for cards with fewer subgoals
                                 const visibleCount = Math.min(sortedSubgoals.length, visibleSlots);

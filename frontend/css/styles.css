@@ -488,8 +488,7 @@ body {
   max-height: 100% !important;
 }
 
-/* Ultra-Smooth Pure CSS Goal Card Hover */
-/* Inner content that transforms */
+/* Professional Goal Card - GPU-only animations */
 .expandable-goal-card {
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-primary);
@@ -499,23 +498,58 @@ body {
   flex-direction: column;
   min-height: 330px;
   position: relative;
-  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              border-color 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   width: 100%;
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
   z-index: 1;
+  
+  /* Base state with GPU layer */
+  transform: translate3d(0, 0, 0) scale(1);
+  box-shadow: 0 2px 8px var(--color-shadow-sm);
+  
+  /* Ultra-smooth GPU-only transitions */
+  transition: 
+    transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.3s ease;
+  
+  /* GPU optimization */
+  will-change: transform, box-shadow;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
+/* Preparing phase for ultra-smooth start */
+.goal-card-grid.hover-preparing .expandable-goal-card {
+  transition-duration: 0s;
+  will-change: transform, box-shadow, border-color;
+}
+
+/* Smooth GPU-only card elevation */
 .goal-card-grid.sticky-hover .expandable-goal-card {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 35px var(--color-shadow-lg), 
-              0 0 0 1px var(--color-interactive-primary);
+  transform: translate3d(0, -6px, 0) scale(1.008);
+  box-shadow: 
+    0 20px 40px var(--color-shadow-lg),
+    0 8px 16px var(--color-shadow-md),
+    inset 0 0 0 1px var(--color-interactive-primary);
   border-color: var(--color-interactive-primary);
   z-index: 2;
   overflow: visible;
+  
+  /* Responsive expand with subtle bounce */
+  transition: 
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.3s ease-out;
+}
+
+/* Ultra-smooth exit animation */
+.goal-card-grid.hover-exit .expandable-goal-card {
+  transition: 
+    transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.5s ease-out;
 }
 
 /* Subgoals Section - No More Flickering */
@@ -545,34 +579,137 @@ body {
   transform: translateY(0) scale(1);
 }
 
-/* Hidden subgoals (4+) - smooth reveal on hover */
+/* Hidden subgoals - Step-by-step reveal system */
 .hidden-subgoal {
+  /* Start completely collapsed */
+  height: 0;
   opacity: 0;
-  transform: translateY(-8px) scale(0.95);
-  max-height: 0;
-  overflow: hidden;
+  transform: translateY(-6px);
+  transform-origin: top center;
   pointer-events: none;
+  overflow: hidden;
+  margin: 0; /* Remove margin to prevent accumulated spacing in collapsed state */
+  
+  /* Fixed height for predictable step animation */
+  --subgoal-height: 1.75rem;
+  
+  /* Smooth individual step transitions */
+  transition: 
+    height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease-out,
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* GPU optimization */
+  will-change: height, opacity, transform;
+  backface-visibility: hidden;
 }
 
-/* Reveal hidden subgoals on card hover */
-.goal-card-grid.sticky-hover .hidden-subgoal {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  max-height: 1.5rem;
-  pointer-events: all;
-  transition-delay: calc(var(--animation-delay, 0s));
+/* 3-Frame expansion system for ultra-smooth animation */
+
+/* Frame 1: 33% height */
+.hidden-subgoal.reveal-frame-1 {
+  height: calc(var(--subgoal-height) * 0.33);
+  opacity: 0.4;
+  transform: translateY(-2px);
+  pointer-events: none;
+  
+  transition: 
+    height 0.03s ease-out,
+    opacity 0.03s ease-out,
+    transform 0.03s ease-out;
 }
 
-/* Smooth hover hint */
-.hover-hint-item {
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+/* Frame 2: 66% height */
+.hidden-subgoal.reveal-frame-2 {
+  height: calc(var(--subgoal-height) * 0.66);
   opacity: 0.7;
+  transform: translateY(-1px);
+  pointer-events: none;
+  
+  transition: 
+    height 0.03s ease-out,
+    opacity 0.03s ease-out,
+    transform 0.03s ease-out;
 }
 
+/* Frame 3: 100% height (full reveal) */
+.hidden-subgoal.reveal-step {
+  height: var(--subgoal-height);
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+  
+  transition: 
+    height 0.03s ease-out,
+    opacity 0.03s ease-out,
+    transform 0.03s ease-out;
+}
+
+/* 3-Frame collapse system */
+
+/* Collapse Frame 1: 66% height */
+.hidden-subgoal.collapse-frame-1 {
+  height: calc(var(--subgoal-height) * 0.66);
+  opacity: 0.6;
+  transform: translateY(-1px);
+  pointer-events: none;
+  
+  transition: 
+    height 0.025s ease-in,
+    opacity 0.025s ease-in,
+    transform 0.025s ease-in;
+}
+
+/* Collapse Frame 2: 33% height */
+.hidden-subgoal.collapse-frame-2 {
+  height: calc(var(--subgoal-height) * 0.33);
+  opacity: 0.3;
+  transform: translateY(-3px);
+  pointer-events: none;
+  
+  transition: 
+    height 0.025s ease-in,
+    opacity 0.025s ease-in,
+    transform 0.025s ease-in;
+}
+
+/* Final collapsed state: 0% height (handled by base .hidden-subgoal) */
+
+/* Remove old CSS-only animation rules - now controlled by JavaScript */
+
+/* Professional hover hint animation */
+.hover-hint-item {
+  opacity: 0.7;
+  transform: translateY(0);
+  
+  /* Smooth base transition */
+  transition: 
+    opacity 0.2s ease-out,
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Preparing state */
+.goal-card-grid.hover-preparing .hover-hint-item {
+  transition-duration: 0s;
+}
+
+/* Hidden state during expansion */
 .goal-card-grid.sticky-hover .hover-hint-item {
   opacity: 0;
-  transform: translateY(-5px) scale(0.9);
+  transform: translateY(-8px) scale(0.85);
   pointer-events: none;
+  
+  /* Quick fade out */
+  transition: 
+    opacity 0.15s ease-in,
+    transform 0.2s ease-in;
+}
+
+/* Exit state - slower fade back in */
+.goal-card-grid.hover-exit .hover-hint-item {
+  transition: 
+    opacity 0.6s ease-out 0.3s, /* Delay until subgoals start collapsing */
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s;
 }
 
 .hover-hint-item i {
@@ -662,15 +799,37 @@ html[data-theme="dark"] .subgoal-item:hover {
 /* Position "No sub-goals yet" message over spacers */
 .subgoals-section {
   position: relative;
+  border-radius: 0.25rem;
+  
+  /* Base state for smooth animation */
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  transition: 
+    background 0.3s ease-out,
+    padding 0.25s ease-out,
+    margin 0.25s ease-out;
 }
 
-/* Enhanced visual feedback during expansion */
+/* Subtle background during expansion */
 .goal-card-grid.sticky-hover .subgoals-section.has-hidden-subgoals {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(99, 102, 241, 0.03) 100%);
-  border-radius: 0.25rem;
   padding: 0.375rem 0.25rem;
   margin: -0.0625rem -0.0625rem;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  
+  /* Smooth expand animation */
+  transition: 
+    background 0.35s ease-out,
+    padding 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    margin 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Exit state for subgoals section */
+.goal-card-grid.hover-exit .subgoals-section.has-hidden-subgoals {
+  transition: 
+    background 0.25s ease-in,
+    padding 0.2s ease-in,
+    margin 0.2s ease-in;
 }
 
 /* Prevent layout shift during hover */
