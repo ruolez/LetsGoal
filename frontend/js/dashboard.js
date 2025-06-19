@@ -1790,6 +1790,8 @@ async function loadUserTags() {
             
             // Populate tag filter dropdown
             populateTagFilterDropdown();
+            // Populate tag filter bar
+            populateTagFilterBar();
         } else {
             console.error('Failed to load tags');
         }
@@ -4268,6 +4270,92 @@ function populateTagFilterDropdown() {
 }
 
 // ========================
+// INTEGRATED TAG FILTER BAR FUNCTIONS
+// ========================
+
+window.selectTagFromBar = function(tagId) {
+    // Add selection animation
+    const tagBadge = document.querySelector(`[data-tag-id="${tagId}"]`);
+    if (tagBadge) {
+        tagBadge.classList.add('selecting');
+        setTimeout(() => {
+            tagBadge.classList.remove('selecting');
+        }, 200);
+    }
+    
+    // Update the filter
+    currentTagFilter = tagId;
+    currentPage = 0;
+    
+    // Update visual states
+    updateTagFilterBarStates();
+    
+    // Enable/disable reset button
+    const resetBtn = document.getElementById('reset-tag-filter-btn');
+    if (resetBtn) {
+        resetBtn.disabled = (tagId === null);
+    }
+    
+    // Re-render goals and save settings
+    renderGoals();
+    saveUserSettings();
+}
+
+window.resetTagFilter = function() {
+    selectTagFromBar(null);
+}
+
+function populateTagFilterBar() {
+    const container = document.getElementById('tag-filter-grid');
+    if (!container) return;
+    
+    if (tags.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full text-center py-4">
+                <p class="text-sm text-gray-500 mb-2">No tags available</p>
+                <button type="button" onclick="showTagManagementModal();" 
+                        class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors">
+                    Create your first tag
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = tags.map(tag => `
+        <button type="button" 
+                onclick="selectTagFromBar(${tag.id})" 
+                data-tag-id="${tag.id}"
+                class="tag-filter-bar-badge ${currentTagFilter === tag.id ? 'active' : ''}"
+                style="background-color: ${tag.color}">
+            ${tag.name}
+        </button>
+    `).join('');
+}
+
+function updateTagFilterBarStates() {
+    // Update all tag badges active states
+    document.querySelectorAll('.tag-filter-bar-badge').forEach(badge => {
+        const tagId = parseInt(badge.getAttribute('data-tag-id'));
+        if (tagId === currentTagFilter) {
+            badge.classList.add('active');
+        } else {
+            badge.classList.remove('active');
+        }
+    });
+}
+
+// Override the old tag filter functions to use the new integrated bar
+window.clearTagFilter = function() {
+    selectTagFromBar(null);
+}
+
+// Update the existing setTagFilter to work with the new system
+window.setTagFilter = function(tagId) {
+    selectTagFromBar(tagId);
+}
+
+// ========================
 // TAG UTILITY FUNCTIONS
 // ========================
 
@@ -4672,6 +4760,9 @@ window.saveTag = async function() {
             
             // Refresh tags list
             renderTagsList();
+            // Update tag filter components
+            populateTagFilterDropdown();
+            populateTagFilterBar();
             
             // Reset form
             cancelTagForm();
@@ -4712,6 +4803,9 @@ window.deleteTag = async function(tagId) {
             
             // Refresh tags list
             renderTagsList();
+            // Update tag filter components
+            populateTagFilterDropdown();
+            populateTagFilterBar();
             
             // Refresh goals to update any that had this tag
             await loadDashboardData();
