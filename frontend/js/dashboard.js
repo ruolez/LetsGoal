@@ -1779,6 +1779,29 @@ async function loadDashboardData() {
     }
 }
 
+// Load archived goals
+async function loadArchivedGoals() {
+    try {
+        authUtils.showLoadingSpinner();
+        
+        // Load archived goals
+        const goalsResponse = await fetch('/api/goals?include_archived=true', { credentials: 'include' });
+        
+        if (goalsResponse.ok) {
+            goals = await goalsResponse.json();
+            renderGoals();
+        } else {
+            throw new Error('Failed to load archived goals');
+        }
+        
+    } catch (error) {
+        console.error('Error loading archived goals:', error);
+        authUtils.showErrorMessage('Failed to load archived goals');
+    } finally {
+        authUtils.hideLoadingSpinner();
+    }
+}
+
 // Load user tags
 async function loadUserTags() {
     try {
@@ -2041,13 +2064,21 @@ function renderGoals() {
     
     // Check if filtered goals is empty
     if (filteredGoals.length === 0) {
+        const isArchivedView = currentTagFilter === 'archived';
         container.innerHTML = `
             <div class="col-span-full flex flex-col items-center justify-center py-12 px-4">
                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="fas fa-search text-2xl text-gray-400"></i>
+                    <i class="fas fa-${isArchivedView ? 'archive' : 'search'} text-2xl text-gray-400"></i>
                 </div>
-                <h3 class="text-lg font-medium text-gray-700 mb-2">No goals found</h3>
-                <p class="text-gray-500 text-center">Try adjusting your filters or search terms.</p>
+                <h3 class="text-lg font-medium text-gray-700 mb-2">
+                    ${isArchivedView ? 'No archived goals' : 'No goals found'}
+                </h3>
+                <p class="text-gray-500 text-center">
+                    ${isArchivedView 
+                        ? 'You haven\'t archived any goals yet. Complete some goals and archive them to see them here.' 
+                        : 'Try adjusting your filters or search terms.'
+                    }
+                </p>
             </div>
         `;
         return;
@@ -2355,10 +2386,19 @@ function renderGoalCardGrid(goal) {
                                     <i class="fas fa-trophy"></i>
                                     <span>Complete</span>
                                 </button>
+                            ` : goal.status === 'archived' ? `
+                                <button onclick="unarchiveGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
+                                    <i class="fas fa-box-open"></i>
+                                    <span>Unarchive</span>
+                                </button>
                             ` : `
                                 <button onclick="updateGoalStatus(${goal.id}, 'working'); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
                                     <i class="fas fa-undo"></i>
                                     <span>Incomplete</span>
+                                </button>
+                                <button onclick="archiveGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
+                                    <i class="fas fa-archive"></i>
+                                    <span>Archive</span>
                                 </button>
                             `}
                             <div class="card-menu-divider"></div>
@@ -3007,6 +3047,57 @@ async function deleteGoal(goalId) {
         }
     } catch (error) {
         console.error('Error deleting goal:', error);
+        authUtils.showErrorMessage('Connection error. Please try again');
+    }
+}
+
+// Archive goal function
+window.archiveGoal = async function(goalId) {
+    if (!confirm('Are you sure you want to archive this goal? It will be moved to the archived section.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/goals/${goalId}/archive`, {
+            method: 'PUT',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            authUtils.showSuccessMessage('Goal archived successfully');
+            await loadDashboardData();
+        } else {
+            const error = await response.json();
+            authUtils.showErrorMessage(error.error || 'Failed to archive goal');
+        }
+    } catch (error) {
+        console.error('Error archiving goal:', error);
+        authUtils.showErrorMessage('Connection error. Please try again');
+    }
+}
+
+// Unarchive goal function
+window.unarchiveGoal = async function(goalId) {
+    try {
+        const response = await fetch(`/api/goals/${goalId}/unarchive`, {
+            method: 'PUT',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            authUtils.showSuccessMessage('Goal unarchived successfully');
+            // If currently viewing archived goals, reload them; otherwise reload regular goals
+            if (currentTagFilter === 'archived') {
+                await loadArchivedGoals();
+            } else {
+                await loadDashboardData();
+            }
+        } else {
+            const error = await response.json();
+            authUtils.showErrorMessage(error.error || 'Failed to unarchive goal');
+        }
+    } catch (error) {
+        console.error('Error unarchiving goal:', error);
         authUtils.showErrorMessage('Connection error. Please try again');
     }
 }
@@ -4003,9 +4094,15 @@ function applyFiltersAndSort() {
     
     // Apply tag filter
     if (currentTagFilter !== null) {
-        filtered = filtered.filter(goal => 
-            goal.tags && goal.tags.some(tag => tag.id === currentTagFilter)
-        );
+        if (currentTagFilter === 'archived') {
+            // Special case: archived filter should already be handled by API call
+            // This filtering is redundant since we load archived goals separately
+        } else {
+            // Regular tag filtering
+            filtered = filtered.filter(goal => 
+                goal.tags && goal.tags.some(tag => tag.id === currentTagFilter)
+            );
+        }
     }
     
     // Apply sorting
@@ -4290,10 +4387,15 @@ window.selectTagFromBar = function(tagId) {
     // Update visual states
     updateTagFilterBarStates();
     
-    // Reset button is always enabled
+    // If archived filter is selected, reload goals with archived=true
+    if (tagId === 'archived') {
+        loadArchivedGoals();
+    } else {
+        // Reload regular goals (non-archived)
+        loadDashboardData();
+    }
     
-    // Re-render goals and save settings
-    renderGoals();
+    // Save settings
     saveUserSettings();
 }
 
@@ -4305,10 +4407,25 @@ function populateTagFilterBar() {
     const container = document.getElementById('tag-filter-grid');
     if (!container) return;
     
+    // Create the archived tag button (special system tag)
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const archivedColor = currentTheme === 'dark' ? '#6B7280' : '#9CA3AF';
+    const archivedTag = `
+        <button type="button" 
+                onclick="selectTagFromBar('archived')" 
+                data-tag-id="archived"
+                class="tag-filter-bar-badge ${currentTagFilter === 'archived' ? 'active' : ''}"
+                style="background-color: ${archivedColor}">
+            <i class="fas fa-archive mr-1"></i>
+            Archived
+        </button>
+    `;
+    
     if (tags.length === 0) {
         container.innerHTML = `
+            ${archivedTag}
             <div class="col-span-full text-center py-4">
-                <p class="text-sm text-gray-500 mb-2">No tags available</p>
+                <p class="text-sm text-gray-500 mb-2">No custom tags available</p>
                 <button type="button" onclick="showTagManagementModal();" 
                         class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors">
                     Create your first tag
@@ -4318,7 +4435,8 @@ function populateTagFilterBar() {
         return;
     }
     
-    container.innerHTML = tags.map(tag => `
+    // Regular tags + archived tag
+    const regularTags = tags.map(tag => `
         <button type="button" 
                 onclick="selectTagFromBar(${tag.id})" 
                 data-tag-id="${tag.id}"
@@ -4327,12 +4445,16 @@ function populateTagFilterBar() {
             ${tag.name}
         </button>
     `).join('');
+    
+    container.innerHTML = regularTags + archivedTag;
 }
 
 function updateTagFilterBarStates() {
     // Update all tag badges active states
     document.querySelectorAll('.tag-filter-bar-badge').forEach(badge => {
-        const tagId = parseInt(badge.getAttribute('data-tag-id'));
+        const tagIdAttr = badge.getAttribute('data-tag-id');
+        const tagId = tagIdAttr === 'archived' ? 'archived' : parseInt(tagIdAttr);
+        
         if (tagId === currentTagFilter) {
             badge.classList.add('active');
         } else {

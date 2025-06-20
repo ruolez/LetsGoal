@@ -53,7 +53,16 @@ def create_app():
     @app.route('/api/goals', methods=['GET'])
     @login_required
     def get_goals():
-        goals = Goal.query.filter_by(user_id=current_user.id).all()
+        # Check if archived goals should be included
+        include_archived = request.args.get('include_archived', 'false').lower() == 'true'
+        
+        if include_archived:
+            # Return only archived goals
+            goals = Goal.query.filter_by(user_id=current_user.id, status='archived').all()
+        else:
+            # Return all goals except archived ones
+            goals = Goal.query.filter(Goal.user_id == current_user.id, Goal.status != 'archived').all()
+        
         return jsonify([goal.to_dict() for goal in goals])
     
     @app.route('/api/goals', methods=['POST'])
@@ -166,6 +175,65 @@ def create_app():
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Failed to delete goal'}), 500
+    
+    # Goal archive/unarchive endpoints
+    @app.route('/api/goals/<int:goal_id>/archive', methods=['PUT'])
+    @login_required
+    def archive_goal(goal_id):
+        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        if not goal:
+            return jsonify({'error': 'Goal not found'}), 404
+        
+        # Only allow archiving completed goals
+        if goal.status != 'completed':
+            return jsonify({'error': 'Only completed goals can be archived'}), 400
+        
+        # Check if already archived
+        if goal.status == 'archived':
+            return jsonify({'error': 'Goal is already archived'}), 400
+        
+        try:
+            # Update status and set archived date
+            old_status = goal.status
+            goal.status = 'archived'
+            goal.archived_date = date.today()
+            goal.updated_at = datetime.utcnow()
+            
+            # Log archive event
+            EventTracker.log_goal_status_changed(goal, old_status, 'archived')
+            
+            db.session.commit()
+            return jsonify(goal.to_dict())
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to archive goal'}), 500
+    
+    @app.route('/api/goals/<int:goal_id>/unarchive', methods=['PUT'])
+    @login_required
+    def unarchive_goal(goal_id):
+        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        if not goal:
+            return jsonify({'error': 'Goal not found'}), 404
+        
+        # Only allow unarchiving archived goals
+        if goal.status != 'archived':
+            return jsonify({'error': 'Goal is not archived'}), 400
+        
+        try:
+            # Update status back to completed and clear archived date
+            old_status = goal.status
+            goal.status = 'completed'
+            goal.archived_date = None
+            goal.updated_at = datetime.utcnow()
+            
+            # Log unarchive event
+            EventTracker.log_goal_status_changed(goal, old_status, 'completed')
+            
+            db.session.commit()
+            return jsonify(goal.to_dict())
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to unarchive goal'}), 500
     
     # Subgoals API endpoints
     @app.route('/api/goals/<int:goal_id>/subgoals', methods=['POST'])
