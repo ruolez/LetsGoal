@@ -3802,6 +3802,27 @@ async function quickAddSubgoal(goalId) {
             if (goal) {
                 goal.subgoals.push(newSubgoal);
                 goal.last_activity_at = new Date().toISOString();
+                
+                // Update the visual display for this specific goal card
+                const goalCard = document.querySelector(`[data-goal-id="${goalId}"]`);
+                if (goalCard) {
+                    const wasExpanded = stickyHoverStates.get(goalId) || false;
+                    
+                    // Replace the card HTML to show the new subgoal
+                    const newCardHTML = currentViewMode === 'grid' ? renderGoalCardGrid(goal) : renderGoalCardList(goal);
+                    goalCard.outerHTML = newCardHTML;
+                    
+                    // Restore expansion state if it was expanded
+                    if (wasExpanded && currentViewMode === 'grid') {
+                        const newCard = document.querySelector(`[data-goal-id="${goalId}"]`);
+                        if (newCard) {
+                            stickyHoverStates.set(goalId, true);
+                            newCard.classList.add('sticky-hover');
+                            // Re-setup hover functionality for the entire grid
+                            setupStickyHover();
+                        }
+                    }
+                }
             }
             
             // Update stats
