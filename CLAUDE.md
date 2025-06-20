@@ -40,16 +40,18 @@ cd tests && python test_auth.py
 cd tests && python -m pytest test_goals.py::GoalTestCase
 ```
 
-### Database Migrations
+### Database Operations
 ```bash
 # Apply all pending migrations
-cd migrations && python migrate.py
+cd backend/migrations && python add_event_tracking.py && python add_tagging_system.py
 
-# Run specific migration
-cd migrations && python add_event_tracking.py
+# Access SQLite database directly
+sqlite3 database/letsgoal.db
 
-# Rollback migration (development only)
-cd migrations && python rollback_event_tracking.py
+# Common database queries
+.tables  # List all tables
+.schema goals  # Show schema for goals table
+SELECT * FROM users;  # Query users
 ```
 
 ## Architecture Overview
@@ -61,13 +63,13 @@ cd migrations && python rollback_event_tracking.py
 - **Event tracking system** with comprehensive activity logging (`backend/event_tracker.py`)
 - **SQLite database** with automatic schema creation and migrations
 - **RESTful API endpoints** for goal management, tagging, and dashboard stats (25+ endpoints)
-- **Migration system** for database schema evolution (`migrations/` directory)
+- **Migration system** for database schema evolution (`backend/migrations/` directory)
 
 ### Frontend Structure
 - **Static file serving** through Flask (no separate frontend server)
 - **Vanilla JavaScript** with modular structure:
   - `frontend/js/auth.js` - Authentication utilities and login/register
-  - `frontend/js/dashboard.js` - Goal management, progress tracking, Chart.js integration
+  - `frontend/js/dashboard.js` - Goal management, progress tracking, Chart.js integration (49K+ tokens)
 - **Tailwind CSS** for styling with custom CSS in `frontend/css/styles.css`
 - **Two main pages**: `login.html` and `dashboard.html`
 
@@ -76,6 +78,7 @@ cd migrations && python rollback_event_tracking.py
 2. **Automatic Status Updates**: Goal status changes from "created" → "started" → "working" → "completed" based on subgoal completion percentage
 3. **Real-time Updates**: Frontend updates progress bars, charts, and stats immediately after subgoal changes
 4. **Progress Chart**: Shows 7-day trends of completed subgoals and goals using Chart.js line chart
+5. **Daily Quote Rotation**: 350 unique motivational quotes displayed based on days since epoch
 
 ### Database Schema
 - **Users**: Basic auth with password hashing
@@ -108,7 +111,8 @@ cd migrations && python rollback_event_tracking.py
 - **Color coding**: Hex color support for visual organization (#FF5733, #33A1FF, etc.)
 - **Many-to-many relationships**: Goals can have multiple tags, tags can be applied to multiple goals
 - **Default tag creation**: System creates common tags (Work, Personal, Health, Learning) for new users
-- **Tag filtering**: Dashboard supports filtering goals by selected tags
+- **Visual tag filter bar**: Permanent filter interface with clickable colored badges replacing dropdown
+- **Tag filtering**: Dashboard supports filtering goals by selected tags with visual feedback
 
 ### Event Tracking & Activity System
 - **Comprehensive logging**: All CRUD operations on goals/subgoals are tracked
@@ -129,7 +133,7 @@ cd migrations && python rollback_event_tracking.py
 
 ### Docker Configuration
 - **Volume mounts** enable live code reloading during development
-- **Health checks** monitor application status
+- **Health checks** monitor application status with `/health` endpoint
 - **Environment variables** configure Flask and database paths
 - **Port mapping**: Container port 5000 → Host port 5001
 
@@ -151,12 +155,13 @@ cd migrations && python rollback_event_tracking.py
 - **Z-index hierarchy**: Dropdowns (`z-index: 9999`) > expanded cards (`z-index: 2`) > normal cards (`z-index: 1`)
 - **Conic-gradient progress**: `conic-gradient(color deg, background deg)` for smooth progress circles
 
-### API Integration Patterns
-- **Authentication check**: Always use `authUtils.ensureAuthenticated()` before API calls
+### API Endpoints Pattern
+- **Authentication**: `/api/auth/login`, `/api/auth/logout`, `/api/auth/register`
+- **Goals**: `/api/goals` (GET/POST), `/api/goals/<id>` (PUT/DELETE)
+- **Subgoals**: `/api/goals/<id>/subgoals` (POST), `/api/subgoals/<id>` (PUT/DELETE)
+- **Tags**: `/api/tags` (GET/POST), `/api/tags/<id>` (PUT/DELETE)
+- **Stats**: `/api/stats/dashboard`, `/api/stats/recent-activity`
 - **Error handling**: API responses include `success` boolean and `message` for user feedback
-- **Endpoint naming**: RESTful conventions (`/api/goals`, `/api/goals/<id>/subgoals`, etc.)
-- **Data validation**: Both frontend validation and backend validation with error response
-- **Session management**: Automatic logout on 401 responses with redirect to login
 
 ### Performance Considerations
 - **Lazy loading**: Goals loaded on-demand with pagination support for large datasets
@@ -176,6 +181,7 @@ cd migrations && python rollback_event_tracking.py
   - Backdrop blur (15px) with gradient background (15% to 5% white opacity)
   - Typography: Inter font, 0.875rem, slate-600 color, normal weight
   - Decorative quotation marks positioned with CSS pseudo-elements
+  - Daily rotation through 350 unique motivational quotes
 - **Gradient navbar background**: `bg-gradient-to-r from-blue-50 to-indigo-50`
 - **Brand typography**: Gradient text effect `from-blue-600 to-purple-600`
 
@@ -200,8 +206,26 @@ cd migrations && python rollback_event_tracking.py
 - **Consistent heights**: Uses CSS Grid `minmax(350px, auto)` with spacer elements for uniform card appearance
 - **Subgoal sorting**: `sortSubgoalsForDisplay()` function moves completed subgoals to bottom of lists
 - **Position-based expansion**: Cards expand when mouse moves below quick add input without breaking grid layout
-- **Spacer system**: Empty divs maintain consistent card heights when subgoals count varies
-- **Progressive disclosure**: First 3 subgoals visible, remainder shown with "+N more (move mouse below input to expand)" hint
+- **Dynamic subgoal rendering**: Only first 3 subgoals rendered initially; hidden subgoals created dynamically on expansion to prevent spacing issues
+- **Progressive disclosure**: First 3 subgoals visible, remainder shown with "+N more (hover to expand)" hint
+
+### Advanced Hover Animation System
+- **3-frame expansion**: Hidden subgoals animate through 33% → 66% → 100% height with GPU-optimized transitions
+- **Staggered timing**: 30ms delays between each subgoal start, 30ms between animation frames within each subgoal
+- **Dynamic DOM management**: Hidden subgoals created from JSON data on expansion, removed from DOM during collapse
+- **Performance optimized**: Uses `requestAnimationFrame`, CSS `will-change`, and `transform3d` for 60fps animations
+- **Memory leak prevention**: All dynamically created elements cleaned up during collapse animation
+- **Interaction handling**: Maintains expansion during checkbox clicks, input focus, and form interactions
+
+### Tag Filter Bar System
+- **Permanent visibility**: Tag filter bar is always visible as extension of search filter bar
+- **Visual tag badges**: Colored clickable badges (`.tag-filter-bar-badge`) with hover and active states
+- **Responsive grid**: Automatically adapts from 2-8 columns based on screen size
+- **Selection animations**: Tags animate on click with `.selecting` class and scale effect
+- **State management**: `currentTagFilter` variable tracks active filter, syncs with localStorage
+- **Reset functionality**: Reset button always enabled for consistent UX
+- **Integration**: Uses `selectTagFromBar(tagId)` for filtering, `populateTagFilterBar()` for rendering
+- **No dropdown fallback**: Tag filter dropdown completely removed in favor of permanent bar
 
 ### Common Issues
 - **Modal conflicts**: Inline forms used instead of nested modals
@@ -210,6 +234,7 @@ cd migrations && python rollback_event_tracking.py
 - **Chart updates**: Always call `generateRecentProgressData()` for fresh trend data
 - **Dropdown clipping**: Ensure parent containers have `overflow: visible` for dropdowns
 - **Tag color validation**: Ensure hex color format (#RRGGBB) when creating/updating tags
+- **Tag filter synchronization**: Always call `populateTagFilterBar()` after tag CRUD operations
 - **Event tracking**: All model changes automatically trigger event logging - no manual event creation needed
 - **SVG gradient IDs**: Ensure unique gradient IDs (breath1, breath2, breathCore) don't conflict with other SVGs
 - **Animation performance**: Lotus uses transform and filter animations for optimal GPU acceleration
@@ -217,3 +242,6 @@ cd migrations && python rollback_event_tracking.py
 - **Dark mode compatibility**: When updating progress circles or charts, use theme-aware background colors via `document.documentElement.getAttribute('data-theme')`
 - **Position-based hover**: Use `isMouseBelowQuickInput()` helper function to check if expansion should trigger
 - **Sticky hover state**: Track expansion state with `isExpanded` variable to prevent flickering during mouse movement
+- **Spacing accumulation**: Hidden subgoals must have `margin: 0` in CSS to prevent accumulated spacing proportional to subgoal count
+- **DOM cleanup timing**: Remove dynamically created subgoals immediately after collapse animation completes, not in batch cleanup
+- **Quote duplicates**: Ensure all 350 quotes in `motivationalQuotes` array are unique to prevent repetition

@@ -876,8 +876,8 @@ const motivationalQuotes = [
         author: "Mark Twain"
     },
     {
-        text: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-        author: "Winston Churchill"
+        text: "All successful people have a goal. No one can get anywhere unless he knows where he wants to go and what he wants to be or do.",
+        author: "Norman Vincent Peale"
     },
     {
         text: "It is not the size of a man but the size of his heart that matters.",
@@ -1228,8 +1228,8 @@ const motivationalQuotes = [
         author: "Michael Jordan"
     },
     {
-        text: "I can accept failure, everyone fails at something. But I can't accept not trying.",
-        author: "Michael Jordan"
+        text: "Goals transform a random walk into a chase.",
+        author: "Mihaly Csikszentmihalyi"
     },
     {
         text: "Obstacles don't have to stop you. If you run into a wall, don't turn around and give up. Figure out how to climb it, go through it, or work around it.",
@@ -1574,8 +1574,8 @@ const motivationalQuotes = [
 
     // Wisdom & Final Inspirations (Days 341-365)
     {
-        text: "Be yourself; everyone else is already taken.",
-        author: "Oscar Wilde"
+        text: "A year from now you may wish you had started today.",
+        author: "Karen Lamb"
     },
     {
         text: "Two things are infinite: the universe and human stupidity; and I'm not sure about the universe.",
@@ -1594,8 +1594,8 @@ const motivationalQuotes = [
         author: "Mae West"
     },
     {
-        text: "Be the change that you wish to see in the world.",
-        author: "Mahatma Gandhi"
+        text: "Setting goals is the first step in turning the invisible into the visible.",
+        author: "Tony Robbins"
     },
     {
         text: "In three words I can sum up everything I've learned about life: it goes on.",
@@ -1606,8 +1606,8 @@ const motivationalQuotes = [
         author: "J.K. Rowling"
     },
     {
-        text: "If you tell the truth, you don't have to remember anything.",
-        author: "Mark Twain"
+        text: "You are never too old to set another goal or to dream a new dream.",
+        author: "C.S. Lewis"
     },
     {
         text: "Friendship is the only cement that will ever hold the world together.",
@@ -1626,8 +1626,8 @@ const motivationalQuotes = [
         author: "Oscar Wilde"
     },
     {
-        text: "Live as if you were to die tomorrow. Learn as if you were to live forever.",
-        author: "Mahatma Gandhi"
+        text: "The tragedy in life doesn't lie in not reaching your goal. The tragedy lies in having no goal to reach.",
+        author: "Benjamin Mays"
     },
     {
         text: "Darkness cannot drive out darkness: only light can do that. Hate cannot drive out hate: only love can do that.",
@@ -1642,8 +1642,8 @@ const motivationalQuotes = [
         author: "André Gide"
     },
     {
-        text: "I have not failed. I've just found 10,000 ways that won't work.",
-        author: "Thomas A. Edison"
+        text: "Goal setting is powerful because it provides focus. It shapes our dreams. It gives us the ability to hone in on the exact actions we need to perform to achieve everything we desire in life.",
+        author: "Jim Rohn"
     },
     {
         text: "A woman is like a tea bag; you never know how strong it is until it's in hot water.",
@@ -1658,20 +1658,20 @@ const motivationalQuotes = [
         author: "Jane Austen"
     },
     {
-        text: "Good friends, good books, and a sleepy conscience: this is the ideal life.",
-        author: "Mark Twain"
+        text: "The only impossible journey is the one you never begin.",
+        author: "Tony Robbins"
     },
     {
         text: "Life is what happens to you while you're busy making other plans.",
         author: "John Lennon"
     },
     {
-        text: "The future belongs to those who believe in the beauty of their dreams.",
-        author: "Eleanor Roosevelt"
+        text: "People with goals succeed because they know where they're going.",
+        author: "Earl Nightingale"
     },
     {
-        text: "It is during our darkest moments that we must focus to see the light.",
-        author: "Aristotle"
+        text: "Discipline is the bridge between goals and accomplishment.",
+        author: "Jim Rohn"
     }
 ];
 
@@ -4290,11 +4290,7 @@ window.selectTagFromBar = function(tagId) {
     // Update visual states
     updateTagFilterBarStates();
     
-    // Enable/disable reset button
-    const resetBtn = document.getElementById('reset-tag-filter-btn');
-    if (resetBtn) {
-        resetBtn.disabled = (tagId === null);
-    }
+    // Reset button is always enabled
     
     // Re-render goals and save settings
     renderGoals();
