@@ -3688,11 +3688,9 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
                 updateProgressChart(stats);
             }
             
-            // Reload goals to get updated timestamps for proper sorting
-            const goalsResponse = await fetch('/api/goals', { credentials: 'include' });
-            if (goalsResponse.ok) {
-                goals = await goalsResponse.json();
-                renderGoals();
+            // Update the goal's timestamp in local state without full re-render  
+            if (goal) {
+                goal.last_activity_at = new Date().toISOString();
             }
             
         } else {
@@ -3799,11 +3797,11 @@ async function quickAddSubgoal(goalId) {
             // Show success message
             authUtils.showSuccessMessage(`Sub-goal "${title}" added successfully`);
             
-            // Reload goals to get updated data and maintain sorting
-            const goalsResponse = await fetch('/api/goals', { credentials: 'include' });
-            if (goalsResponse.ok) {
-                goals = await goalsResponse.json();
-                renderGoals();
+            // Update local goal state with new subgoal
+            const goal = goals.find(g => g.id === goalId);
+            if (goal) {
+                goal.subgoals.push(newSubgoal);
+                goal.last_activity_at = new Date().toISOString();
             }
             
             // Update stats
