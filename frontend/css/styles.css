@@ -1313,6 +1313,12 @@ html {
   will-change: max-height, opacity;
 }
 
+/* Tag filter bar z-index - should be behind dropdowns */
+#tag-filter-bar {
+  position: relative;
+  z-index: 1;
+}
+
 .tag-filter-bar.expanded {
   max-height: 200px !important;
   opacity: 1 !important;
