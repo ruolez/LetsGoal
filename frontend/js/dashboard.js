@@ -1823,6 +1823,22 @@ async function loadUserTags() {
     }
 }
 
+// Silent refresh of goals data (used by sharing modal to avoid loading spinner disruption)
+async function refreshGoalsData() {
+    try {
+        const goalsResponse = await fetch('/api/goals', { credentials: 'include' });
+        if (goalsResponse.ok) {
+            goals = await goalsResponse.json();
+            renderGoals();
+        } else {
+            console.error('Failed to refresh goals data');
+        }
+    } catch (error) {
+        console.error('Error refreshing goals data:', error);
+        throw error; // Re-throw so the calling function can handle it
+    }
+}
+
 // Update stats display
 function updateStatsDisplay(stats) {
     // Stats display has been removed from the UI
@@ -2371,6 +2387,14 @@ function renderGoalCardGrid(goal) {
                         <div class="status-dot ${getStatusDotClass(goal.status)}" 
                              title="${goal.status.replace('_', ' ').toUpperCase()}"></div>
                         <h3 class="goal-title-modern">${goal.title}</h3>
+                        ${goal.is_shared ? `
+                            <i class="fas fa-share-alt text-blue-500 text-sm" title="Shared goal"></i>
+                        ` : ''}
+                        ${goal.is_owner === false ? `
+                            <span class="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full" title="Shared by ${goal.owner ? goal.owner.username : 'another user'}">
+                                shared by @${goal.owner ? goal.owner.username : 'user'}
+                            </span>
+                        ` : ''}
                     </div>
                     <div class="card-menu-container">
                         <button class="card-menu-btn" onclick="toggleCardMenu(${goal.id}); event.stopPropagation();" title="More options">
@@ -2401,11 +2425,29 @@ function renderGoalCardGrid(goal) {
                                     <span>Archive</span>
                                 </button>
                             `}
+                            
+                            <!-- Sharing Options (Only for owners) -->
+                            ${goal.is_owner !== false ? `
+                                <div class="card-menu-divider"></div>
+                                <button onclick="shareGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
+                                    <i class="fas fa-share"></i>
+                                    <span>Share Goal</span>
+                                </button>
+                                ${goal.is_shared ? `
+                                    <button onclick="manageSharing(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item">
+                                        <i class="fas fa-users"></i>
+                                        <span>Manage Sharing</span>
+                                    </button>
+                                ` : ''}
+                            ` : ''}
+                            
                             <div class="card-menu-divider"></div>
-                            <button onclick="deleteGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item card-menu-danger">
-                                <i class="fas fa-trash"></i>
-                                <span>Delete</span>
-                            </button>
+                            ${goal.is_owner !== false ? `
+                                <button onclick="deleteGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item card-menu-danger">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Delete</span>
+                                </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -4097,6 +4139,9 @@ function applyFiltersAndSort() {
         if (currentTagFilter === 'archived') {
             // Special case: archived filter should already be handled by API call
             // This filtering is redundant since we load archived goals separately
+        } else if (currentTagFilter === 'shared') {
+            // Special case: filter by shared status
+            filtered = filtered.filter(goal => goal.is_shared === true);
         } else {
             // Regular tag filtering
             filtered = filtered.filter(goal => 
@@ -4387,9 +4432,12 @@ window.selectTagFromBar = function(tagId) {
     // Update visual states
     updateTagFilterBarStates();
     
-    // If archived filter is selected, reload goals with archived=true
+    // Handle special system tag filtering
     if (tagId === 'archived') {
         loadArchivedGoals();
+    } else if (tagId === 'shared') {
+        // For shared tag, load regular goals and filter by shared status in renderGoals()
+        loadDashboardData();
     } else {
         // Reload regular goals (non-archived)
         loadDashboardData();
@@ -4407,53 +4455,69 @@ function populateTagFilterBar() {
     const container = document.getElementById('tag-filter-grid');
     if (!container) return;
     
-    // Create the archived tag button (special system tag)
+    // Get current theme for system tag colors
     const currentTheme = document.documentElement.getAttribute('data-theme');
     const archivedColor = currentTheme === 'dark' ? '#6B7280' : '#9CA3AF';
+    const sharedColor = currentTheme === 'dark' ? '#6B7280' : '#8B7355'; // Natural brown/tan color
+    
+    // Create system tags (more compact styling)
+    const sharedTag = `
+        <button type="button" 
+                onclick="selectTagFromBar('shared')" 
+                data-tag-id="shared"
+                class="tag-filter-bar-badge system-tag ${currentTagFilter === 'shared' ? 'active' : ''}"
+                style="background-color: ${sharedColor}">
+            <i class="fas fa-share-alt mr-1"></i>
+            <span>Shared</span>
+        </button>
+    `;
+    
     const archivedTag = `
         <button type="button" 
                 onclick="selectTagFromBar('archived')" 
                 data-tag-id="archived"
-                class="tag-filter-bar-badge ${currentTagFilter === 'archived' ? 'active' : ''}"
+                class="tag-filter-bar-badge system-tag ${currentTagFilter === 'archived' ? 'active' : ''}"
                 style="background-color: ${archivedColor}">
             <i class="fas fa-archive mr-1"></i>
-            Archived
+            <span>Archived</span>
         </button>
     `;
     
     if (tags.length === 0) {
-        container.innerHTML = `
-            ${archivedTag}
-            <div class="col-span-full text-center py-4">
-                <p class="text-sm text-gray-500 mb-2">No custom tags available</p>
-                <button type="button" onclick="showTagManagementModal();" 
-                        class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors">
-                    Create your first tag
-                </button>
-            </div>
-        `;
+        // Only show system tags when no custom tags are present
+        container.innerHTML = sharedTag + archivedTag;
         return;
     }
     
-    // Regular tags + archived tag
-    const regularTags = tags.map(tag => `
+    // Separate user tags from system tags (excluding "Shared" from user tags)
+    const userTags = tags.filter(tag => tag.name !== 'Shared').map(tag => `
         <button type="button" 
                 onclick="selectTagFromBar(${tag.id})" 
                 data-tag-id="${tag.id}"
-                class="tag-filter-bar-badge ${currentTagFilter === tag.id ? 'active' : ''}"
+                class="tag-filter-bar-badge user-tag ${currentTagFilter === tag.id ? 'active' : ''}"
                 style="background-color: ${tag.color}">
             ${tag.name}
         </button>
     `).join('');
     
-    container.innerHTML = regularTags + archivedTag;
+    // Order: User tags + Shared + Archived
+    container.innerHTML = userTags + sharedTag + archivedTag;
 }
 
 function updateTagFilterBarStates() {
     // Update all tag badges active states
     document.querySelectorAll('.tag-filter-bar-badge').forEach(badge => {
         const tagIdAttr = badge.getAttribute('data-tag-id');
-        const tagId = tagIdAttr === 'archived' ? 'archived' : parseInt(tagIdAttr);
+        let tagId;
+        
+        // Handle system tags
+        if (tagIdAttr === 'archived') {
+            tagId = 'archived';
+        } else if (tagIdAttr === 'shared') {
+            tagId = 'shared';
+        } else {
+            tagId = parseInt(tagIdAttr);
+        }
         
         if (tagId === currentTagFilter) {
             badge.classList.add('active');
@@ -5002,6 +5066,328 @@ window.loadMoreGoals = function() {
     currentPage++;
     renderGoals();
     saveUserSettings();
+}
+
+// ========================
+// GOAL SHARING FUNCTIONS
+// ========================
+
+// Share goal function - opens sharing modal
+window.shareGoal = function(goalId) {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) {
+        console.error('Goal not found:', goalId);
+        return;
+    }
+    
+    // Check if user is owner
+    if (goal.is_owner === false) {
+        window.authUtils.showErrorMessage('Only goal owners can share goals');
+        return;
+    }
+    
+    showShareGoalModal(goalId);
+}
+
+// Manage sharing function - opens sharing management modal
+window.manageSharing = function(goalId) {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) {
+        console.error('Goal not found:', goalId);
+        return;
+    }
+    
+    // Check if user is owner
+    if (goal.is_owner === false) {
+        window.authUtils.showErrorMessage('Only goal owners can manage sharing');
+        return;
+    }
+    
+    showManageSharingModal(goalId);
+}
+
+// Show share goal modal
+function showShareGoalModal(goalId) {
+    const goal = goals.find(g => g.id === goalId);
+    if (!goal) return;
+    
+    // Create modal HTML using the same pattern as existing modals
+    const modalHTML = `
+        <style>
+            #share-email-input::placeholder {
+                color: var(--color-text-tertiary) !important;
+            }
+        </style>
+        <div id="share-goal-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onclick="if(event.target === this) closeShareGoalModal()">
+            <div class="rounded-lg max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl" onclick="event.stopPropagation()" style="background-color: var(--color-bg-secondary);">
+                <div class="px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50" style="border-color: var(--color-border-primary);">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-share-alt text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold" style="color: var(--color-text-primary);">Share Goal</h3>
+                                <p class="text-sm truncate max-w-xs" style="color: var(--color-text-secondary);">${goal.title}</p>
+                            </div>
+                        </div>
+                        <button onclick="closeShareGoalModal()" class="transition-colors p-2 rounded-full" style="color: var(--color-text-tertiary);" onmouseover="this.style.backgroundColor='var(--color-bg-tertiary)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2" style="color: var(--color-text-secondary);">Enter email address to share with:</label>
+                        <div class="flex gap-3">
+                            <input type="email" 
+                                   id="share-email-input" 
+                                   class="flex-1 px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   style="background-color: var(--color-bg-secondary); border-color: var(--color-border-primary); color: var(--color-text-primary);"
+                                   placeholder="Enter user email (e.g. john@example.com)"
+                                   onkeypress="if(event.key==='Enter') shareWithUser(${goalId})">
+                            <button onclick="shareWithUser(${goalId})" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-105 shadow-lg font-medium">
+                                <i class="fas fa-share mr-2"></i>Share
+                            </button>
+                        </div>
+                    </div>
+                    
+                    ${goal.is_shared ? `
+                        <div class="mb-4 p-4 rounded-lg border" style="background-color: var(--color-bg-tertiary); border-color: var(--color-border-primary);">
+                            <h4 class="font-medium mb-3 flex items-center" style="color: var(--color-text-primary);">
+                                <i class="fas fa-users mr-2 text-blue-600"></i>
+                                Currently shared with:
+                            </h4>
+                            <div id="current-shares-list">
+                                <div class="flex items-center space-x-2 text-sm" style="color: var(--color-text-tertiary);">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    <span>Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div id="share-message" class="hidden"></div>
+                </div>
+                <div class="px-6 py-4 border-t flex justify-between items-center" style="border-color: var(--color-border-primary); background-color: var(--color-bg-tertiary);">
+                    <div class="text-sm" style="color: var(--color-text-tertiary);">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Shared users can edit this goal and its tasks
+                    </div>
+                    <button onclick="closeShareGoalModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to page
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Add ESC key support
+    const handleEscKey = (event) => {
+        if (event.key === 'Escape') {
+            closeShareGoalModal();
+        }
+    };
+    document.addEventListener('keydown', handleEscKey);
+    
+    // Store the handler for cleanup
+    document.getElementById('share-goal-modal').handleEscKey = handleEscKey;
+    
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+    
+    // Focus the email input
+    setTimeout(() => {
+        const emailInput = document.getElementById('share-email-input');
+        if (emailInput) {
+            emailInput.focus();
+        }
+    }, 100);
+    
+    // Load current shares if goal is already shared
+    if (goal.is_shared) {
+        loadCurrentShares(goalId);
+    }
+}
+
+// Close share goal modal
+window.closeShareGoalModal = function() {
+    const modal = document.getElementById('share-goal-modal');
+    if (modal) {
+        // Remove ESC key handler
+        if (modal.handleEscKey) {
+            document.removeEventListener('keydown', modal.handleEscKey);
+        }
+        
+        // Restore body scroll
+        document.body.style.overflow = '';
+        
+        // Remove modal
+        modal.remove();
+    }
+}
+
+// Share goal with user
+window.shareWithUser = async function(goalId) {
+    const emailInput = document.getElementById('share-email-input');
+    const email = emailInput.value.trim();
+    
+    if (!email) {
+        showShareMessage('Please enter an email address', 'error');
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        showShareMessage('Please enter a valid email address', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/goals/${goalId}/share`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                email: email,
+                permission_level: 'edit'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showShareMessage(result.message, 'success');
+            emailInput.value = '';
+            
+            // Refresh goals to update sharing status (silent reload)
+            try {
+                await refreshGoalsData();
+            } catch (refreshError) {
+                console.warn('Failed to refresh goals after sharing, but sharing was successful:', refreshError);
+            }
+            
+            // Reload current shares list
+            loadCurrentShares(goalId);
+        } else {
+            showShareMessage(result.error || 'Failed to share goal', 'error');
+        }
+    } catch (error) {
+        console.error('Error sharing goal:', error);
+        showShareMessage('Failed to share goal. Please try again.', 'error');
+    }
+}
+
+// Load current shares for a goal
+async function loadCurrentShares(goalId) {
+    try {
+        const response = await fetch(`/api/goals/${goalId}/shares`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const shares = await response.json();
+            const sharesList = document.getElementById('current-shares-list');
+            
+            if (shares.length === 0) {
+                sharesList.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-friends text-2xl mb-2" style="color: var(--color-text-muted);"></i>
+                        <p class="text-sm" style="color: var(--color-text-tertiary);">Not currently shared with anyone</p>
+                    </div>
+                `;
+            } else {
+                sharesList.innerHTML = shares.map(share => `
+                    <div class="flex items-center justify-between p-3 rounded-lg border mb-2 transition-colors" 
+                         style="background-color: var(--color-bg-secondary); border-color: var(--color-border-primary);"
+                         onmouseover="this.style.borderColor='var(--color-border-secondary)'" 
+                         onmouseout="this.style.borderColor='var(--color-border-primary)'">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-blue-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium" style="color: var(--color-text-primary);">${share.shared_with.username}</div>
+                                <div class="text-sm" style="color: var(--color-text-tertiary);">${share.shared_with.email}</div>
+                            </div>
+                        </div>
+                        <button onclick="unshareWithUser(${goalId}, ${share.shared_with.id})" 
+                                class="px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors text-sm font-medium border border-red-200 hover:border-red-300" 
+                                title="Remove access">
+                            <i class="fas fa-times mr-1"></i>Remove
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading shares:', error);
+    }
+}
+
+// Unshare goal from user
+window.unshareWithUser = async function(goalId, userId) {
+    if (!confirm('Are you sure you want to remove this user\'s access to the goal?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/goals/${goalId}/share/${userId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            showShareMessage(result.message, 'success');
+            
+            // Refresh goals to update sharing status (silent reload)
+            try {
+                await refreshGoalsData();
+            } catch (refreshError) {
+                console.warn('Failed to refresh goals after unsharing, but unsharing was successful:', refreshError);
+            }
+            
+            // Reload current shares list
+            loadCurrentShares(goalId);
+        } else {
+            showShareMessage(result.error || 'Failed to unshare goal', 'error');
+        }
+    } catch (error) {
+        console.error('Error unsharing goal:', error);
+        showShareMessage('Failed to unshare goal. Please try again.', 'error');
+    }
+}
+
+// Show sharing management modal (same as share modal for now)
+function showManageSharingModal(goalId) {
+    showShareGoalModal(goalId);
+}
+
+// Show message in share modal
+function showShareMessage(message, type) {
+    const messageDiv = document.getElementById('share-message');
+    if (messageDiv) {
+        messageDiv.className = `p-3 rounded mb-4 ${type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+        messageDiv.textContent = message;
+        messageDiv.classList.remove('hidden');
+        
+        // Hide message after 5 seconds
+        setTimeout(() => {
+            messageDiv.classList.add('hidden');
+        }, 5000);
+    }
+}
+
+// Email validation helper
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
 function updateLoadMoreButton() {

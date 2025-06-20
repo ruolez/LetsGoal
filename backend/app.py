@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_login import LoginManager, login_required, current_user
 from flask_cors import CORS
 from datetime import datetime, date
-from models import db, User, Goal, Subgoal, ProgressEntry, Event, Tag
+from models import db, User, Goal, Subgoal, ProgressEntry, Event, Tag, GoalShare
 from auth import auth_bp
 from event_tracker import EventTracker
 
@@ -56,14 +56,29 @@ def create_app():
         # Check if archived goals should be included
         include_archived = request.args.get('include_archived', 'false').lower() == 'true'
         
-        if include_archived:
-            # Return only archived goals
-            goals = Goal.query.filter_by(user_id=current_user.id, status='archived').all()
-        else:
-            # Return all goals except archived ones
-            goals = Goal.query.filter(Goal.user_id == current_user.id, Goal.status != 'archived').all()
+        # Get goals owned by the user
+        owned_goals_query = Goal.query.filter(Goal.owner_id == current_user.id)
         
-        return jsonify([goal.to_dict() for goal in goals])
+        # Get goals shared with the user
+        shared_goal_ids = db.session.query(GoalShare.goal_id).filter(
+            GoalShare.shared_with_user_id == current_user.id
+        ).subquery()
+        shared_goals_query = Goal.query.filter(Goal.id.in_(shared_goal_ids))
+        
+        if include_archived:
+            # Return only archived goals (owned or shared)
+            owned_goals = owned_goals_query.filter(Goal.status == 'archived').all()
+            shared_goals = shared_goals_query.filter(Goal.status == 'archived').all()
+        else:
+            # Return all goals except archived ones (owned or shared)
+            owned_goals = owned_goals_query.filter(Goal.status != 'archived').all()
+            shared_goals = shared_goals_query.filter(Goal.status != 'archived').all()
+        
+        # Combine and deduplicate goals
+        all_goals = owned_goals + shared_goals
+        unique_goals = {goal.id: goal for goal in all_goals}.values()
+        
+        return jsonify([goal.to_dict(current_user.id) for goal in unique_goals])
     
     @app.route('/api/goals', methods=['POST'])
     @login_required
@@ -75,6 +90,7 @@ def create_app():
         
         goal = Goal(
             user_id=current_user.id,
+            owner_id=current_user.id,
             title=data['title'],
             description=data.get('description', ''),
             target_date=datetime.strptime(data['target_date'], '%Y-%m-%d').date() if data.get('target_date') else None,
@@ -89,7 +105,7 @@ def create_app():
             EventTracker.log_goal_created(goal)
             
             db.session.commit()
-            return jsonify(goal.to_dict()), 201
+            return jsonify(goal.to_dict(current_user.id)), 201
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Failed to create goal'}), 500
@@ -97,9 +113,13 @@ def create_app():
     @app.route('/api/goals/<int:goal_id>', methods=['PUT'])
     @login_required
     def update_goal(goal_id):
-        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        goal = Goal.query.get(goal_id)
         if not goal:
             return jsonify({'error': 'Goal not found'}), 404
+        
+        # Check if user can edit this goal (owner or shared with edit permission)
+        if not goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
         
         data = request.get_json()
         
@@ -150,7 +170,7 @@ def create_app():
                         EventTracker.log_goal_completed(goal)
             
             db.session.commit()
-            return jsonify(goal.to_dict())
+            return jsonify(goal.to_dict(current_user.id))
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Failed to update goal'}), 500
@@ -158,9 +178,13 @@ def create_app():
     @app.route('/api/goals/<int:goal_id>', methods=['DELETE'])
     @login_required
     def delete_goal(goal_id):
-        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        goal = Goal.query.get(goal_id)
         if not goal:
             return jsonify({'error': 'Goal not found'}), 404
+        
+        # Only owners can delete goals
+        if not goal.is_owner(current_user.id):
+            return jsonify({'error': 'Permission denied. Only goal owners can delete goals.'}), 403
         
         # Store info for event logging before deletion
         goal_title = goal.title
@@ -180,9 +204,13 @@ def create_app():
     @app.route('/api/goals/<int:goal_id>/archive', methods=['PUT'])
     @login_required
     def archive_goal(goal_id):
-        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        goal = Goal.query.get(goal_id)
         if not goal:
             return jsonify({'error': 'Goal not found'}), 404
+        
+        # Check if user can edit this goal (owner or shared with edit permission)
+        if not goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
         
         # Only allow archiving completed goals
         if goal.status != 'completed':
@@ -203,7 +231,7 @@ def create_app():
             EventTracker.log_goal_status_changed(goal, old_status, 'archived')
             
             db.session.commit()
-            return jsonify(goal.to_dict())
+            return jsonify(goal.to_dict(current_user.id))
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Failed to archive goal'}), 500
@@ -211,9 +239,13 @@ def create_app():
     @app.route('/api/goals/<int:goal_id>/unarchive', methods=['PUT'])
     @login_required
     def unarchive_goal(goal_id):
-        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        goal = Goal.query.get(goal_id)
         if not goal:
             return jsonify({'error': 'Goal not found'}), 404
+        
+        # Check if user can edit this goal (owner or shared with edit permission)
+        if not goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
         
         # Only allow unarchiving archived goals
         if goal.status != 'archived':
@@ -230,7 +262,7 @@ def create_app():
             EventTracker.log_goal_status_changed(goal, old_status, 'completed')
             
             db.session.commit()
-            return jsonify(goal.to_dict())
+            return jsonify(goal.to_dict(current_user.id))
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Failed to unarchive goal'}), 500
@@ -239,9 +271,13 @@ def create_app():
     @app.route('/api/goals/<int:goal_id>/subgoals', methods=['POST'])
     @login_required
     def create_subgoal(goal_id):
-        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        goal = Goal.query.get(goal_id)
         if not goal:
             return jsonify({'error': 'Goal not found'}), 404
+        
+        # Check if user can edit this goal (owner or shared with edit permission)
+        if not goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
         
         data = request.get_json()
         if not data or not data.get('title'):
@@ -274,13 +310,14 @@ def create_app():
     @app.route('/api/subgoals/<int:subgoal_id>', methods=['PUT'])
     @login_required
     def update_subgoal(subgoal_id):
-        subgoal = Subgoal.query.join(Goal).filter(
-            Subgoal.id == subgoal_id,
-            Goal.user_id == current_user.id
-        ).first()
+        subgoal = Subgoal.query.get(subgoal_id)
         
         if not subgoal:
             return jsonify({'error': 'Subgoal not found'}), 404
+        
+        # Check if user can edit this subgoal (owner or shared with edit permission)
+        if not subgoal.goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
         
         data = request.get_json()
         
@@ -376,13 +413,14 @@ def create_app():
     @app.route('/api/subgoals/<int:subgoal_id>', methods=['DELETE'])
     @login_required
     def delete_subgoal(subgoal_id):
-        subgoal = Subgoal.query.join(Goal).filter(
-            Subgoal.id == subgoal_id,
-            Goal.user_id == current_user.id
-        ).first()
+        subgoal = Subgoal.query.get(subgoal_id)
         
         if not subgoal:
             return jsonify({'error': 'Subgoal not found'}), 404
+        
+        # Check if user can edit this subgoal (owner or shared with edit permission)
+        if not subgoal.goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
         
         # Store info for event logging before deletion
         subgoal_title = subgoal.title
@@ -432,6 +470,152 @@ def create_app():
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Failed to add progress'}), 500
+    
+    # Goal Sharing API endpoints
+    @app.route('/api/goals/<int:goal_id>/share', methods=['POST'])
+    @login_required
+    def share_goal(goal_id):
+        goal = Goal.query.get(goal_id)
+        if not goal:
+            return jsonify({'error': 'Goal not found'}), 404
+        
+        # Only owners can share goals
+        if not goal.is_owner(current_user.id):
+            return jsonify({'error': 'Permission denied. Only goal owners can share goals.'}), 403
+        
+        data = request.get_json()
+        if not data or not data.get('email'):
+            return jsonify({'error': 'Email is required'}), 400
+        
+        # Find user by email
+        user_to_share_with = User.query.filter_by(email=data['email'].strip().lower()).first()
+        if not user_to_share_with:
+            return jsonify({'error': 'User not found with that email address'}), 404
+        
+        # Prevent sharing with yourself
+        if user_to_share_with.id == current_user.id:
+            return jsonify({'error': 'You cannot share a goal with yourself'}), 400
+        
+        # Check if already shared
+        existing_share = GoalShare.query.filter_by(
+            goal_id=goal_id,
+            shared_with_user_id=user_to_share_with.id
+        ).first()
+        if existing_share:
+            return jsonify({'error': 'Goal is already shared with this user'}), 400
+        
+        # Create the share
+        permission_level = data.get('permission_level', 'edit')
+        if permission_level not in ['edit', 'view']:
+            permission_level = 'edit'
+        
+        goal_share = GoalShare(
+            goal_id=goal_id,
+            shared_by_user_id=current_user.id,
+            shared_with_user_id=user_to_share_with.id,
+            permission_level=permission_level
+        )
+        
+        try:
+            db.session.add(goal_share)
+            
+            # Add "Shared" tag to goal if not already present
+            shared_tag = Tag.query.filter_by(user_id=current_user.id, name='Shared').first()
+            if shared_tag and shared_tag not in goal.tags:
+                goal.tags.append(shared_tag)
+            
+            # Log sharing event
+            EventTracker.log_goal_shared(goal, user_to_share_with)
+            
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': f'Goal shared with {user_to_share_with.username}',
+                'share': goal_share.to_dict()
+            }), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to share goal'}), 500
+    
+    @app.route('/api/goals/<int:goal_id>/share/<int:user_id>', methods=['DELETE'])
+    @login_required
+    def unshare_goal(goal_id, user_id):
+        goal = Goal.query.get(goal_id)
+        if not goal:
+            return jsonify({'error': 'Goal not found'}), 404
+        
+        # Only owners can unshare goals
+        if not goal.is_owner(current_user.id):
+            return jsonify({'error': 'Permission denied. Only goal owners can unshare goals.'}), 403
+        
+        # Find the share
+        goal_share = GoalShare.query.filter_by(
+            goal_id=goal_id,
+            shared_with_user_id=user_id
+        ).first()
+        if not goal_share:
+            return jsonify({'error': 'Goal is not shared with this user'}), 404
+        
+        try:
+            shared_with_user = goal_share.shared_with
+            db.session.delete(goal_share)
+            
+            # Remove "Shared" tag if no other shares exist
+            remaining_shares = GoalShare.query.filter_by(goal_id=goal_id).count()
+            if remaining_shares == 1:  # Will be 0 after commit
+                shared_tag = Tag.query.filter_by(user_id=current_user.id, name='Shared').first()
+                if shared_tag and shared_tag in goal.tags:
+                    goal.tags.remove(shared_tag)
+            
+            # Log unsharing event
+            EventTracker.log_goal_unshared(goal, shared_with_user)
+            
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': f'Goal unshared from {shared_with_user.username}'
+            })
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to unshare goal'}), 500
+    
+    @app.route('/api/goals/<int:goal_id>/shares', methods=['GET'])
+    @login_required
+    def get_goal_shares(goal_id):
+        goal = Goal.query.get(goal_id)
+        if not goal:
+            return jsonify({'error': 'Goal not found'}), 404
+        
+        # Only owners can view sharing details
+        if not goal.is_owner(current_user.id):
+            return jsonify({'error': 'Permission denied. Only goal owners can view sharing details.'}), 403
+        
+        shares = GoalShare.query.filter_by(goal_id=goal_id).all()
+        return jsonify([share.to_dict() for share in shares])
+    
+    @app.route('/api/users/search', methods=['GET'])
+    @login_required
+    def search_users():
+        email = request.args.get('email')
+        if not email:
+            return jsonify({'error': 'Email parameter is required'}), 400
+        
+        # Find users by email (exact match for security)
+        user = User.query.filter_by(email=email.strip().lower()).first()
+        if not user:
+            return jsonify({'users': []})
+        
+        # Don't return the current user in search results
+        if user.id == current_user.id:
+            return jsonify({'users': []})
+        
+        return jsonify({
+            'users': [{
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }]
+        })
     
     # Tags API endpoints
     @app.route('/api/tags', methods=['GET'])

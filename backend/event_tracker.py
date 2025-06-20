@@ -241,3 +241,33 @@ class EventTracker:
             )\
             .order_by(Event.created_at.desc())\
             .all()
+    
+    @staticmethod
+    def log_goal_shared(goal, shared_with_user):
+        """Log goal sharing event"""
+        return EventTracker.log_event(
+            entity_type='goal',
+            entity_id=goal.id,
+            action='shared',
+            metadata={
+                'title': goal.title,
+                'shared_with_user_id': shared_with_user.id,
+                'shared_with_username': shared_with_user.username,
+                'shared_with_email': shared_with_user.email
+            }
+        )
+    
+    @staticmethod
+    def log_goal_unshared(goal, unshared_user):
+        """Log goal unsharing event"""
+        return EventTracker.log_event(
+            entity_type='goal',
+            entity_id=goal.id,
+            action='unshared',
+            metadata={
+                'title': goal.title,
+                'unshared_user_id': unshared_user.id,
+                'unshared_username': unshared_user.username,
+                'unshared_email': unshared_user.email
+            }
+        )

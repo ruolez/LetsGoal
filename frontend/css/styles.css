@@ -1338,6 +1338,13 @@ html {
   border: 2px solid transparent;
   position: relative;
   overflow: hidden;
+  /* Remove default button focus outline */
+  outline: none !important;
+}
+
+.tag-filter-bar-badge:focus {
+  outline: none !important;
+  box-shadow: 0 1px 2px var(--color-shadow-sm) !important;
 }
 
 .tag-filter-bar-badge:hover {
@@ -1423,6 +1430,60 @@ html {
 
 .tag-filter-bar-badge.selecting {
   animation: tagSelect 0.2s ease-in-out;
+}
+
+/* System vs User tag styles */
+.tag-filter-bar-badge.system-tag {
+  /* More compact padding for system tags */
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  /* Subtle distinction - slightly muted appearance */
+  opacity: 0.9;
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
+  /* Hide focus outline */
+  outline: none !important;
+  border: 2px solid transparent !important;
+}
+
+.tag-filter-bar-badge.user-tag {
+  /* Standard padding for user tags */
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  /* Hide focus outline */
+  outline: none !important;
+}
+
+.tag-filter-bar-badge.system-tag:hover {
+  opacity: 1;
+}
+
+.tag-filter-bar-badge.system-tag:focus,
+.tag-filter-bar-badge.user-tag:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.tag-filter-bar-badge.system-tag:active,
+.tag-filter-bar-badge.user-tag:active {
+  outline: none !important;
+  border-color: transparent !important;
+}
+
+/* Add visual separator between user and system tags */
+.tag-filter-bar-badge.system-tag:first-of-type {
+  margin-left: 0.75rem;
+  position: relative;
+}
+
+.tag-filter-bar-badge.system-tag:first-of-type::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 60%;
+  background: var(--color-border-secondary);
 }
 
 /* Tag filter bar header styling */

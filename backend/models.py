@@ -12,6 +12,36 @@ goal_tags = db.Table('goal_tags',
     db.Column('created_at', db.DateTime, default=datetime.utcnow)
 )
 
+class GoalShare(db.Model):
+    __tablename__ = 'goal_shares'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'), nullable=False)
+    shared_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    shared_with_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    permission_level = db.Column(db.String(20), default='edit', nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    goal = db.relationship('Goal', backref='shares')
+    shared_by = db.relationship('User', foreign_keys=[shared_by_user_id], backref='shared_goals')
+    shared_with = db.relationship('User', foreign_keys=[shared_with_user_id], backref='received_shares')
+    
+    # Ensure unique sharing relationships
+    __table_args__ = (db.UniqueConstraint('goal_id', 'shared_with_user_id', name='_goal_share_unique'),)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'goal_id': self.goal_id,
+            'shared_by_user_id': self.shared_by_user_id,
+            'shared_with_user_id': self.shared_with_user_id,
+            'permission_level': self.permission_level,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'shared_by': self.shared_by.to_dict() if self.shared_by else None,
+            'shared_with': self.shared_with.to_dict() if self.shared_with else None
+        }
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     
@@ -23,7 +53,7 @@ class User(UserMixin, db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    goals = db.relationship('Goal', backref='user', lazy=True, cascade='all, delete-orphan')
+    goals = db.relationship('Goal', foreign_keys='Goal.user_id', backref='user', lazy=True, cascade='all, delete-orphan')
     tags = db.relationship('Tag', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
@@ -68,6 +98,7 @@ class Goal(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     target_date = db.Column(db.Date)
@@ -81,11 +112,13 @@ class Goal(db.Model):
     subgoals = db.relationship('Subgoal', backref='goal', lazy=True, cascade='all, delete-orphan')
     progress_entries = db.relationship('ProgressEntry', backref='goal', lazy=True, cascade='all, delete-orphan')
     tags = db.relationship('Tag', secondary=goal_tags, lazy='subquery', backref=db.backref('goals', lazy=True))
+    owner = db.relationship('User', foreign_keys=[owner_id], backref='owned_goals')
     
-    def to_dict(self):
+    def to_dict(self, current_user_id=None):
         return {
             'id': self.id,
             'user_id': self.user_id,
+            'owner_id': self.owner_id,
             'title': self.title,
             'description': self.description,
             'target_date': self.target_date.isoformat() if self.target_date else None,
@@ -97,7 +130,11 @@ class Goal(db.Model):
             'last_activity_at': self.get_last_activity_at().isoformat() if self.get_last_activity_at() else None,
             'subgoals': [sg.to_dict() for sg in self.subgoals],
             'tags': [tag.to_dict() for tag in self.tags],
-            'progress': self.calculate_progress()
+            'progress': self.calculate_progress(),
+            'is_shared': self.is_shared(),
+            'is_owner': self.is_owner(current_user_id) if current_user_id else None,
+            'owner': self.owner.to_dict() if self.owner else None,
+            'shared_with': [share.shared_with.to_dict() for share in self.shares] if hasattr(self, 'shares') else []
         }
     
     def calculate_progress(self):
@@ -123,6 +160,50 @@ class Goal(db.Model):
         # Filter out None values and return the most recent
         valid_timestamps = [ts for ts in timestamps if ts is not None]
         return max(valid_timestamps) if valid_timestamps else self.created_at
+    
+    def is_shared(self):
+        """Check if this goal is shared with any users"""
+        return len(self.shares) > 0 if hasattr(self, 'shares') else False
+    
+    def is_owner(self, user_id):
+        """Check if the given user is the owner of this goal"""
+        if not user_id:
+            return False
+        return self.owner_id == user_id
+    
+    def can_access(self, user_id):
+        """Check if the given user can access this goal (owner or shared with)"""
+        if not user_id:
+            return False
+        
+        # Owner can always access
+        if self.is_owner(user_id):
+            return True
+        
+        # Check if goal is shared with this user
+        if hasattr(self, 'shares'):
+            for share in self.shares:
+                if share.shared_with_user_id == user_id:
+                    return True
+        
+        return False
+    
+    def can_edit(self, user_id):
+        """Check if the given user can edit this goal"""
+        if not user_id:
+            return False
+        
+        # Owner can always edit
+        if self.is_owner(user_id):
+            return True
+        
+        # Check if goal is shared with edit permission
+        if hasattr(self, 'shares'):
+            for share in self.shares:
+                if share.shared_with_user_id == user_id and share.permission_level == 'edit':
+                    return True
+        
+        return False
 
 class Subgoal(db.Model):
     __tablename__ = 'subgoals'
