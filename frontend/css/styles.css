@@ -2599,6 +2599,22 @@ body.modal-open {
   margin-top: 4px;
 }
 
+/* Ensure dropdown menu border is always visible with maximum specificity */
+div[id^="card-menu-"].card-dropdown-menu,
+.card-dropdown-menu[id^="card-menu-"] {
+  border: 1px solid var(--color-border-primary) !important;
+  border-color: var(--color-border-primary) !important;
+}
+
+/* Fallback with specific colors in case CSS custom properties fail */
+.card-dropdown-menu {
+  border: 1px solid #e5e7eb !important; /* Light mode fallback */
+}
+
+[data-theme="dark"] .card-dropdown-menu {
+  border: 1px solid #475569 !important; /* Dark mode fallback */
+}
+
 .card-dropdown-menu.hidden {
   display: none;
 }
