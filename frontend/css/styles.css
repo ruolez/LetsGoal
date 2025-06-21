@@ -2588,7 +2588,7 @@ body.modal-open {
 .card-dropdown-menu {
   position: absolute;
   top: 100%;
-  right: 0;
+  right: -8px;
   z-index: 50;
   min-width: 120px;
   background: var(--color-bg-surface) !important;
