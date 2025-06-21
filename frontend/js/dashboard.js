@@ -42,7 +42,7 @@ let currentSort = 'recent';
 let currentTagFilter = null; // null means show all tags
 let selectedTagIds = [];
 let currentPage = 0;
-const goalsPerPage = 9;
+const goalsPerPage = 12;
 
 // Track which goal cards should maintain sticky hover state
 let stickyHoverStates = new Map();
