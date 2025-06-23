@@ -2922,8 +2922,35 @@ function setDailyQuote() {
     const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
     const quoteIndex = daysSinceEpoch % motivationalQuotes.length;
     const quote = motivationalQuotes[quoteIndex];
-    document.getElementById('daily-quote').innerHTML = quote.text;
-    document.getElementById('quote-author').innerHTML = `— ${quote.author}`;
+    
+    // Set quote text
+    const quoteElement = document.getElementById('daily-quote');
+    const quoteContainer = document.querySelector('.floating-quote');
+    const authorElement = document.getElementById('quote-author');
+    
+    if (quoteElement && quoteContainer) {
+        quoteElement.innerHTML = quote.text;
+        
+        // Remove any existing quote length classes
+        quoteContainer.classList.remove('quote-short', 'quote-medium', 'quote-long', 'quote-extra-long');
+        
+        // Apply appropriate class based on quote length
+        const quoteLength = quote.text.length;
+        if (quoteLength < 80) {
+            quoteContainer.classList.add('quote-short');
+        } else if (quoteLength < 120) {
+            quoteContainer.classList.add('quote-medium');
+        } else if (quoteLength < 180) {
+            quoteContainer.classList.add('quote-long');
+        } else {
+            quoteContainer.classList.add('quote-extra-long');
+        }
+        
+        // Set author
+        if (authorElement) {
+            authorElement.innerHTML = `— ${quote.author}`;
+        }
+    }
 }
 
 // Modal functions - make globally accessible
