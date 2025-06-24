@@ -30,23 +30,26 @@ docker-compose down
 
 ### Running Tests
 ```bash
-# Run all tests
-cd tests && python -m pytest
+# Run all tests inside Docker container
+docker exec letsgoal-backend python -m pytest tests/
 
 # Run specific test file
-cd tests && python test_auth.py
+docker exec letsgoal-backend python -m pytest tests/test_auth.py
 
 # Run specific test class
-cd tests && python -m pytest test_goals.py::GoalTestCase
+docker exec letsgoal-backend python -m pytest tests/test_goals.py::GoalTestCase
 ```
 
 ### Database Operations
 ```bash
-# Apply all pending migrations
-cd backend/migrations && python add_event_tracking.py && python add_tagging_system.py
+# Run migrations inside Docker container
+docker exec letsgoal-backend python backend/migrations/add_event_tracking.py
+docker exec letsgoal-backend python backend/migrations/add_tagging_system.py
+docker exec letsgoal-backend python backend/migrations/add_archived_date.py
+docker exec letsgoal-backend python backend/migrations/add_goal_sharing.py
 
 # Access SQLite database directly
-sqlite3 database/letsgoal.db
+docker exec -it letsgoal-backend sqlite3 /app/database/letsgoal.db
 
 # Common database queries
 .tables  # List all tables
@@ -58,36 +61,37 @@ SELECT * FROM users;  # Query users
 
 ### Backend Structure
 - **Flask application** with factory pattern (`backend/app.py`)
-- **SQLAlchemy models**: User, Goal, Subgoal, ProgressEntry, Event, Tag (`backend/models.py`)
+- **SQLAlchemy models**: User, Goal, Subgoal, ProgressEntry, Event, Tag, GoalShare (`backend/models.py`)
 - **Authentication blueprint** with Flask-Login (`backend/auth.py`)
 - **Event tracking system** with comprehensive activity logging (`backend/event_tracker.py`)
 - **SQLite database** with automatic schema creation and migrations
-- **RESTful API endpoints** for goal management, tagging, and dashboard stats (25+ endpoints)
+- **RESTful API endpoints** for goal management, sharing, tagging, and dashboard stats
 - **Migration system** for database schema evolution (`backend/migrations/` directory)
 
 ### Frontend Structure
 - **Static file serving** through Flask (no separate frontend server)
 - **Vanilla JavaScript** with modular structure:
   - `frontend/js/auth.js` - Authentication utilities and login/register
-  - `frontend/js/dashboard.js` - Goal management, progress tracking, Chart.js integration (49K+ tokens)
+  - `frontend/js/dashboard.js` - Goal management, progress tracking, Chart.js integration
 - **Tailwind CSS** for styling with custom CSS in `frontend/css/styles.css`
 - **Two main pages**: `login.html` and `dashboard.html`
 
 ### Key Data Flow
 1. **Goal-Subgoal Relationship**: Goals contain subgoals; goal progress auto-updates based on subgoal completion
-2. **Automatic Status Updates**: Goal status changes from "created" → "started" → "working" → "completed" based on subgoal completion percentage
+2. **Status Progression**: `created → started → working → completed → archived`
 3. **Real-time Updates**: Frontend updates progress bars, charts, and stats immediately after subgoal changes
 4. **Progress Chart**: Shows 7-day trends of completed subgoals and goals using Chart.js line chart
 5. **Daily Quote Rotation**: 350 unique motivational quotes displayed based on days since epoch
 
 ### Database Schema
 - **Users**: Basic auth with password hashing
-- **Goals**: Hierarchical structure with status tracking (created/started/working/completed)
+- **Goals**: Hierarchical structure with status tracking, archived_date, and owner_id field
 - **Subgoals**: Belong to goals, track individual task completion with order_index
 - **ProgressEntry**: Historical progress tracking for reporting features
 - **Events**: Comprehensive activity logging with metadata (entity_type, action, field changes)
 - **Tags**: User-specific categorization with color coding
 - **Goal_Tags**: Many-to-many junction table for goal-tag associations
+- **GoalShare**: Many-to-many table for sharing goals between users with permission levels
 
 ### Frontend-Backend Communication
 - **Session-based authentication** with Flask-Login
@@ -111,8 +115,25 @@ SELECT * FROM users;  # Query users
 - **Color coding**: Hex color support for visual organization (#FF5733, #33A1FF, etc.)
 - **Many-to-many relationships**: Goals can have multiple tags, tags can be applied to multiple goals
 - **Default tag creation**: System creates common tags (Work, Personal, Health, Learning) for new users
-- **Visual tag filter bar**: Permanent filter interface with clickable colored badges replacing dropdown
-- **Tag filtering**: Dashboard supports filtering goals by selected tags with visual feedback
+- **Visual tag filter bar**: Permanent filter interface with clickable colored badges
+- **Special "Archived" tag**: System-generated neutral-colored tag for viewing archived goals
+
+### Archive System
+- **Status-based archiving**: Only completed goals can be archived
+- **Archive endpoints**: `/api/goals/<id>/archive` and `/api/goals/<id>/unarchive`
+- **Filtered API**: `/api/goals?include_archived=true` to view archived goals
+- **UI Integration**: Archive/Unarchive options in dropdown menu, Archived tag in filter bar
+
+### Goal Sharing System
+- **Email-based sharing**: Share goals with users by email address lookup
+- **Permission levels**: 'edit' (full access) vs 'view' (read-only, future feature)
+- **Owner vs shared distinction**: Goals have owner_id (creator) and can be shared with multiple users
+- **Permission checking**: `goal.can_edit(user_id)` and `goal.can_access(user_id)` helper methods
+- **Sharing endpoints**: `/api/goals/<id>/share` (POST), `/api/goals/<id>/share/<user_id>` (DELETE), `/api/goals/<id>/shares` (GET)
+- **User search**: `/api/users/search?email=` for finding users to share with
+- **Visual indicators**: Shared goals show sharing icon and "Shared" system tag
+- **Sharing modal**: Frontend interface for managing goal shares with real-time user lookup
+- **Automatic tagging**: System-generated "Shared" tag applied to shared goals
 
 ### Event Tracking & Activity System
 - **Comprehensive logging**: All CRUD operations on goals/subgoals are tracked
@@ -152,12 +173,15 @@ SELECT * FROM users;  # Query users
 ### CSS Architecture
 - **Grid layout**: 4-column responsive grid with `minmax(320px, 1fr)` for goal cards
 - **Controlled expansion**: JavaScript-driven `.sticky-hover` class controls card expansion, no CSS `:hover`
-- **Z-index hierarchy**: Dropdowns (`z-index: 9999`) > expanded cards (`z-index: 2`) > normal cards (`z-index: 1`)
+- **Z-index hierarchy**: Dropdowns (`z-index: 9999`) > modals (`z-index: 50-70`) > tag filter bar (`z-index: 1`) > cards (`z-index: 1-2`)
 - **Conic-gradient progress**: `conic-gradient(color deg, background deg)` for smooth progress circles
 
 ### API Endpoints Pattern
 - **Authentication**: `/api/auth/login`, `/api/auth/logout`, `/api/auth/register`
 - **Goals**: `/api/goals` (GET/POST), `/api/goals/<id>` (PUT/DELETE)
+- **Archive**: `/api/goals/<id>/archive` (PUT), `/api/goals/<id>/unarchive` (PUT)
+- **Sharing**: `/api/goals/<id>/share` (POST), `/api/goals/<id>/share/<user_id>` (DELETE), `/api/goals/<id>/shares` (GET)
+- **User Search**: `/api/users/search?email=` (GET)
 - **Subgoals**: `/api/goals/<id>/subgoals` (POST), `/api/subgoals/<id>` (PUT/DELETE)
 - **Tags**: `/api/tags` (GET/POST), `/api/tags/<id>` (PUT/DELETE)
 - **Stats**: `/api/stats/dashboard`, `/api/stats/recent-activity`
@@ -171,7 +195,7 @@ SELECT * FROM users;  # Query users
 - **Optimized queries**: SQLAlchemy relationships configured for efficient loading
 
 ### Navbar Design System
-- **Modern minimalist design** with Concept 1: floating elements and gradient backgrounds
+- **Modern minimalist design** with floating elements and gradient backgrounds
 - **Breathing lotus logo**: 72x72px animated SVG with complex breathing animations (8s cycles)
   - Multiple animation layers: breathing core, petal scaling, completion markers, energy rings
   - Built-in SVG animations with no hover effects for meditative stability
@@ -225,7 +249,9 @@ SELECT * FROM users;  # Query users
 - **State management**: `currentTagFilter` variable tracks active filter, syncs with localStorage
 - **Reset functionality**: Reset button always enabled for consistent UX
 - **Integration**: Uses `selectTagFromBar(tagId)` for filtering, `populateTagFilterBar()` for rendering
-- **No dropdown fallback**: Tag filter dropdown completely removed in favor of permanent bar
+- **System vs user tags**: Visual distinction with compact styling for system tags (Shared, Archived)
+- **Tag ordering**: User tags → Shared → Archived, with visual separator
+- **Special filters**: "shared" and "archived" filter by goal.is_shared and archived status respectively
 
 ### Common Issues
 - **Modal conflicts**: Inline forms used instead of nested modals
@@ -245,3 +271,9 @@ SELECT * FROM users;  # Query users
 - **Spacing accumulation**: Hidden subgoals must have `margin: 0` in CSS to prevent accumulated spacing proportional to subgoal count
 - **DOM cleanup timing**: Remove dynamically created subgoals immediately after collapse animation completes, not in batch cleanup
 - **Quote duplicates**: Ensure all 350 quotes in `motivationalQuotes` array are unique to prevent repetition
+- **Z-index conflicts**: Tag filter bar uses `z-index: 1` to stay behind dropdowns (`z-index: 9999`)
+- **Migration imports**: Use `from app import create_app` and `app = create_app()` pattern for migration scripts
+- **Permission validation**: Always check `goal.can_edit(user_id)` or `goal.is_owner(user_id)` before allowing operations
+- **Sharing modal errors**: Use `refreshGoalsData()` for silent updates to avoid loading spinner disruption
+- **System tag styling**: System tags use `.system-tag` class with compact padding and natural colors
+- **Tag filter logic**: Handle "shared" and "archived" as special filter cases in `applyFiltersAndSort()`

@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -52,9 +53,19 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # SMS-related fields
+    phone_number = db.Column(db.String(20))
+    phone_verified = db.Column(db.Boolean, default=False, nullable=False)
+    sms_enabled = db.Column(db.Boolean, default=False, nullable=False)
+    sms_preferences = db.Column(db.Text)  # JSON string for SMS preferences
+    verification_code = db.Column(db.String(10))
+    verification_expires_at = db.Column(db.DateTime)
+    
     # Relationships
     goals = db.relationship('Goal', foreign_keys='Goal.user_id', backref='user', lazy=True, cascade='all, delete-orphan')
     tags = db.relationship('Tag', backref='user', lazy=True, cascade='all, delete-orphan')
+    sms_reminders = db.relationship('SmsReminder', backref='user', lazy=True, cascade='all, delete-orphan')
+    sms_logs = db.relationship('SmsDeliveryLog', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -62,11 +73,41 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
     
+    def get_sms_preferences(self):
+        """Get SMS preferences as a dictionary"""
+        if self.sms_preferences:
+            try:
+                return json.loads(self.sms_preferences)
+            except json.JSONDecodeError:
+                return {}
+        return {
+            'deadline_reminders': True,
+            'daily_motivation': False,
+            'progress_updates': True,
+            'weekly_summary': False,
+            'reminder_time': '09:00',
+            'timezone': 'UTC'
+        }
+    
+    def set_sms_preferences(self, preferences_dict):
+        """Set SMS preferences from a dictionary"""
+        self.sms_preferences = json.dumps(preferences_dict)
+    
+    def can_receive_sms(self):
+        """Check if user can receive SMS messages"""
+        return (self.phone_number and 
+                self.phone_verified and 
+                self.sms_enabled)
+    
     def to_dict(self):
         return {
             'id': self.id,
             'username': self.username,
             'email': self.email,
+            'phone_number': self.phone_number,
+            'phone_verified': self.phone_verified,
+            'sms_enabled': self.sms_enabled,
+            'sms_preferences': self.get_sms_preferences(),
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
@@ -282,4 +323,86 @@ class Event(db.Model):
             'new_value': self.new_value,
             'metadata': self.event_metadata,
             'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class SmsReminder(db.Model):
+    __tablename__ = 'sms_reminders'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    goal_id = db.Column(db.Integer, db.ForeignKey('goals.id'), nullable=True)
+    subgoal_id = db.Column(db.Integer, db.ForeignKey('subgoals.id'), nullable=True)
+    reminder_type = db.Column(db.String(50), nullable=False)  # 'deadline', 'motivation', 'progress', 'weekly'
+    message_template = db.Column(db.String(500), nullable=False)
+    scheduled_time = db.Column(db.DateTime, nullable=False)
+    sent_at = db.Column(db.DateTime)
+    status = db.Column(db.String(20), default='pending', nullable=False)  # 'pending', 'sent', 'failed', 'cancelled'
+    error_message = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    goal = db.relationship('Goal', backref='sms_reminders')
+    subgoal = db.relationship('Subgoal', backref='sms_reminders')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'goal_id': self.goal_id,
+            'subgoal_id': self.subgoal_id,
+            'reminder_type': self.reminder_type,
+            'message_template': self.message_template,
+            'scheduled_time': self.scheduled_time.isoformat() if self.scheduled_time else None,
+            'sent_at': self.sent_at.isoformat() if self.sent_at else None,
+            'status': self.status,
+            'error_message': self.error_message,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+class SmsDeliveryLog(db.Model):
+    __tablename__ = 'sms_delivery_log'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=False)
+    message_content = db.Column(db.Text, nullable=False)
+    message_type = db.Column(db.String(50), nullable=False)  # 'verification', 'reminder', 'notification'
+    aws_message_id = db.Column(db.String(100))  # AWS SNS message ID
+    status = db.Column(db.String(20), default='sent', nullable=False)  # 'sent', 'delivered', 'failed'
+    cost_usd = db.Column(db.Numeric(10, 6))  # Cost in USD
+    sent_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    delivered_at = db.Column(db.DateTime)
+    error_message = db.Column(db.Text)
+    metadata = db.Column(db.Text)  # JSON string for additional data
+    
+    def get_metadata(self):
+        """Get metadata as a dictionary"""
+        if self.metadata:
+            try:
+                return json.loads(self.metadata)
+            except json.JSONDecodeError:
+                return {}
+        return {}
+    
+    def set_metadata(self, metadata_dict):
+        """Set metadata from a dictionary"""
+        self.metadata = json.dumps(metadata_dict)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'phone_number': self.phone_number,
+            'message_content': self.message_content,
+            'message_type': self.message_type,
+            'aws_message_id': self.aws_message_id,
+            'status': self.status,
+            'cost_usd': float(self.cost_usd) if self.cost_usd else None,
+            'sent_at': self.sent_at.isoformat() if self.sent_at else None,
+            'delivered_at': self.delivered_at.isoformat() if self.delivered_at else None,
+            'error_message': self.error_message,
+            'metadata': self.get_metadata(),
+            'created_at': self.sent_at.isoformat() if self.sent_at else None
         }

@@ -95,10 +95,7 @@ document.getElementById('login-form')?.addEventListener('submit', async function
         const data = await response.json();
         
         if (response.ok) {
-            showSuccessMessage(`Welcome back, ${data.user.username}!`);
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1500);
+            window.location.href = '/dashboard';
         } else {
             showErrorMessage(data.error || 'Login failed. Please try again!');
         }
@@ -190,10 +187,7 @@ async function logout() {
         });
         
         if (response.ok) {
-            showSuccessMessage('Logged out successfully! See you soon!');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 1500);
+            window.location.href = '/login';
         } else {
             showErrorMessage('Logout failed. Please try again!');
         }

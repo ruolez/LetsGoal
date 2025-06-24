@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Responsive Sizing Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .test-container {
+            margin: 2rem;
+            padding: 2rem;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+        .navbar-demo {
+            background: linear-gradient(to right, #eff6ff, #eef2ff);
+            border: 1px solid #e5e7eb;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+        }
+        .brand {
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .user-section {
+            width: 200px;
+            text-align: right;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="text-2xl font-bold mb-6">Quote Responsive Sizing Test</h1>
+        <p class="text-gray-600 mb-8">This page demonstrates how quotes of different lengths are displayed in the navigation bar.</p>
+
+        <!-- Short Quote Example -->
+        <h2 class="text-lg font-semibold mb-2">Short Quote (< 100 chars)</h2>
+        <div class="navbar-demo">
+            <div class="brand">LetsGoal</div>
+            <div class="flex-1 px-6 min-w-0 flex items-center">
+                <div class="max-w-md mx-auto w-full">
+                    <div class="floating-quote text-center quote-short">
+                        <p id="quote1" class="text-sm font-medium text-gray-700">
+                            The only way to do great work is to love what you do.
+                        </p>
+                        <div class="quote-author">
+                            — Steve Jobs
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-section">User Menu</div>
+        </div>
+
+        <!-- Medium Quote Example -->
+        <h2 class="text-lg font-semibold mb-2 mt-6">Medium Quote (100-150 chars)</h2>
+        <div class="navbar-demo">
+            <div class="brand">LetsGoal</div>
+            <div class="flex-1 px-6 min-w-0 flex items-center">
+                <div class="max-w-md mx-auto w-full">
+                    <div class="floating-quote text-center quote-medium">
+                        <p id="quote2" class="text-sm font-medium text-gray-700">
+                            Success is not final, failure is not fatal: it is the courage to continue that counts. Never give up on your dreams.
+                        </p>
+                        <div class="quote-author">
+                            — Winston Churchill
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-section">User Menu</div>
+        </div>
+
+        <!-- Long Quote Example -->
+        <h2 class="text-lg font-semibold mb-2 mt-6">Long Quote (150-200 chars)</h2>
+        <div class="navbar-demo">
+            <div class="brand">LetsGoal</div>
+            <div class="flex-1 px-6 min-w-0 flex items-center">
+                <div class="max-w-md mx-auto w-full">
+                    <div class="floating-quote text-center quote-long">
+                        <p id="quote3" class="text-sm font-medium text-gray-700">
+                            The future belongs to those who believe in the beauty of their dreams. Success is a journey, not a destination. The doing is often more important than the outcome.
+                        </p>
+                        <div class="quote-author">
+                            — Eleanor Roosevelt
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-section">User Menu</div>
+        </div>
+
+        <!-- Extra Long Quote Example -->
+        <h2 class="text-lg font-semibold mb-2 mt-6">Extra Long Quote (> 200 chars)</h2>
+        <div class="navbar-demo">
+            <div class="brand">LetsGoal</div>
+            <div class="flex-1 px-6 min-w-0 flex items-center">
+                <div class="max-w-md mx-auto w-full">
+                    <div class="floating-quote text-center quote-extra-long">
+                        <p id="quote4" class="text-sm font-medium text-gray-700">
+                            Twenty years from now you will be more disappointed by the things that you didn't do than by the ones you did do. So throw off the bowlines. Sail away from the safe harbor. Catch the trade winds in your sails. Explore. Dream. Discover.
+                        </p>
+                        <div class="quote-author">
+                            — Mark Twain
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="user-section">User Menu</div>
+        </div>
+
+        <div class="mt-8 p-4 bg-blue-50 rounded">
+            <h3 class="font-semibold mb-2">Character Counts:</h3>
+            <ul class="text-sm space-y-1">
+                <li>Short: <span id="count1"></span> characters</li>
+                <li>Medium: <span id="count2"></span> characters</li>
+                <li>Long: <span id="count3"></span> characters</li>
+                <li>Extra Long: <span id="count4"></span> characters</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Display character counts
+        document.getElementById('count1').textContent = document.getElementById('quote1').textContent.trim().length;
+        document.getElementById('count2').textContent = document.getElementById('quote2').textContent.trim().length;
+        document.getElementById('count3').textContent = document.getElementById('quote3').textContent.trim().length;
+        document.getElementById('count4').textContent = document.getElementById('quote4').textContent.trim().length;
+    </script>
+</body>
+</html>

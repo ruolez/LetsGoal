@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quote Display - No Cutoff</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f9fafb;
+        }
+        .navbar-demo {
+            background: linear-gradient(to right, #eff6ff, #eef2ff);
+            border: 1px solid #e5e7eb;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .brand {
+            font-weight: bold;
+            color: #3b82f6;
+            width: 120px;
+            flex-shrink: 0;
+        }
+        .user-section {
+            width: 120px;
+            text-align: right;
+            color: #6b7280;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        /* Disable animation for clarity */
+        .floating-quote {
+            animation: none !important;
+            background: rgba(147, 197, 253, 0.1) !important;
+            border: 1px dashed rgba(59, 130, 246, 0.3) !important;
+        }
+        
+        .info-badge {
+            position: absolute;
+            right: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 11px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        
+        .test-section {
+            margin-bottom: 3rem;
+        }
+        
+        .navbar-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+        
+        .quote-details {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-7xl mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-2">Quote Display Without Cutoff</h1>
+        <p class="text-gray-600 mb-8">All quotes now display in full without line clamping. Font sizes and padding adjust dynamically.</p>
+
+        <!-- Short Quote -->
+        <div class="test-section">
+            <h2 class="navbar-title">Short Quote (< 80 chars) - Large, Comfortable Text</h2>
+            <div class="navbar-demo">
+                <div class="brand">LetsGoal</div>
+                <div class="hidden lg:flex flex-1 px-6 min-w-0 items-center h-full">
+                    <div class="max-w-md mx-auto w-full h-full flex items-center">
+                        <div class="floating-quote text-center quote-short w-full">
+                            <p id="quote1" class="text-sm font-medium text-gray-700">
+                                The only way to do great work is to love what you do.
+                            </p>
+                            <div class="quote-author">
+                                — Steve Jobs
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-section">User Menu</div>
+                <span class="info-badge">13px font • 12px pad</span>
+            </div>
+            <p class="quote-details">54 characters • Font: 0.8125rem (13px) • Padding: 12px • Line height: 1.4</p>
+        </div>
+
+        <!-- Medium Quote -->
+        <div class="test-section">
+            <h2 class="navbar-title">Medium Quote (80-120 chars) - Balanced Size</h2>
+            <div class="navbar-demo">
+                <div class="brand">LetsGoal</div>
+                <div class="hidden lg:flex flex-1 px-6 min-w-0 items-center h-full">
+                    <div class="max-w-md mx-auto w-full h-full flex items-center">
+                        <div class="floating-quote text-center quote-medium w-full">
+                            <p id="quote2" class="text-sm font-medium text-gray-700">
+                                Success is not final, failure is not fatal: it is the courage to continue that counts.
+                            </p>
+                            <div class="quote-author">
+                                — Winston Churchill
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-section">User Menu</div>
+                <span class="info-badge">11px font • 8px pad</span>
+            </div>
+            <p class="quote-details">87 characters • Font: 0.6875rem (11px) • Padding: 8px • Line height: 1.3</p>
+        </div>
+
+        <!-- Long Quote -->
+        <div class="test-section">
+            <h2 class="navbar-title">Long Quote (120-180 chars) - Compact but Readable</h2>
+            <div class="navbar-demo">
+                <div class="brand">LetsGoal</div>
+                <div class="hidden lg:flex flex-1 px-6 min-w-0 items-center h-full">
+                    <div class="max-w-md mx-auto w-full h-full flex items-center">
+                        <div class="floating-quote text-center quote-long w-full">
+                            <p id="quote3" class="text-sm font-medium text-gray-700">
+                                The future belongs to those who believe in the beauty of their dreams. Success is a journey, not a destination. The doing is often more important than the outcome.
+                            </p>
+                            <div class="quote-author">
+                                — Eleanor Roosevelt
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-section">User Menu</div>
+                <span class="info-badge">10px font • 6px pad</span>
+            </div>
+            <p class="quote-details">164 characters • Font: 0.625rem (10px) • Padding: 6px • Line height: 1.25</p>
+        </div>
+
+        <!-- Extra Long Quote -->
+        <div class="test-section">
+            <h2 class="navbar-title">Extra Long Quote (> 180 chars) - Maximum Content</h2>
+            <div class="navbar-demo">
+                <div class="brand">LetsGoal</div>
+                <div class="hidden lg:flex flex-1 px-6 min-w-0 items-center h-full">
+                    <div class="max-w-md mx-auto w-full h-full flex items-center">
+                        <div class="floating-quote text-center quote-extra-long w-full">
+                            <p id="quote4" class="text-sm font-medium text-gray-700">
+                                Twenty years from now you will be more disappointed by the things that you didn't do than by the ones you did do. So throw off the bowlines. Sail away from the safe harbor. Catch the trade winds in your sails. Explore. Dream. Discover.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-section">User Menu</div>
+                <span class="info-badge">9px font • 4px pad</span>
+            </div>
+            <p class="quote-details">241 characters • Font: 0.5625rem (9px) • Padding: 4px • Line height: 1.2 • Author hidden</p>
+        </div>
+
+        <!-- Edge Case: Very Long Quote -->
+        <div class="test-section">
+            <h2 class="navbar-title">Edge Case: Very Long Quote (Testing Limits)</h2>
+            <div class="navbar-demo">
+                <div class="brand">LetsGoal</div>
+                <div class="hidden lg:flex flex-1 px-6 min-w-0 items-center h-full">
+                    <div class="max-w-md mx-auto w-full h-full flex items-center">
+                        <div class="floating-quote text-center quote-extra-long w-full">
+                            <p class="text-sm font-medium text-gray-700">
+                                The greatest glory in living lies not in never falling, but in rising every time we fall. The way to get started is to quit talking and begin doing. Your time is limited, so don't waste it living someone else's life. Don't be trapped by dogma — which is living with the results of other people's thinking.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-section">User Menu</div>
+                <span class="info-badge">9px font • 4px pad</span>
+            </div>
+            <p class="quote-details">313 characters • Still fits within navbar bounds</p>
+        </div>
+
+        <div class="mt-12 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+            <h3 class="font-semibold mb-3">Key Improvements:</h3>
+            <ul class="space-y-2 text-sm">
+                <li class="flex items-start">
+                    <span class="text-blue-600 mr-2">✓</span>
+                    <span><strong>No Line Clamping:</strong> Removed `-webkit-line-clamp` to show full quotes</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-blue-600 mr-2">✓</span>
+                    <span><strong>Progressive Sizing:</strong> Font sizes decrease smoothly (13px → 11px → 10px → 9px)</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-blue-600 mr-2">✓</span>
+                    <span><strong>Adjusted Thresholds:</strong> Better breakpoints (80, 120, 180 chars)</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-blue-600 mr-2">✓</span>
+                    <span><strong>Tighter Padding:</strong> Extra long quotes use minimal padding (4px) for maximum space</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-blue-600 mr-2">✓</span>
+                    <span><strong>Flexible Layout:</strong> Quotes wrap naturally and center vertically</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p class="text-sm"><strong>Note:</strong> The blue dashed border shows the actual quote container bounds. All text remains within the designated area without overflow or cutoff.</p>
+        </div>
+    </div>
+
+    <script>
+        // Display actual character counts
+        document.querySelectorAll('[id^="quote"]').forEach(el => {
+            console.log(el.id + ':', el.textContent.trim().length, 'chars');
+        });
+    </script>
+</body>
+</html>
