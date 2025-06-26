@@ -418,10 +418,8 @@ create_production_configs() {
     # Create environment file
     create_env_file
     
-    # Create nginx configuration if needed
-    if [[ "$DEPLOYMENT_TYPE" == "domain" ]] || [[ "$USE_SSL" == "y" ]]; then
-        create_nginx_config
-    fi
+    # Create nginx configuration for all deployment types
+    create_nginx_config
     
     log_success "Production configuration created"
 }
@@ -503,22 +501,32 @@ setup_ssl() {
 }
 
 configure_nginx() {
-    if [[ "$DEPLOYMENT_TYPE" == "domain" ]]; then
-        print_section "Configuring Nginx Reverse Proxy"
+    print_section "Configuring Nginx Reverse Proxy"
+    
+    # Ensure nginx is started and enabled
+    log_info "Starting and enabling nginx service..."
+    systemctl start nginx || true
+    systemctl enable nginx || true
+    
+    # Disable default nginx site to avoid conflicts
+    log_info "Disabling default nginx site..."
+    rm -f /etc/nginx/sites-enabled/default
+    
+    # Enable nginx site
+    if [[ -f "$NGINX_CONF" ]]; then
+        ln -sf "$NGINX_CONF" "$NGINX_ENABLED"
         
-        # Enable nginx site
-        if [[ -f "$NGINX_CONF" ]]; then
-            ln -sf "$NGINX_CONF" "$NGINX_ENABLED"
-            
-            # Test nginx configuration
-            if nginx -t; then
-                systemctl reload nginx
-                log_success "Nginx configuration updated"
-            else
-                log_error "Nginx configuration test failed"
-                return 1
-            fi
+        # Test nginx configuration
+        if nginx -t; then
+            systemctl reload nginx
+            log_success "Nginx configuration updated"
+        else
+            log_error "Nginx configuration test failed"
+            return 1
         fi
+    else
+        log_error "Nginx configuration file not found: $NGINX_CONF"
+        return 1
     fi
 }
 
@@ -562,6 +570,28 @@ start_application() {
     done
     
     log_success "LetsGoal application started successfully"
+    
+    # Additional verification for web access
+    log_info "Verifying web access..."
+    local web_url
+    if [[ "$DEPLOYMENT_TYPE" == "local" ]]; then
+        web_url="http://$DOMAIN_OR_IP"
+    elif [[ "$USE_SSL" == "y" ]]; then
+        web_url="https://$DOMAIN_OR_IP"
+    else
+        web_url="http://$DOMAIN_OR_IP"
+    fi
+    
+    sleep 3
+    if curl -s -I "$web_url" | grep -q "200 OK\|302 Found"; then
+        log_success "Web interface is accessible at $web_url"
+    else
+        log_warning "Web interface may not be accessible yet. If you see nginx welcome page:"
+        log_warning "1. Clear browser cache (Ctrl+F5)"
+        log_warning "2. Try incognito/private mode"
+        log_warning "3. Wait a minute for services to fully start"
+        log_warning "4. Run: sudo ./troubleshoot-nginx.sh"
+    fi
 }
 
 #==============================================================================
@@ -584,6 +614,14 @@ uninstall_letsgoal() {
         # Remove nginx configuration
         if [[ -f "$NGINX_ENABLED" ]]; then
             rm -f "$NGINX_ENABLED"
+            
+            # Re-enable default site if no other sites exist
+            if [[ -z "$(ls -A /etc/nginx/sites-enabled/)" ]]; then
+                if [[ -f "/etc/nginx/sites-available/default" ]]; then
+                    ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+                fi
+            fi
+            
             systemctl reload nginx || true
         fi
         if [[ -f "$NGINX_CONF" ]]; then
@@ -691,26 +729,17 @@ EOF
 }
 
 create_nginx_config() {
-    local ssl_config=""
-    if [[ "$USE_SSL" == "y" ]]; then
-        ssl_config="
-    listen 443 ssl http2;
-    ssl_certificate /etc/letsencrypt/live/$DOMAIN_OR_IP/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_OR_IP/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
-    ssl_prefer_server_ciphers off;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;"
-    fi
+    log_info "Creating nginx configuration for $DEPLOYMENT_TYPE deployment..."
     
-    cat > "$NGINX_CONF" << EOF
+    if [[ "$DEPLOYMENT_TYPE" == "local" ]]; then
+        # Simple proxy configuration for local network
+        cat > "$NGINX_CONF" << 'EOF'
 server {
-    listen 80;
-    server_name $DOMAIN_OR_IP;
+    listen 80 default_server;
+    server_name _;
     
-$(if [[ "$USE_SSL" == "y" ]]; then echo "    return 301 https://\$server_name\$request_uri;"; fi)
-$(if [[ "$USE_SSL" != "y" ]]; then cat << 'INNER_EOF'
+    client_max_body_size 50M;
+    
     location / {
         proxy_pass http://127.0.0.1:5001;
         proxy_set_header Host $host;
@@ -721,13 +750,50 @@ $(if [[ "$USE_SSL" != "y" ]]; then cat << 'INNER_EOF'
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
     }
-INNER_EOF
-fi)
+}
+EOF
+    elif [[ "$DEPLOYMENT_TYPE" == "domain" ]]; then
+        # Domain-based configuration
+        if [[ "$USE_SSL" == "y" ]]; then
+            # HTTPS configuration
+            cat > "$NGINX_CONF" << EOF
+server {
+    listen 80;
+    server_name $DOMAIN_OR_IP;
+    return 301 https://\$server_name\$request_uri;
 }
 
-$(if [[ "$USE_SSL" == "y" ]]; then cat << INNER_EOF
 server {
-    $ssl_config
+    listen 443 ssl http2;
+    server_name $DOMAIN_OR_IP;
+    
+    ssl_certificate /etc/letsencrypt/live/$DOMAIN_OR_IP/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$DOMAIN_OR_IP/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    
+    client_max_body_size 50M;
+    
+    location / {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+EOF
+        else
+            # HTTP only configuration
+            cat > "$NGINX_CONF" << EOF
+server {
+    listen 80;
     server_name $DOMAIN_OR_IP;
     
     client_max_body_size 50M;
@@ -743,9 +809,11 @@ server {
         proxy_read_timeout 60s;
     }
 }
-INNER_EOF
-fi)
 EOF
+        fi
+    fi
+    
+    log_success "Nginx configuration created"
 }
 
 #==============================================================================
@@ -766,7 +834,8 @@ show_installation_summary() {
     
     echo -e "\n${WHITE}Access Information:${NC}"
     if [[ "$DEPLOYMENT_TYPE" == "local" ]]; then
-        echo "• Application URL: http://$DOMAIN_OR_IP:5001"
+        echo "• Web Interface: http://$DOMAIN_OR_IP (via nginx)"
+        echo "• Direct Access: http://$DOMAIN_OR_IP:5001"
         echo "• Network Access: Local network only"
     elif [[ "$USE_SSL" == "y" ]]; then
         echo "• Application URL: https://$DOMAIN_OR_IP"
@@ -804,6 +873,12 @@ show_installation_summary() {
     if [[ "$DEPLOYMENT_TYPE" == "local" ]]; then
         echo "• For local network access, ensure other devices can reach $DOMAIN_OR_IP:5001"
     fi
+    
+    echo -e "\n${CYAN}Troubleshooting:${NC}"
+    echo "• If you see nginx welcome page: Clear browser cache (Ctrl+F5)"
+    echo "• Check status: sudo ./troubleshoot-nginx.sh"
+    echo "• Quick fix: sudo ./fix-nginx.sh"
+    echo "• View nginx error logs: sudo tail -f /var/log/nginx/error.log"
     
     echo -e "\n${GREEN}Installation completed successfully!${NC}"
 }
