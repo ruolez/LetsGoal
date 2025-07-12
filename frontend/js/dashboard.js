@@ -2,6 +2,137 @@
 
 console.log('🚀 Dashboard.js is loading...'); // Debug log
 
+// Debounce function to limit how often a function is called
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
+// Enhanced responsive grid system
+let currentGridColumns = 4;
+let gridContainer = null;
+let resizeObserver = null;
+
+// Calculate optimal grid columns based on container width
+function calculateOptimalColumns(containerWidth) {
+    // Mobile-first approach with enhanced breakpoints
+    if (containerWidth <= 768) {
+        return 1; // Force single column on mobile
+    }
+    
+    const minCardWidth = 320; // Optimized width for content display
+    const maxColumns = 6; // Prevent too many narrow columns on ultra-wide screens
+    const minColumns = 1;
+    
+    // Enhanced responsive breakpoints
+    if (containerWidth >= 1800) {
+        // Ultra-wide screens: up to 6 columns
+        return Math.min(6, Math.floor(containerWidth / minCardWidth));
+    } else if (containerWidth >= 1400) {
+        // Large screens: up to 5 columns
+        return Math.min(5, Math.floor(containerWidth / minCardWidth));
+    } else if (containerWidth >= 1200) {
+        // Standard desktop: up to 4 columns
+        return Math.min(4, Math.floor(containerWidth / minCardWidth));
+    } else if (containerWidth >= 900) {
+        // Tablet landscape: up to 3 columns
+        return Math.min(3, Math.floor(containerWidth / minCardWidth));
+    } else {
+        // Tablet portrait: up to 2 columns
+        return Math.min(2, Math.floor(containerWidth / minCardWidth));
+    }
+}
+
+// Apply dynamic grid columns
+function applyDynamicGrid(columns) {
+    if (!gridContainer || currentGridColumns === columns) return;
+    
+    console.log(`Updating grid from ${currentGridColumns} to ${columns} columns`);
+    currentGridColumns = columns;
+    
+    // Update CSS custom property for smooth transition
+    gridContainer.style.setProperty('--dynamic-columns', columns);
+    
+    // Don't override CSS grid on mobile - let CSS media queries handle it
+    const containerWidth = gridContainer.offsetWidth;
+    if (containerWidth > 768) {
+        gridContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+    } else {
+        // On mobile, remove any JavaScript-set grid columns to let CSS take over
+        gridContainer.style.removeProperty('grid-template-columns');
+    }
+}
+
+// Enhanced resize observer for precise container monitoring
+function initializeResizeObserver() {
+    gridContainer = document.getElementById('goals-container');
+    if (!gridContainer) return;
+    
+    if ('ResizeObserver' in window) {
+        // Performance optimization: track last processed width to prevent unnecessary updates
+        let lastProcessedWidth = 0;
+        
+        resizeObserver = new ResizeObserver(debounce((entries) => {
+            for (const entry of entries) {
+                const containerWidth = Math.round(entry.contentRect.width);
+                
+                // Skip if width hasn't changed significantly (prevents layout thrashing)
+                if (Math.abs(containerWidth - lastProcessedWidth) < 10) {
+                    continue;
+                }
+                
+                lastProcessedWidth = containerWidth;
+                const optimalColumns = calculateOptimalColumns(containerWidth);
+                
+                // Use requestAnimationFrame for smooth updates
+                requestAnimationFrame(() => {
+                    applyDynamicGrid(optimalColumns);
+                });
+            }
+        }, 100)); // Optimized debounce timing
+        
+        resizeObserver.observe(gridContainer);
+        
+        // Initial calculation with proper timing
+        requestAnimationFrame(() => {
+            const containerWidth = gridContainer.offsetWidth;
+            lastProcessedWidth = containerWidth;
+            const optimalColumns = calculateOptimalColumns(containerWidth);
+            applyDynamicGrid(optimalColumns);
+        });
+    } else {
+        // Fallback for older browsers
+        console.warn('ResizeObserver not supported, using window resize fallback');
+        window.addEventListener('resize', debouncedRender);
+    }
+}
+
+// Cleanup function for ResizeObserver
+function cleanupResizeObserver() {
+    if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
+    }
+}
+
+// Debounced resize handler (fallback)
+const debouncedRender = debounce(() => {
+    console.log('Debounced resize event fired');
+    
+    // Update grid if container exists
+    if (gridContainer) {
+        const containerWidth = gridContainer.offsetWidth;
+        const optimalColumns = calculateOptimalColumns(containerWidth);
+        applyDynamicGrid(optimalColumns);
+    }
+    
+    renderGoals();
+}, 250);
+
 // Utility function to parse date strings as local dates (fixes timezone issues)
 function parseLocalDate(dateString) {
     if (!dateString) return null;
@@ -1709,6 +1840,9 @@ const tagColors = [
 ];
 
 // Initialize dashboard
+// Cleanup on page unload to prevent memory leaks
+window.addEventListener('beforeunload', cleanupResizeObserver);
+
 window.addEventListener('load', async function() {
     // Initialize theme system first
     initializeTheme();
@@ -1763,6 +1897,8 @@ async function loadDashboardData() {
         if (goalsResponse.ok) {
             goals = await goalsResponse.json();
             renderGoals();
+            // Initialize responsive grid system after goals are rendered
+            initializeResizeObserver();
         }
         
         if (statsResponse.ok) {
@@ -2278,7 +2414,15 @@ function setupStickyHover() {
                 card.classList.remove('sticky-hover', 'hover-exit');
                 stickyHoverStates.set(goalId, false);
                 isExpanded = false;
-                // Individual subgoals remove themselves during collapse animation
+                
+                // Re-render the card to apply sorting after collapse
+                const goal = goals.find(g => g.id == goalId);
+                if (goal) {
+                    const newCardHTML = renderGoalCardGrid(goal);
+                    card.outerHTML = newCardHTML;
+                    // Re-setup hover functionality for the new card
+                    setupStickyHover();
+                }
             }, totalCollapseTime);
         };
         
@@ -2386,14 +2530,16 @@ function renderGoalCardGrid(goal) {
                     <div class="flex items-center gap-2 flex-1 min-w-0">
                         <div class="status-dot ${getStatusDotClass(goal.status)}" 
                              title="${goal.status.replace('_', ' ').toUpperCase()}"></div>
-                        <h3 class="goal-title-modern">${goal.title}</h3>
-                        ${goal.is_shared ? `
-                            <i class="fas fa-share-alt text-blue-500 text-sm" title="Shared goal"></i>
-                        ` : ''}
+                        <h3 class="goal-title-modern ${getTextSizeClass(goal.title, goal.description)}">${goal.title}</h3>
                         ${goal.is_owner === false ? `
-                            <span class="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full" title="Shared by ${goal.owner ? goal.owner.username : 'another user'}">
-                                shared by @${goal.owner ? goal.owner.username : 'user'}
-                            </span>
+                            <div class="shared-by-hover-container">
+                                <i class="fas fa-share-alt text-blue-500 text-sm" title="Shared by ${goal.owner ? goal.owner.username : 'another user'}"></i>
+                                <span class="shared-by-text text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                                    shared by @${goal.owner ? goal.owner.username : 'user'}
+                                </span>
+                            </div>
+                        ` : goal.is_shared ? `
+                            <i class="fas fa-share-alt text-blue-500 text-sm" title="Shared goal"></i>
                         ` : ''}
                     </div>
                     <div class="card-menu-container">
@@ -2462,12 +2608,12 @@ function renderGoalCardGrid(goal) {
                 <!-- Description with consistent 1-line spacing -->
                 <div class="${goal.description ? 'description-container' : 'description-placeholder'}">
                     ${goal.description ? `
-                        <p class="goal-description-modern" id="desc-${goal.id}">${goal.description}</p>
+                        <p class="goal-description-modern ${getTextSizeClass(goal.title, goal.description)}" id="desc-${goal.id}">${goal.description}</p>
                     ` : ''}
                 </div>
                 
                 <!-- Enhanced Progress and Date Section -->
-                <div class="mt-4 mb-4 p-3 progress-stats-section rounded-lg">
+                <div class="p-3 progress-stats-section rounded-lg">
                     <div class="flex items-center justify-between">
                         <!-- Progress Section -->
                         <div class="flex items-center gap-4">
@@ -2484,7 +2630,7 @@ function renderGoalCardGrid(goal) {
                                             stroke-linecap="round"/>
                                 </svg>
                                 <div class="absolute inset-0 flex items-center justify-center">
-                                    <span class="text-sm font-normal text-gray-800">${Math.round(goal.progress)}%</span>
+                                    <span class="text-xs font-normal text-gray-800">${Math.round(goal.progress)}%</span>
                                 </div>
                             </div>
                             <!-- Progress Details -->
@@ -2505,7 +2651,7 @@ function renderGoalCardGrid(goal) {
                                 <div class="text-xs font-medium text-gray-600 mb-1">Target Date</div>
                                 <div class="text-sm font-bold text-gray-800 mb-1">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</div>
                                 <div class="inline-block">
-                                    ${formatDaysLeft(goal.target_date, goal.status)}
+                                    ${formatDaysLeft(goal.target_date, goal.status, goal.progress)}
                                 </div>
                             </div>
                         ` : ''}
@@ -2517,7 +2663,7 @@ function renderGoalCardGrid(goal) {
             <div class="flex flex-col flex-1 mt-4">
                 <!-- Quick Add Subgoal Input - now in consistent position -->
                 ${goal.status !== 'completed' ? `
-                    <div class="mt-6 mb-4 px-1">
+                    <div class="mt-1 mb-2 px-1">
                         <input type="text" 
                                id="quick-subgoal-${goal.id}"
                                class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
@@ -2531,12 +2677,10 @@ function renderGoalCardGrid(goal) {
                 
                 <!-- Subgoals Preview with Pure CSS Hover Expansion -->
                 ${goal.subgoals.length > 0 ? `
-                    <div class="border-t pt-1.5 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
-                        <div class="flex items-center justify-between mb-0.5">
-                            <span class="text-sm text-gray-600">Sub-goals</span>
-                            <span class="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full">
-                                ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length}
-                            </span>
+                    <div class="pt-1.5 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
+                        <!-- Clean spacer div to maintain layout spacing -->
+                        <div class="mb-0.5" style="height: 0.25rem; background: transparent;">
+                            <!-- Empty spacer for layout consistency -->
                         </div>
                         
                         <!-- Single Unified Subgoals List -->
@@ -2598,21 +2742,24 @@ function renderGoalCardGrid(goal) {
                         </div>
                     </div>
                 ` : `
-                    <div class="border-t pt-1.5 mt-auto subgoals-section">
-                        <!-- Reserve space for consistent card height -->
+                    <div class="pt-1.5 mt-auto subgoals-section">
+                        <!-- Clean spacer div to maintain layout spacing - same as cards with subgoals -->
+                        <div class="mb-0.5" style="height: 0.25rem; background: transparent;">
+                            <!-- Empty spacer for layout consistency -->
+                        </div>
+                        
+                        <!-- Reserve space for consistent card height - match collapsed card structure -->
                         <div class="subgoals-list space-y-0">
-                            <!-- Add 3 empty spacer slots for consistent height -->
-                            ${Array.from({length: 3}, (_, i) => `
-                                <div class="subgoal-item visible-subgoal spacer-item">
-                                    <div class="flex items-center w-full py-0.25" style="height: 1.5rem;">
-                                        <!-- Empty spacer slot ${i + 1} -->
-                                    </div>
+                            <!-- Add 1 empty subgoal slot to match collapsed view height -->
+                            <div class="subgoal-item visible-subgoal spacer-item">
+                                <div class="flex items-center w-full py-0.25">
+                                    <!-- Empty subgoal slot -->
                                 </div>
-                            `).join('')}
+                            </div>
                             
-                            <!-- Always show invisible spacer hint for consistent spacing -->
+                            <!-- Match the hint area from collapsed cards -->
                             <div class="hover-hint-item text-xs text-gray-400 mt-1" style="opacity: 0; height: 1rem;">
-                                <!-- Invisible spacer for consistent spacing -->
+                                <!-- Invisible spacer matching collapsed card hint area -->
                             </div>
                         </div>
                         
@@ -2743,8 +2890,11 @@ function sortSubgoalsForDisplay(subgoals) {
 }
 
 // Helper function to format days left indicator
-function formatDaysLeft(targetDate, status) {
+function formatDaysLeft(targetDate, status, progress = null) {
     if (!targetDate || status === 'achieved') return '';
+    
+    // If progress is provided and is 100%, don't show overdue/due dates
+    if (progress !== null && progress >= 100) return '';
     
     const daysLeft = getDaysUntilDeadline(targetDate);
     
@@ -2773,7 +2923,19 @@ function formatDaysLeft(targetDate, status) {
         text = `${daysLeft}d left`;
     }
     
-    return `<span class="text-xs px-2 py-1 rounded-full ${colorClass} ml-auto flex-shrink-0">${text}</span>`;
+    return `<span class="px-1.5 py-0.5 rounded-full ${colorClass} ml-auto flex-shrink-0" style="font-size: 0.65rem;">${text}</span>`;
+}
+
+// Helper function to determine text size class based on content length
+function getTextSizeClass(title, description) {
+    const totalLength = (title || '').length + (description || '').length;
+    
+    if (totalLength > 120) {
+        return 'extra-compact';
+    } else if (totalLength > 80) {
+        return 'compact';
+    }
+    return '';
 }
 
 // Helper functions for goal status
@@ -3629,14 +3791,32 @@ async function updateSubgoals(goalId, subgoalRows) {
 // Quick update subgoal from main list
 async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
     try {
-        // Show loading feedback
-        const checkbox = event.target;
-        const subgoalItem = checkbox.closest('.subgoal-item');
-        const originalText = subgoalItem.querySelector('span').textContent;
+        // Find the checkbox element
+        const checkbox = document.getElementById(`subgoal-${subgoalId}`) || 
+                       document.getElementById(`subgoal-list-${subgoalId}`);
+        
+        if (!checkbox) {
+            console.error('Checkbox not found for subgoal:', subgoalId);
+            return;
+        }
+        
+        // Find the subgoal item container
+        const subgoalItem = checkbox.closest('.subgoal-item') || checkbox.closest('.flex');
+        if (!subgoalItem) {
+            console.error('Subgoal item container not found');
+            return;
+        }
+        
+        const spanElement = subgoalItem.querySelector('span');
+        const originalText = spanElement ? spanElement.textContent : '';
         
         // Add loading state
-        subgoalItem.style.opacity = '0.6';
-        subgoalItem.querySelector('span').textContent = 'Updating...';
+        if (subgoalItem.style) {
+            subgoalItem.style.opacity = '0.6';
+        }
+        if (spanElement) {
+            spanElement.textContent = 'Updating...';
+        }
         
         const status = isChecked ? 'achieved' : 'pending';
         const response = await fetch(`/api/subgoals/${subgoalId}`, {
@@ -3684,24 +3864,31 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
             }
             
             // Restore original state and apply new styling
-            subgoalItem.style.opacity = '1';
-            subgoalItem.querySelector('span').textContent = originalText;
+            if (subgoalItem.style) {
+                subgoalItem.style.opacity = '1';
+            }
+            if (spanElement) {
+                spanElement.textContent = originalText;
+            }
             
             // Update visual state
-            const span = subgoalItem.querySelector('span');
-            if (isChecked) {
-                span.classList.add('line-through', 'text-gray-500');
-                span.classList.remove('text-gray-700', 'font-medium');
-                authUtils.showSuccessMessage('Sub-goal completed!');
-                
-                // Add completion effect
-                subgoalItem.style.background = '#f0fdf4';
-                setTimeout(() => {
-                    subgoalItem.style.background = '';
-                }, 1000);
-            } else {
-                span.classList.remove('line-through', 'text-gray-500');
-                span.classList.add('text-gray-700', 'font-medium');
+            if (spanElement) {
+                if (isChecked) {
+                    spanElement.classList.add('line-through', 'text-gray-500');
+                    spanElement.classList.remove('text-gray-700', 'font-medium');
+                    authUtils.showSuccessMessage('Sub-goal completed!');
+                    
+                    // Add completion effect
+                    if (subgoalItem.style) {
+                        subgoalItem.style.background = '#f0fdf4';
+                        setTimeout(() => {
+                            subgoalItem.style.background = '';
+                        }, 1000);
+                    }
+                } else {
+                    spanElement.classList.remove('line-through', 'text-gray-500');
+                    spanElement.classList.add('text-gray-700', 'font-medium');
+                }
             }
             
             // Update progress bar
@@ -3730,9 +3917,16 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
     } catch (error) {
         console.error('Error updating subgoal:', error);
         // Restore original state on error
-        const subgoalItem = checkbox.closest('.subgoal-item');
-        subgoalItem.style.opacity = '1';
-        checkbox.checked = !isChecked; // Revert checkbox
+        const checkbox = document.getElementById(`subgoal-${subgoalId}`) || 
+                       document.getElementById(`subgoal-list-${subgoalId}`);
+        const subgoalItem = checkbox ? (checkbox.closest('.subgoal-item') || checkbox.closest('.flex')) : null;
+        
+        if (subgoalItem && subgoalItem.style) {
+            subgoalItem.style.opacity = '1';
+        }
+        if (checkbox) {
+            checkbox.checked = !isChecked; // Revert checkbox
+        }
         authUtils.showErrorMessage('Connection error. Please try again');
     }
 }
@@ -3771,6 +3965,52 @@ window.maintainStickyHover = function(goalId) {
         stickyHoverStates.set(goalId.toString(), true);
     }
 }
+
+// Stuck expansion detection and auto-collapse
+function checkForStuckExpansions() {
+    // Only check in grid view where expansion happens
+    if (currentViewMode !== 'grid') return;
+    
+    stickyHoverStates.forEach((isExpanded, goalId) => {
+        if (isExpanded) {
+            const card = document.querySelector(`[data-goal-id="${goalId}"]`);
+            if (card) {
+                // Check if mouse is actually over the card
+                const isHovered = card.matches(':hover');
+                
+                // If card is expanded but mouse is not over it, force collapse
+                if (!isHovered) {
+                    console.log(`Auto-collapsing stuck expansion for goal ${goalId}`);
+                    
+                    // Remove expansion classes
+                    card.classList.remove('sticky-hover', 'hover-exit');
+                    
+                    // Remove any dynamically created hidden subgoals
+                    const hiddenSubgoals = card.querySelectorAll('.hidden-subgoal');
+                    hiddenSubgoals.forEach(subgoal => subgoal.remove());
+                    
+                    // Re-render the card to apply sorting after auto-collapse
+                    const goal = goals.find(g => g.id == goalId);
+                    if (goal) {
+                        const newCardHTML = renderGoalCardGrid(goal);
+                        card.outerHTML = newCardHTML;
+                        // Re-setup hover functionality for the new card
+                        setupStickyHover();
+                    }
+                    
+                    // Update state
+                    stickyHoverStates.set(goalId, false);
+                }
+            } else {
+                // Card no longer exists, clean up state
+                stickyHoverStates.delete(goalId);
+            }
+        }
+    });
+}
+
+// Run stuck expansion check every 2 seconds
+setInterval(checkForStuckExpansions, 2000);
 
 // Quick add subgoal function
 async function quickAddSubgoal(goalId) {
@@ -3894,31 +4134,57 @@ function updateGoalProgressBar(goalId) {
     const goalCard = document.querySelector(`[data-goal-id="${goalId}"]`);
     if (!goalCard) return;
     
-    // Update conic-gradient progress circle
-    const progressCircle = goalCard.querySelector('.progress-circle > div');
+    const progressColor = goal.progress >= 100 ? '#10b981' : 
+                         goal.progress >= 75 ? '#3b82f6' : 
+                         goal.progress >= 25 ? '#f59e0b' : '#ef4444';
+    
+    // Update SVG circular progress (grid view)
+    const progressCircle = goalCard.querySelector('circle[stroke-dasharray]');
     if (progressCircle) {
-        const progressColor = goal.progress >= 100 ? '#10b981' : 
-                             goal.progress >= 75 ? '#3b82f6' : 
-                             goal.progress >= 25 ? '#f59e0b' : '#ef4444';
-        
-        // Use CSS variable-aware background color for dark mode compatibility
-        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-        const backgroundColor = isDarkMode ? '#475569' : '#f3f4f6'; // --color-border-primary in dark mode
-        
-        progressCircle.style.background = `conic-gradient(${progressColor} ${goal.progress * 3.6}deg, ${backgroundColor} ${goal.progress * 3.6}deg)`;
+        const circumference = 2 * Math.PI * 20; // r=20 from the SVG
+        const offset = circumference * (1 - goal.progress / 100);
+        progressCircle.setAttribute('stroke-dashoffset', offset);
+        progressCircle.setAttribute('stroke', progressColor);
     }
     
-    // Update progress text
-    const progressText = goalCard.querySelector('.progress-text');
+    // Update progress percentage text (grid view)
+    const progressText = goalCard.querySelector('.absolute.inset-0 span');
     if (progressText) {
         progressText.textContent = `${Math.round(goal.progress)}%`;
     }
     
-    // Update subgoals completion badge
-    const completionBadge = goalCard.querySelector('.text-xs.bg-blue-100');
-    if (completionBadge) {
+    // Update linear progress bar width (grid view)
+    const progressBarDiv = goalCard.querySelector('.h-2.rounded-full.transition-all');
+    if (progressBarDiv) {
+        progressBarDiv.style.width = `${goal.progress}%`;
+        progressBarDiv.style.backgroundColor = progressColor;
+    }
+    
+    // Update list view progress bar (list view)
+    const listProgressBar = goalCard.querySelector('.progress-bar');
+    if (listProgressBar) {
+        listProgressBar.style.width = `${goal.progress}%`;
+        listProgressBar.style.backgroundColor = progressColor;
+    }
+    
+    // Update subgoals completion text
+    const completionText = goalCard.querySelector('.text-xs.font-medium.text-gray-700');
+    if (completionText) {
         const completed = goal.subgoals.filter(sg => sg.status === 'achieved').length;
-        completionBadge.textContent = `${completed}/${goal.subgoals.length}`;
+        completionText.textContent = `${completed} of ${goal.subgoals.length} completed`;
+    }
+    
+    // Update list view completion text
+    const listCompletionIcon = goalCard.querySelector('.fas.fa-tasks');
+    if (listCompletionIcon && listCompletionIcon.parentElement) {
+        const completed = goal.subgoals.filter(sg => sg.status === 'achieved').length;
+        listCompletionIcon.parentElement.innerHTML = `<i class="fas fa-tasks mr-2"></i>${completed}/${goal.subgoals.length} sub-goals`;
+    }
+    
+    // Update list view progress text
+    const listProgressIcon = goalCard.querySelector('.fas.fa-chart-pie');
+    if (listProgressIcon && listProgressIcon.parentElement) {
+        listProgressIcon.parentElement.innerHTML = `<i class="fas fa-chart-pie mr-2"></i>${goal.progress}% complete`;
     }
     
     // Update status badge if goal status changed
@@ -3930,6 +4196,12 @@ function updateGoalProgressBar(goalId) {
         if (icon) {
             icon.className = `fas ${getStatusIcon(goal.status)}`;
         }
+    }
+    
+    // Update target date display (hide overdue if progress is 100%)
+    const targetDateDiv = goalCard.querySelector('.inline-block');
+    if (targetDateDiv && goal.target_date) {
+        targetDateDiv.innerHTML = formatDaysLeft(goal.target_date, goal.status, goal.progress);
     }
 }
 
