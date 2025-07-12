@@ -177,6 +177,21 @@ const goalsPerPage = 12;
 
 // Track which goal cards should maintain sticky hover state
 let stickyHoverStates = new Map();
+// Track pending DOM operations to prevent race conditions
+let pendingCardOperations = new Map();
+
+// Helper functions for atomic card operations
+function canReplaceCard(goalId) {
+    return !pendingCardOperations.has(goalId);
+}
+
+function markCardReplacement(goalId) {
+    pendingCardOperations.set(goalId, true);
+}
+
+function clearCardReplacement(goalId) {
+    pendingCardOperations.delete(goalId);
+}
 
 // ========================
 //   THEME MANAGEMENT
@@ -2411,17 +2426,40 @@ function setupStickyHover() {
             // Remove card classes after all subgoals are fully collapsed
             const totalCollapseTime = reversedSubgoals.length * 100 + 75;
             setTimeout(() => {
+                // Check if card is still in DOM before manipulating it
+                if (!card.parentNode) {
+                    stickyHoverStates.set(goalId, false);
+                    isExpanded = false;
+                    return;
+                }
+                
                 card.classList.remove('sticky-hover', 'hover-exit');
                 stickyHoverStates.set(goalId, false);
                 isExpanded = false;
                 
                 // Re-render the card to apply sorting after collapse
                 const goal = goals.find(g => g.id == goalId);
-                if (goal) {
-                    const newCardHTML = renderGoalCardGrid(goal);
-                    card.outerHTML = newCardHTML;
-                    // Re-setup hover functionality for the new card
-                    setupStickyHover();
+                if (goal && card.parentNode && canReplaceCard(goalId)) {
+                    markCardReplacement(goalId);
+                    try {
+                        // Clear any pending timeouts before replacing the card
+                        clearTimeout(expandTimeout);
+                        clearTimeout(collapseTimeout);
+                        if (animationFrame) {
+                            cancelAnimationFrame(animationFrame);
+                        }
+                        
+                        const newCardHTML = renderGoalCardGrid(goal);
+                        card.outerHTML = newCardHTML;
+                        // Re-setup hover functionality for the new card
+                        setupStickyHover();
+                    } catch (error) {
+                        console.warn(`Failed to re-render card for goal ${goalId}:`, error);
+                        // Clean up state even if re-render fails
+                        stickyHoverStates.set(goalId, false);
+                    } finally {
+                        clearCardReplacement(goalId);
+                    }
                 }
             }, totalCollapseTime);
         };
@@ -3982,6 +4020,12 @@ function checkForStuckExpansions() {
                 if (!isHovered) {
                     console.log(`Auto-collapsing stuck expansion for goal ${goalId}`);
                     
+                    // Check if card is still in DOM before manipulating it
+                    if (!card.parentNode) {
+                        stickyHoverStates.set(goalId, false);
+                        return;
+                    }
+                    
                     // Remove expansion classes
                     card.classList.remove('sticky-hover', 'hover-exit');
                     
@@ -3991,11 +4035,18 @@ function checkForStuckExpansions() {
                     
                     // Re-render the card to apply sorting after auto-collapse
                     const goal = goals.find(g => g.id == goalId);
-                    if (goal) {
-                        const newCardHTML = renderGoalCardGrid(goal);
-                        card.outerHTML = newCardHTML;
-                        // Re-setup hover functionality for the new card
-                        setupStickyHover();
+                    if (goal && card.parentNode && canReplaceCard(goalId)) {
+                        markCardReplacement(goalId);
+                        try {
+                            const newCardHTML = renderGoalCardGrid(goal);
+                            card.outerHTML = newCardHTML;
+                            // Re-setup hover functionality for the new card
+                            setupStickyHover();
+                        } catch (error) {
+                            console.warn(`Failed to re-render card during auto-collapse for goal ${goalId}:`, error);
+                        } finally {
+                            clearCardReplacement(goalId);
+                        }
                     }
                     
                     // Update state
