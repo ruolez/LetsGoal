@@ -1902,26 +1902,32 @@ window.addEventListener('load', async function() {
 async function loadDashboardData() {
     try {
         authUtils.showLoadingSpinner();
-        
-        // Load goals and stats in parallel
-        const [goalsResponse, statsResponse] = await Promise.all([
+
+        // Load goals, stats, and summary in parallel
+        const [goalsResponse, statsResponse, summaryResponse] = await Promise.all([
             fetch('/api/goals', { credentials: 'include' }),
-            fetch('/api/dashboard/stats', { credentials: 'include' })
+            fetch('/api/dashboard/stats', { credentials: 'include' }),
+            fetch('/api/stats/summary', { credentials: 'include' })
         ]);
-        
+
         if (goalsResponse.ok) {
             goals = await goalsResponse.json();
             renderGoals();
             // Initialize responsive grid system after goals are rendered
             initializeResizeObserver();
         }
-        
+
         if (statsResponse.ok) {
             const stats = await statsResponse.json();
             updateStatsDisplay(stats);
             updateProgressChart(stats);
         }
-        
+
+        if (summaryResponse.ok) {
+            const summary = await summaryResponse.json();
+            renderProgressSummary(summary);
+        }
+
     } catch (error) {
         console.error('Error loading dashboard data:', error);
         authUtils.showErrorMessage('Failed to load dashboard data');
@@ -2349,9 +2355,8 @@ function setupStickyHover() {
                                        ${subgoal.status === 'achieved' ? 'checked' : ''}
                                        onclick="event.stopPropagation();"
                                        onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goalId}); event.stopPropagation();">
-                                <span class="truncate flex-1 cursor-pointer text-sm" 
+                                <span class="truncate flex-1 cursor-pointer text-sm"
                                       onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goalId});">${subgoal.title}</span>
-                                ${formatDaysLeft(subgoal.target_date, subgoal.status)}
                             </div>`;
                         
                         // Insert before hover hint
@@ -2650,47 +2655,40 @@ function renderGoalCardGrid(goal) {
                     ` : ''}
                 </div>
                 
-                <!-- Enhanced Progress and Date Section -->
-                <div class="p-3 progress-stats-section rounded-lg">
-                    <div class="flex items-center justify-between">
-                        <!-- Progress Section -->
-                        <div class="flex items-center gap-4">
-                            <!-- Larger Progress Circle -->
-                            <div class="relative w-12 h-12">
-                                <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 48 48">
-                                    <circle cx="24" cy="24" r="20" stroke="#e5e7eb" stroke-width="4" fill="none"/>
-                                    <circle cx="24" cy="24" r="20" 
-                                            stroke="${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}" 
-                                            stroke-width="4" 
-                                            fill="none"
-                                            stroke-dasharray="${2 * Math.PI * 20}"
-                                            stroke-dashoffset="${2 * Math.PI * 20 * (1 - goal.progress / 100)}"
-                                            stroke-linecap="round"/>
-                                </svg>
-                                <div class="absolute inset-0 flex items-center justify-center">
-                                    <span class="text-xs font-normal text-gray-800">${Math.round(goal.progress)}%</span>
-                                </div>
-                            </div>
-                            <!-- Progress Details -->
-                            <div class="flex flex-col gap-1">
-                                <span class="text-xs font-medium text-gray-700">
-                                    ${goal.subgoals.filter(sg => sg.status === 'achieved').length} of ${goal.subgoals.length} completed
-                                </span>
-                                <div class="w-24 h-2 bg-gray-200 rounded-full">
-                                    <div class="h-2 rounded-full transition-all duration-300" 
-                                         style="width: ${goal.progress}%; background-color: ${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}"></div>
-                                </div>
+                <!-- Compact Progress and Date Section -->
+                <div class="px-2 py-2 progress-stats-section rounded-lg">
+                    <div class="flex items-center justify-between gap-2">
+                        <!-- Compact Progress Circle -->
+                        <div class="relative w-10 h-10 flex-shrink-0">
+                            <svg class="w-10 h-10 transform -rotate-90" viewBox="0 0 40 40">
+                                <circle cx="20" cy="20" r="16" stroke="#e5e7eb" stroke-width="3" fill="none"/>
+                                <circle cx="20" cy="20" r="16"
+                                        stroke="${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}"
+                                        stroke-width="3"
+                                        fill="none"
+                                        stroke-dasharray="${2 * Math.PI * 16}"
+                                        stroke-dashoffset="${2 * Math.PI * 16 * (1 - goal.progress / 100)}"
+                                        stroke-linecap="round"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="text-xs font-semibold text-gray-800">${Math.round(goal.progress)}%</span>
                             </div>
                         </div>
-                        
-                        <!-- Target Date Section -->
+                        <!-- Inline Progress Info -->
+                        <div class="flex items-center gap-2 flex-1 min-w-0">
+                            <span class="text-xs text-gray-600 whitespace-nowrap">
+                                ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length} done
+                            </span>
+                            <div class="flex-1 h-1.5 bg-gray-200 rounded-full min-w-[40px]">
+                                <div class="h-1.5 rounded-full transition-all duration-300"
+                                     style="width: ${goal.progress}%; background-color: ${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}"></div>
+                            </div>
+                        </div>
+                        <!-- Compact Target Date -->
                         ${goal.target_date ? `
-                            <div class="text-right">
-                                <div class="text-xs font-medium text-gray-600 mb-1">Target Date</div>
-                                <div class="text-sm font-bold text-gray-800 mb-1">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</div>
-                                <div class="inline-block">
-                                    ${formatDaysLeft(goal.target_date, goal.status, goal.progress)}
-                                </div>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <span class="text-xs font-medium text-gray-700">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
+                                ${formatDaysLeft(goal.target_date, goal.status, goal.progress)}
                             </div>
                         ` : ''}
                     </div>
@@ -2740,9 +2738,8 @@ function renderGoalCardGrid(goal) {
                                                        ${subgoal.status === 'achieved' ? 'checked' : ''}
                                                        onclick="event.stopPropagation();"
                                                        onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                                <span class="truncate flex-1 cursor-pointer text-sm" 
+                                                <span class="truncate flex-1 cursor-pointer text-sm"
                                                       onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
-                                                ${formatDaysLeft(subgoal.target_date, subgoal.status)}
                                             </div>
                                         </div>`;
                                 });
@@ -5773,6 +5770,240 @@ function updateLoadMoreButton() {
 }
 
 // Pure CSS hover animations - no JavaScript manipulation needed
+
+// ========================
+// PROGRESS SUMMARY DASHBOARD FUNCTIONS
+// ========================
+
+// Render the complete progress summary dashboard
+function renderProgressSummary(summary) {
+    if (!summary) {
+        console.warn('No summary data provided');
+        return;
+    }
+
+    // Remove skeleton loading states
+    document.querySelectorAll('.progress-summary-dashboard .skeleton').forEach(el => {
+        el.classList.remove('skeleton');
+    });
+
+    // Render each section
+    renderTodayFocus(summary.today_focus);
+    renderWeeklyStats(summary.weekly_stats);
+    renderStreak(summary.streak);
+    renderRecentWins(summary.recent_wins);
+
+    // Initialize collapse state from localStorage
+    initializeSummaryState();
+}
+
+// Render Today's Focus section
+function renderTodayFocus(focus) {
+    const focusContent = document.getElementById('today-focus-content');
+    if (!focusContent) return;
+
+    if (!focus) {
+        focusContent.innerHTML = `
+            <div class="focus-empty">
+                <span class="focus-empty-text">No pending tasks</span>
+            </div>
+        `;
+        return;
+    }
+
+    const isSubgoal = focus.type === 'subgoal';
+    const parentInfo = isSubgoal && focus.goal_title ?
+        `<span class="focus-parent">${focus.goal_title}</span>` : '';
+
+    focusContent.innerHTML = `
+        <div class="focus-item" onclick="focusOnItem('${focus.type}', ${focus.goal_id})" style="cursor: pointer;">
+            <span class="focus-title">${focus.title}</span>
+            ${parentInfo}
+        </div>
+    `;
+}
+
+// Render Weekly Stats section
+function renderWeeklyStats(stats) {
+    const goalsEl = document.getElementById('goals-completed-week');
+    const subgoalsEl = document.getElementById('subgoals-completed-week');
+    const progressEl = document.getElementById('overall-progress');
+
+    if (goalsEl) goalsEl.textContent = stats?.goals_completed || 0;
+    if (subgoalsEl) subgoalsEl.textContent = stats?.subgoals_completed || 0;
+    if (progressEl) progressEl.textContent = `${stats?.overall_progress || 0}%`;
+}
+
+// Render Streak section
+function renderStreak(streak) {
+    const streakNumber = document.getElementById('streak-days');
+    const streakStatus = document.getElementById('streak-message');
+
+    if (!streak) {
+        if (streakNumber) streakNumber.textContent = '0';
+        if (streakStatus) streakStatus.textContent = 'No activity yet';
+        return;
+    }
+
+    if (streakNumber) streakNumber.textContent = streak.days || 0;
+
+    if (streakStatus) {
+        if (streak.days === 0) {
+            streakStatus.textContent = 'No activity yet';
+        } else if (streak.is_active_today) {
+            streakStatus.textContent = 'Active today';
+        } else {
+            streakStatus.textContent = 'Last active yesterday';
+        }
+    }
+}
+
+// Render Recent Completions section
+function renderRecentWins(wins) {
+    const winsContainer = document.getElementById('wins-list');
+    if (!winsContainer) return;
+
+    if (!wins || wins.length === 0) {
+        winsContainer.innerHTML = `
+            <div class="completions-empty">No recent completions</div>
+        `;
+        return;
+    }
+
+    winsContainer.innerHTML = wins.slice(0, 3).map(win => `
+        <div class="completion-item" onclick="focusOnItem('${win.type}', ${win.goal_id})">
+            <span class="completion-dot ${win.type === 'goal' ? 'goal' : ''}"></span>
+            <span class="completion-title">${win.title}</span>
+        </div>
+    `).join('');
+}
+
+// Focus on a specific item (scroll to and highlight)
+window.focusOnItem = function(type, goalId) {
+    // Close the summary if on mobile
+    if (window.innerWidth < 768) {
+        const summary = document.getElementById('progress-summary');
+        if (summary) {
+            summary.classList.add('collapsed');
+            localStorage.setItem('progressSummaryCollapsed', 'true');
+        }
+    }
+
+    // Find the goal card
+    const goalCard = document.querySelector(`[data-goal-id="${goalId}"]`);
+    if (goalCard) {
+        // Scroll to the card
+        goalCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Add highlight animation
+        goalCard.classList.add('focus-highlight');
+        setTimeout(() => {
+            goalCard.classList.remove('focus-highlight');
+        }, 2000);
+
+        // If it's a subgoal type, expand the card to show subgoals
+        if (type === 'subgoal' && currentViewMode === 'grid') {
+            goalCard.classList.add('sticky-hover');
+            stickyHoverStates.set(goalId.toString(), true);
+        }
+    }
+};
+
+// Toggle progress summary collapse state
+window.toggleProgressSummary = function() {
+    const summary = document.getElementById('progress-summary');
+    const toggleBtn = document.getElementById('summary-toggle');
+
+    if (!summary || !toggleBtn) return;
+
+    const isCollapsed = summary.classList.toggle('collapsed');
+
+    // Update toggle button icon and text
+    const icon = toggleBtn.querySelector('i');
+    const text = toggleBtn.querySelector('span');
+
+    if (icon) {
+        icon.className = isCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+    }
+    if (text) {
+        text.textContent = isCollapsed ? 'Show Progress Summary' : 'Hide Progress Summary';
+    }
+
+    // Save state to localStorage
+    localStorage.setItem('progressSummaryCollapsed', isCollapsed.toString());
+};
+
+// Initialize summary collapse state from localStorage
+function initializeSummaryState() {
+    const summary = document.getElementById('progress-summary');
+    const toggleBtn = document.getElementById('summary-toggle');
+
+    if (!summary || !toggleBtn) return;
+
+    const isCollapsed = localStorage.getItem('progressSummaryCollapsed') === 'true';
+
+    if (isCollapsed) {
+        summary.classList.add('collapsed');
+        const icon = toggleBtn.querySelector('i');
+        const text = toggleBtn.querySelector('span');
+        if (icon) icon.className = 'fas fa-chevron-down';
+        if (text) text.textContent = 'Show Progress Summary';
+    }
+}
+
+// Refresh progress summary data
+async function refreshProgressSummary() {
+    try {
+        const response = await fetch('/api/stats/summary', { credentials: 'include' });
+        if (response.ok) {
+            const summary = await response.json();
+            renderProgressSummary(summary);
+        }
+    } catch (error) {
+        console.error('Error refreshing progress summary:', error);
+    }
+}
+
+// Format date helper
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = parseLocalDate(dateString);
+    const options = { month: 'short', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+
+// Format relative time helper
+function formatRelativeTime(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return formatDate(dateString);
+}
+
+// Add focus highlight animation CSS dynamically
+(function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes focusHighlight {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+            50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.4); }
+        }
+        .focus-highlight {
+            animation: focusHighlight 0.5s ease-in-out 3;
+        }
+    `;
+    document.head.appendChild(style);
+})();
 
 // Additional event listeners - set up when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {

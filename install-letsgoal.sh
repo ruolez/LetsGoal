@@ -35,6 +35,8 @@ EXISTING_DB_BACKUP=""
 # Docker configuration
 DOCKER_COMPOSE_FILE=""
 CONTAINER_NAME="letsgoal-backend"
+ADMIN_CONTAINER_NAME="letsgoal-admin"
+REDIS_CONTAINER_NAME="letsgoal-redis"
 NGINX_CONTAINER_NAME="letsgoal-nginx"
 
 #==============================================================================
@@ -130,7 +132,8 @@ update_system() {
         gnupg \
         lsb-release \
         jq \
-        sqlite3
+        sqlite3 \
+        redis-tools
     
     log_success "System packages updated successfully"
 }
@@ -373,7 +376,7 @@ cleanup_existing_installation() {
     docker-compose -f "$INSTALL_DIR/docker-compose.prod.yml" down 2>/dev/null || true
     
     # Remove containers by name
-    for container in "$CONTAINER_NAME" "$NGINX_CONTAINER_NAME"; do
+    for container in "$CONTAINER_NAME" "$ADMIN_CONTAINER_NAME" "$REDIS_CONTAINER_NAME" "$NGINX_CONTAINER_NAME"; do
         if docker ps -a --format "table {{.Names}}" | grep -q "^$container$"; then
             log_info "Removing container: $container"
             docker rm -f "$container" 2>/dev/null || true
@@ -427,14 +430,15 @@ create_production_configs() {
 run_database_migrations() {
     print_section "Running Database Migrations"
     
-    log_info "Starting container for migrations..."
+    log_info "Starting containers for migrations..."
     cd "$INSTALL_DIR"
     docker-compose -f docker-compose.prod.yml up -d
     
-    # Wait for container to be ready
-    sleep 10
+    # Wait for containers to be ready
+    log_info "Waiting for containers to start..."
+    sleep 15
     
-    # Run migrations
+    # Run migrations on the main backend container
     log_info "Running database migrations..."
     for migration in backend/migrations/*.py; do
         if [[ -f "$migration" ]]; then
@@ -443,7 +447,33 @@ run_database_migrations() {
         fi
     done
     
-    log_success "Database migrations completed"
+    # Create default admin user if needed
+    log_info "Setting up admin user..."
+    docker exec "$ADMIN_CONTAINER_NAME" python -c "
+import sys
+sys.path.append('/app/backend')
+from admin_app import app
+from models import db, User
+from werkzeug.security import generate_password_hash
+
+with app.app_context():
+    admin_user = User.query.filter_by(username='admin').first()
+    if not admin_user:
+        admin_user = User(
+            username='admin',
+            email='admin@letsgoal.com',
+            password_hash=generate_password_hash('admin'),
+            is_admin=True,
+            is_active=True
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        print('Default admin user created (admin/admin)')
+    else:
+        print('Admin user already exists')
+" || log_warning "Admin user setup may have failed"
+    
+    log_success "Database migrations and admin setup completed"
 }
 
 #==============================================================================
@@ -544,30 +574,46 @@ start_application() {
     docker-compose -f docker-compose.prod.yml up -d
     
     # Wait for application to start
-    log_info "Waiting for application to start..."
-    sleep 15
+    log_info "Waiting for containers to start..."
+    sleep 20
     
-    # Health check
-    local health_url
+    # Health check for main application
+    local main_health_url
     if [[ "$DEPLOYMENT_TYPE" == "local" ]]; then
-        health_url="http://$DOMAIN_OR_IP:5001/health"
+        main_health_url="http://$DOMAIN_OR_IP:5001/health"
     elif [[ "$USE_SSL" == "y" ]]; then
-        health_url="https://$DOMAIN_OR_IP/health"
+        main_health_url="https://$DOMAIN_OR_IP/health"
     else
-        health_url="http://$DOMAIN_OR_IP/health"
+        main_health_url="http://$DOMAIN_OR_IP/health"
     fi
     
-    log_info "Performing health check..."
+    log_info "Performing health checks..."
+    
+    # Check main application
     for i in {1..30}; do
-        if curl -s "$health_url" | grep -q "healthy" 2>/dev/null; then
-            log_success "Application is running and healthy!"
+        if curl -s "$main_health_url" | grep -q "healthy" 2>/dev/null; then
+            log_success "Main application is running and healthy!"
             break
         fi
         sleep 2
         if [[ $i -eq 30 ]]; then
-            log_warning "Health check timeout - application may still be starting"
+            log_warning "Main application health check timeout"
         fi
     done
+    
+    # Check admin container directly
+    if curl -s "http://127.0.0.1:5002/health" | grep -q "healthy" 2>/dev/null; then
+        log_success "Admin dashboard is running and healthy!"
+    else
+        log_warning "Admin dashboard health check failed"
+    fi
+    
+    # Check Redis container
+    if docker exec "$REDIS_CONTAINER_NAME" redis-cli ping | grep -q "PONG" 2>/dev/null; then
+        log_success "Redis is running and healthy!"
+    else
+        log_warning "Redis health check failed"
+    fi
     
     log_success "LetsGoal application started successfully"
     
@@ -677,6 +723,9 @@ services:
       - DATABASE_URL=sqlite:////app/database/letsgoal.db
       - SECRET_KEY=${SECRET_KEY}
       - CORS_ORIGINS=${CORS_ORIGINS}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
@@ -688,10 +737,71 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - letsgoal-network
+
+  admin:
+    build: .
+    container_name: letsgoal-admin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5002:5000"
+    volumes:
+      - ./database:/app/database
+      - ./logs:/app/logs
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=backend/admin_app.py
+      - DATABASE_URL=sqlite:////app/database/letsgoal.db
+      - SECRET_KEY=${SECRET_KEY}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - REDIS_URL=redis://redis:6379/0
+      - ADMIN_MODE=true
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - letsgoal-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: letsgoal-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - letsgoal-network
+
+volumes:
+  redis_data:
+    driver: local
 
 networks:
-  default:
-    name: letsgoal-network
+  letsgoal-network:
+    driver: bridge
 EOF
 
     DOCKER_COMPOSE_FILE="docker-compose.prod.yml"
@@ -740,6 +850,43 @@ server {
     
     client_max_body_size 50M;
     
+    # Admin dashboard routes
+    location /admin {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Admin API routes
+    location /api/admin {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Admin auth routes
+    location /auth {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Main application routes (fallback)
     location / {
         proxy_pass http://127.0.0.1:5001;
         proxy_set_header Host $host;
@@ -777,6 +924,43 @@ server {
     
     client_max_body_size 50M;
     
+    # Admin dashboard routes
+    location /admin {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Admin API routes
+    location /api/admin {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Admin auth routes
+    location /auth {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Main application routes (fallback)
     location / {
         proxy_pass http://127.0.0.1:5001;
         proxy_set_header Host \$host;
@@ -798,6 +982,43 @@ server {
     
     client_max_body_size 50M;
     
+    # Admin dashboard routes
+    location /admin {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Admin API routes
+    location /api/admin {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Admin auth routes
+    location /auth {
+        proxy_pass http://127.0.0.1:5002;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # Main application routes (fallback)
     location / {
         proxy_pass http://127.0.0.1:5001;
         proxy_set_header Host \$host;
@@ -835,18 +1056,24 @@ show_installation_summary() {
     echo -e "\n${WHITE}Access Information:${NC}"
     if [[ "$DEPLOYMENT_TYPE" == "local" ]]; then
         echo "• Web Interface: http://$DOMAIN_OR_IP (via nginx)"
-        echo "• Direct Access: http://$DOMAIN_OR_IP:5001"
+        echo "• Admin Dashboard: http://$DOMAIN_OR_IP/admin"
+        echo "• Direct Access: http://$DOMAIN_OR_IP:5001 (main app)"
+        echo "• Direct Admin Access: http://$DOMAIN_OR_IP:5002"
         echo "• Network Access: Local network only"
     elif [[ "$USE_SSL" == "y" ]]; then
         echo "• Application URL: https://$DOMAIN_OR_IP"
+        echo "• Admin Dashboard: https://$DOMAIN_OR_IP/admin"
         echo "• Network Access: Internet (with SSL)"
     else
         echo "• Application URL: http://$DOMAIN_OR_IP"
+        echo "• Admin Dashboard: http://$DOMAIN_OR_IP/admin"
         echo "• Network Access: Internet (no SSL)"
     fi
     
     echo -e "\n${WHITE}Management Commands:${NC}"
-    echo "• View logs: docker logs $CONTAINER_NAME"
+    echo "• View app logs: docker logs $CONTAINER_NAME"
+    echo "• View admin logs: docker logs $ADMIN_CONTAINER_NAME"
+    echo "• View Redis logs: docker logs $REDIS_CONTAINER_NAME"
     echo "• Restart: cd $INSTALL_DIR && docker-compose -f $DOCKER_COMPOSE_FILE restart"
     echo "• Stop: cd $INSTALL_DIR && docker-compose -f $DOCKER_COMPOSE_FILE down"
     echo "• Update: sudo $0 (choose update mode)"
@@ -865,7 +1092,9 @@ show_installation_summary() {
     fi
     
     echo -e "\n${YELLOW}Important Notes:${NC}"
+    echo "• Default admin credentials: admin/admin (change immediately!)"
     echo "• Default login credentials will be created on first access"
+    echo "• Redis is used for SMS scheduling and caching"
     echo "• Database backups are automatically created during updates"
     echo "• SSL certificates (if enabled) will auto-renew via cron"
     echo "• Firewall has been configured to allow necessary ports"

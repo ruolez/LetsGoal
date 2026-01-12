@@ -1,9 +1,26 @@
+import sys
+sys.path.append('/app')
 from flask import Blueprint, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from models import db, User
+from backend.models import db, User, UserSession
 from datetime import datetime
+from functools import wraps
 
 auth_bp = Blueprint('auth', __name__)
+
+def admin_required(f):
+    """Decorator to require admin role for access"""
+    @wraps(f)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        if current_user.role != 'admin':
+            return jsonify({'error': 'Admin access required'}), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -61,8 +78,32 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid credentials'}), 401
     
+    # Update user login metadata
+    user.last_login_at = datetime.utcnow()
+    user.login_count = (user.login_count or 0) + 1
+    
+    # Create user session
+    session = UserSession(
+        user_id=user.id,
+        session_start=datetime.utcnow(),
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get('User-Agent', '')[:500],  # Limit to 500 chars
+        is_active=True
+    )
+    db.session.add(session)
+    
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Login failed'}), 500
+    
     # Log the user in
     login_user(user, remember=data.get('remember', False))
+    
+    # Store session ID in Flask session for tracking
+    from flask import session as flask_session
+    flask_session['user_session_id'] = session.id
     
     return jsonify({
         'message': 'Login successful',
@@ -72,6 +113,20 @@ def login():
 @auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
+    # End user session
+    from flask import session as flask_session
+    session_id = flask_session.get('user_session_id')
+    
+    if session_id:
+        user_session = UserSession.query.get(session_id)
+        if user_session and user_session.is_active:
+            user_session.session_end = datetime.utcnow()
+            user_session.is_active = False
+            try:
+                db.session.commit()
+            except:
+                db.session.rollback()
+    
     logout_user()
     return jsonify({'message': 'Logout successful'}), 200
 

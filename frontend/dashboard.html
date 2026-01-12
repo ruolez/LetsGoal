@@ -281,13 +281,16 @@
                     
                     <!-- Enhanced Filter Dropdown -->
                     <div class="relative">
-                        <button type="button" id="filter-dropdown-btn" onclick="toggleFilterDropdown()" 
+                        <button type="button" id="filter-dropdown-btn" onclick="toggleFilterDropdown()"
+                                aria-label="Filter goals by status"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
                                 class="modern-filter-btn flex items-center justify-between w-full sm:w-auto min-w-[140px] px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 hover:bg-gray-100 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-200">
                             <div class="flex items-center">
-                                <i class="fas fa-filter mr-2 text-gray-400"></i>
+                                <i class="fas fa-filter mr-2 text-gray-400" aria-hidden="true"></i>
                                 <span id="filter-label">All Goals</span>
                             </div>
-                            <i class="fas fa-chevron-down ml-2 text-gray-400 text-sm transition-transform duration-200" id="filter-chevron"></i>
+                            <i class="fas fa-chevron-down ml-2 text-gray-400 text-sm transition-transform duration-200" id="filter-chevron" aria-hidden="true"></i>
                         </button>
                         <div id="filter-dropdown" class="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 hidden">
                             <div class="py-2">
@@ -318,13 +321,16 @@
                     
                     <!-- Enhanced Sort Dropdown -->
                     <div class="relative">
-                        <button type="button" id="sort-dropdown-btn" onclick="toggleSortDropdown()" 
+                        <button type="button" id="sort-dropdown-btn" onclick="toggleSortDropdown()"
+                                aria-label="Sort goals"
+                                aria-haspopup="listbox"
+                                aria-expanded="false"
                                 class="modern-filter-btn flex items-center justify-between w-full sm:w-auto min-w-[160px] px-4 py-3 bg-gray-50 border-0 rounded-lg text-gray-700 hover:bg-gray-100 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-200">
                             <div class="flex items-center">
-                                <i class="fas fa-sort mr-2 text-gray-400"></i>
+                                <i class="fas fa-sort mr-2 text-gray-400" aria-hidden="true"></i>
                                 <span id="sort-label">Recently Updated</span>
                             </div>
-                            <i class="fas fa-chevron-down ml-2 text-gray-400 text-sm transition-transform duration-200" id="sort-chevron"></i>
+                            <i class="fas fa-chevron-down ml-2 text-gray-400 text-sm transition-transform duration-200" id="sort-chevron" aria-hidden="true"></i>
                         </button>
                         <div id="sort-dropdown" class="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 hidden">
                             <div class="py-2">
@@ -381,18 +387,94 @@
             </div>
         </div>
 
-        <!-- Integrated Tag Filter Extension -->
-        <div id="tag-filter-bar" class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
-            <div class="px-4 py-3 flex items-center justify-between">
-                <div id="tag-filter-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 flex-1 mr-4">
+        <!-- Integrated Tag Filter Extension - Compact Pill Design -->
+        <div id="tag-filter-bar" class="bg-white rounded-lg border border-gray-200 shadow-sm mb-4">
+            <div class="px-3 py-2 flex items-center justify-between">
+                <div id="tag-filter-grid" class="flex flex-wrap gap-1.5 flex-1 mr-3">
                     <!-- Tag filter badges will be populated by JavaScript -->
                 </div>
-                <button onclick="resetTagFilter()" id="reset-tag-filter-btn" class="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200">
+                <button onclick="resetTagFilter()" id="reset-tag-filter-btn" class="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200" aria-label="Reset tag filter">
                     <i class="fas fa-times mr-1"></i>
                     Reset
                 </button>
             </div>
         </div>
+
+        <!-- Progress Summary Dashboard -->
+        <section id="progress-summary" class="progress-summary-dashboard mb-6">
+            <div class="summary-grid">
+                <!-- Priority Task -->
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <span class="summary-label">Priority</span>
+                    </div>
+                    <div class="summary-card-content" id="today-focus-content">
+                        <div class="focus-loading">
+                            <div class="skeleton-text"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Performance -->
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <span class="summary-label">This Week</span>
+                    </div>
+                    <div class="summary-card-content" id="weekly-stats-content">
+                        <div class="stats-row">
+                            <div class="stat-block">
+                                <span class="stat-value" id="goals-completed-week">-</span>
+                                <span class="stat-label">Goals</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-block">
+                                <span class="stat-value" id="subgoals-completed-week">-</span>
+                                <span class="stat-label">Tasks</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-block">
+                                <span class="stat-value" id="overall-progress">-</span>
+                                <span class="stat-label">Progress</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Streak -->
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <span class="summary-label">Activity</span>
+                    </div>
+                    <div class="summary-card-content" id="streak-content">
+                        <div class="streak-display">
+                            <span class="streak-number" id="streak-days">0</span>
+                            <span class="streak-unit">day streak</span>
+                        </div>
+                        <div class="streak-status" id="streak-message">-</div>
+                    </div>
+                </div>
+
+                <!-- Recent Completions -->
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <span class="summary-label">Completed</span>
+                    </div>
+                    <div class="summary-card-content" id="recent-wins-content">
+                        <div class="completions-list" id="wins-list">
+                            <div class="wins-loading">
+                                <div class="skeleton-text"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapse Toggle -->
+            <button id="summary-toggle" class="summary-toggle" onclick="toggleProgressSummary()" aria-label="Toggle summary">
+                <span>Show Summary</span>
+                <i class="fas fa-chevron-up"></i>
+            </button>
+        </section>
 
         <!-- Main Content Area - Full Width Goals -->
         <div class="w-full">

@@ -1,11 +1,15 @@
 import os
+import sys
+sys.path.append('/app')
+sys.path.append('/app/backend')
 from flask import Flask, jsonify, request, send_from_directory
 from flask_login import LoginManager, login_required, current_user
 from flask_cors import CORS
 from datetime import datetime, date
-from models import db, User, Goal, Subgoal, ProgressEntry, Event, Tag, GoalShare
-from auth import auth_bp
-from event_tracker import EventTracker
+from backend.models import db, User, Goal, Subgoal, ProgressEntry, Event, Tag, GoalShare, UserSession, AdminSettings, SystemBackup
+from backend.auth import auth_bp
+from backend.admin import admin_bp
+from backend.event_tracker import EventTracker
 
 def create_app():
     app = Flask(__name__, static_folder='../frontend', static_url_path='')
@@ -30,6 +34,7 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
     
     # Health check endpoint
     @app.route('/health')
@@ -48,6 +53,10 @@ def create_app():
     @app.route('/dashboard')
     def dashboard_page():
         return send_from_directory('../frontend', 'dashboard.html')
+    
+    @app.route('/admin')
+    def admin_page():
+        return send_from_directory('../frontend', 'admin.html')
     
     # Goals API endpoints
     @app.route('/api/goals', methods=['GET'])
@@ -181,24 +190,41 @@ def create_app():
         goal = Goal.query.get(goal_id)
         if not goal:
             return jsonify({'error': 'Goal not found'}), 404
-        
-        # Only owners can delete goals
-        if not goal.is_owner(current_user.id):
-            return jsonify({'error': 'Permission denied. Only goal owners can delete goals.'}), 403
-        
-        # Store info for event logging before deletion
+
         goal_title = goal.title
-        
-        try:
-            # Log deletion event
-            EventTracker.log_goal_deleted(goal.id, goal_title)
-            
-            db.session.delete(goal)
-            db.session.commit()
-            return jsonify({'message': 'Goal deleted successfully'})
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'error': 'Failed to delete goal'}), 500
+
+        # Check if user is the owner
+        if goal.is_owner(current_user.id):
+            # Owner deletes: remove goal entirely (and all shares)
+            try:
+                EventTracker.log_goal_deleted(goal.id, goal_title)
+
+                # Delete related shares first (no cascade in FK constraint)
+                GoalShare.query.filter_by(goal_id=goal_id).delete()
+
+                db.session.delete(goal)
+                db.session.commit()
+                return jsonify({'message': 'Goal deleted successfully'})
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({'error': 'Failed to delete goal'}), 500
+        else:
+            # Non-owner: check if goal is shared with them, then remove the share
+            share = GoalShare.query.filter_by(
+                goal_id=goal_id,
+                shared_with_user_id=current_user.id
+            ).first()
+
+            if not share:
+                return jsonify({'error': 'Permission denied. You do not have access to this goal.'}), 403
+
+            try:
+                db.session.delete(share)
+                db.session.commit()
+                return jsonify({'message': 'Goal removed from your shared goals'})
+            except Exception as e:
+                db.session.rollback()
+                return jsonify({'error': 'Failed to remove shared goal'}), 500
     
     # Goal archive/unarchive endpoints
     @app.route('/api/goals/<int:goal_id>/archive', methods=['PUT'])
@@ -709,9 +735,13 @@ def create_app():
     @app.route('/api/goals/<int:goal_id>/tags', methods=['PUT'])
     @login_required
     def update_goal_tags(goal_id):
-        goal = Goal.query.filter_by(id=goal_id, user_id=current_user.id).first()
+        goal = Goal.query.get(goal_id)
         if not goal:
             return jsonify({'error': 'Goal not found'}), 404
+        
+        # Check if user can edit this goal (owner or shared with edit permission)
+        if not goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
         
         data = request.get_json()
         tag_ids = data.get('tag_ids', [])
@@ -719,17 +749,17 @@ def create_app():
         if not isinstance(tag_ids, list):
             return jsonify({'error': 'tag_ids must be a list'}), 400
         
-        # Verify all tag IDs belong to the current user
+        # Verify all tag IDs belong to the goal owner
         if tag_ids:
-            user_tags = Tag.query.filter(Tag.id.in_(tag_ids), Tag.user_id == current_user.id).all()
-            if len(user_tags) != len(tag_ids):
-                return jsonify({'error': 'One or more tags not found or do not belong to you'}), 400
+            owner_tags = Tag.query.filter(Tag.id.in_(tag_ids), Tag.user_id == goal.owner_id).all()
+            if len(owner_tags) != len(tag_ids):
+                return jsonify({'error': 'One or more tags not found or do not belong to the goal owner'}), 400
         
         try:
             # Clear existing tags and set new ones
             goal.tags.clear()
             if tag_ids:
-                tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
+                tags = Tag.query.filter(Tag.id.in_(tag_ids), Tag.user_id == goal.owner_id).all()
                 goal.tags.extend(tags)
             
             goal.updated_at = datetime.utcnow()
@@ -824,7 +854,7 @@ def create_app():
         """Get recent activity summary for dashboard"""
         limit = int(request.args.get('limit', 20))
         events = EventTracker.get_recent_events(current_user.id, limit)
-        
+
         # Group events by date for better presentation
         activity_by_date = {}
         for event in events:
@@ -832,11 +862,215 @@ def create_app():
             if date_key not in activity_by_date:
                 activity_by_date[date_key] = []
             activity_by_date[date_key].append(event.to_dict())
-        
+
         return jsonify({
             'events': [event.to_dict() for event in events],
             'activity_by_date': activity_by_date,
             'total_events': len(events)
+        })
+
+    @app.route('/api/stats/summary', methods=['GET'])
+    @login_required
+    def get_summary_stats():
+        """Get progress summary dashboard stats"""
+        from datetime import timedelta
+        from sqlalchemy import func, and_, or_
+
+        today = date.today()
+        week_start = today - timedelta(days=today.weekday())  # Monday of current week
+
+        # Get user's goals (owned and shared)
+        shared_goal_ids = db.session.query(GoalShare.goal_id).filter(
+            GoalShare.shared_with_user_id == current_user.id
+        ).subquery()
+
+        user_goals = Goal.query.filter(
+            or_(Goal.owner_id == current_user.id, Goal.id.in_(shared_goal_ids)),
+            Goal.status != 'archived'
+        ).all()
+
+        goal_ids = [g.id for g in user_goals]
+
+        # TODAY'S FOCUS: Find most urgent goal/subgoal
+        today_focus = None
+        urgent_subgoal = None
+        urgent_goal = None
+
+        # Find subgoals due today or overdue that aren't completed
+        if goal_ids:
+            urgent_subgoal = Subgoal.query.filter(
+                Subgoal.goal_id.in_(goal_ids),
+                Subgoal.status != 'achieved',
+                Subgoal.target_date != None,
+                Subgoal.target_date <= today
+            ).order_by(Subgoal.target_date.asc()).first()
+
+            # If no urgent subgoal, find next upcoming subgoal
+            if not urgent_subgoal:
+                urgent_subgoal = Subgoal.query.filter(
+                    Subgoal.goal_id.in_(goal_ids),
+                    Subgoal.status != 'achieved',
+                    Subgoal.target_date != None
+                ).order_by(Subgoal.target_date.asc()).first()
+
+            # Find most urgent goal if no subgoal focus
+            if not urgent_subgoal:
+                urgent_goal = Goal.query.filter(
+                    Goal.id.in_(goal_ids),
+                    Goal.status.in_(['created', 'started', 'working']),
+                    Goal.target_date != None
+                ).order_by(Goal.target_date.asc()).first()
+
+        if urgent_subgoal:
+            days_left = (urgent_subgoal.target_date - today).days if urgent_subgoal.target_date else None
+            today_focus = {
+                'type': 'subgoal',
+                'id': urgent_subgoal.id,
+                'title': urgent_subgoal.title,
+                'goal_id': urgent_subgoal.goal_id,
+                'goal_title': urgent_subgoal.goal.title if urgent_subgoal.goal else None,
+                'target_date': urgent_subgoal.target_date.isoformat() if urgent_subgoal.target_date else None,
+                'days_left': days_left,
+                'is_overdue': days_left < 0 if days_left is not None else False
+            }
+        elif urgent_goal:
+            days_left = (urgent_goal.target_date - today).days if urgent_goal.target_date else None
+            today_focus = {
+                'type': 'goal',
+                'id': urgent_goal.id,
+                'title': urgent_goal.title,
+                'target_date': urgent_goal.target_date.isoformat() if urgent_goal.target_date else None,
+                'days_left': days_left,
+                'is_overdue': days_left < 0 if days_left is not None else False,
+                'progress': urgent_goal.progress
+            }
+
+        # WEEKLY STATS
+        # Goals completed this week
+        goals_completed_this_week = Goal.query.filter(
+            Goal.id.in_(goal_ids),
+            Goal.status == 'completed',
+            Goal.achieved_date >= week_start
+        ).count() if goal_ids else 0
+
+        # Subgoals completed this week
+        subgoals_completed_this_week = 0
+        if goal_ids:
+            subgoals_completed_this_week = Subgoal.query.filter(
+                Subgoal.goal_id.in_(goal_ids),
+                Subgoal.status == 'achieved',
+                Subgoal.updated_at >= datetime.combine(week_start, datetime.min.time())
+            ).count()
+
+        # Total active goals
+        active_goals_count = len([g for g in user_goals if g.status in ['started', 'working']])
+        total_goals_count = len(user_goals)
+        completed_goals_count = len([g for g in user_goals if g.status == 'completed'])
+
+        # Calculate overall progress (average of all non-archived goals)
+        if user_goals:
+            total_progress = sum(g.calculate_progress() for g in user_goals)
+            overall_progress = round(total_progress / len(user_goals), 1)
+        else:
+            overall_progress = 0
+
+        # STREAK CALCULATION
+        # Count consecutive days with activity (subgoal completions)
+        streak = 0
+        check_date = today
+        max_streak_check = 365  # Max days to check back
+
+        for _ in range(max_streak_check):
+            # Check if there was any activity on this date
+            day_start = datetime.combine(check_date, datetime.min.time())
+            day_end = datetime.combine(check_date, datetime.max.time())
+
+            had_activity = False
+            if goal_ids:
+                # Check for subgoal completions
+                subgoal_activity = Subgoal.query.filter(
+                    Subgoal.goal_id.in_(goal_ids),
+                    Subgoal.status == 'achieved',
+                    Subgoal.updated_at >= day_start,
+                    Subgoal.updated_at <= day_end
+                ).first()
+
+                if subgoal_activity:
+                    had_activity = True
+                else:
+                    # Check for goal completions
+                    goal_activity = Goal.query.filter(
+                        Goal.id.in_(goal_ids),
+                        Goal.achieved_date == check_date
+                    ).first()
+                    if goal_activity:
+                        had_activity = True
+
+            if had_activity:
+                streak += 1
+                check_date -= timedelta(days=1)
+            else:
+                # Allow one grace day for today if no activity yet
+                if check_date == today:
+                    check_date -= timedelta(days=1)
+                else:
+                    break
+
+        # RECENT WINS (last 10 completed items)
+        recent_wins = []
+
+        if goal_ids:
+            # Get recent subgoal completions
+            recent_subgoals = Subgoal.query.filter(
+                Subgoal.goal_id.in_(goal_ids),
+                Subgoal.status == 'achieved'
+            ).order_by(Subgoal.updated_at.desc()).limit(8).all()
+
+            for sg in recent_subgoals:
+                recent_wins.append({
+                    'type': 'subgoal',
+                    'id': sg.id,
+                    'goal_id': sg.goal_id,
+                    'title': sg.title,
+                    'completed_at': sg.updated_at.isoformat() if sg.updated_at else None,
+                    'goal_title': sg.goal.title if sg.goal else None
+                })
+
+            # Get recent goal completions
+            recent_goals = Goal.query.filter(
+                Goal.id.in_(goal_ids),
+                Goal.status == 'completed'
+            ).order_by(Goal.achieved_date.desc()).limit(5).all()
+
+            for g in recent_goals:
+                recent_wins.append({
+                    'type': 'goal',
+                    'id': g.id,
+                    'goal_id': g.id,
+                    'title': g.title,
+                    'completed_at': g.achieved_date.isoformat() if g.achieved_date else None
+                })
+
+        # Sort wins by completion date and limit to 10
+        recent_wins.sort(key=lambda x: x.get('completed_at') or '', reverse=True)
+        recent_wins = recent_wins[:10]
+
+        return jsonify({
+            'today_focus': today_focus,
+            'weekly_stats': {
+                'goals_completed': goals_completed_this_week,
+                'subgoals_completed': subgoals_completed_this_week,
+                'active_goals': active_goals_count,
+                'total_goals': total_goals_count,
+                'completed_goals': completed_goals_count,
+                'overall_progress': overall_progress,
+                'week_start': week_start.isoformat()
+            },
+            'streak': {
+                'days': streak,
+                'is_active_today': streak > 0 and check_date >= today - timedelta(days=1)
+            },
+            'recent_wins': recent_wins
         })
     
     # Initialize database

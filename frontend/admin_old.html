@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LetsGoal Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
+    <!-- Navigation Header -->
+    <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-900 dark:text-white">LetsGoal Admin Portal</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleTheme()" class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        🌙
+                    </button>
+                    <span class="text-sm text-gray-600 dark:text-gray-300">Welcome, Admin</span>
+                    <button onclick="logout()" class="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white dark:bg-gray-800 shadow-sm border-r border-gray-200 dark:border-gray-700">
+            <nav class="mt-5 px-2">
+                <a onclick="showSection('overview')" class="nav-item group flex items-center px-2 py-2 text-base font-medium text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    📊 Overview
+                </a>
+                <a onclick="showSection('users')" class="nav-item group flex items-center px-2 py-2 text-base font-medium text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    👥 Users
+                </a>
+                <a onclick="showSection('subscriptions')" class="nav-item group flex items-center px-2 py-2 text-base font-medium text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    💳 Subscriptions
+                </a>
+                <a onclick="showSection('plans')" class="nav-item group flex items-center px-2 py-2 text-base font-medium text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    📋 Plans
+                </a>
+                <a onclick="showSection('sms')" class="nav-item group flex items-center px-2 py-2 text-base font-medium text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    📱 SMS Settings
+                </a>
+                <a onclick="showSection('backups')" class="nav-item group flex items-center px-2 py-2 text-base font-medium text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    💾 Backups
+                </a>
+                <a onclick="showSection('settings')" class="nav-item group flex items-center px-2 py-2 text-base font-medium text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+                    ⚙️ Settings
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <div class="p-6">
+                
+                <!-- Overview Section -->
+                <div id="overview-section" class="section">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">System Overview</h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                            <span class="text-white text-sm">👥</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Users</dt>
+                                            <dd id="total-users" class="text-lg font-medium text-gray-900 dark:text-white">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                            <span class="text-white text-sm">💳</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Active Subscriptions</dt>
+                                            <dd id="active-subscriptions" class="text-lg font-medium text-gray-900 dark:text-white">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                                            <span class="text-white text-sm">💰</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Monthly Revenue</dt>
+                                            <dd id="monthly-revenue" class="text-lg font-medium text-gray-900 dark:text-white">$0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="p-5">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                                            <span class="text-white text-sm">📱</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">SMS Sent Today</dt>
+                                            <dd id="sms-sent" class="text-lg font-medium text-gray-900 dark:text-white">0</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Revenue Trend</h3>
+                            <canvas id="revenue-chart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Subscription Distribution</h3>
+                            <canvas id="subscription-chart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div id="users-section" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">User Management</h2>
+                        <div class="flex space-x-2">
+                            <input type="text" id="user-search" placeholder="Search users..." 
+                                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                            <button onclick="refreshUsers()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subscription</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Goals</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Subscriptions Section -->
+                <div id="subscriptions-section" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Subscription Management</h2>
+                        <button onclick="showCreateSubscriptionModal()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            Create Subscription
+                        </button>
+                    </div>
+
+                    <!-- Subscription Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Monthly Recurring Revenue</h3>
+                            <p id="mrr-value" class="text-3xl font-bold text-green-600">$0</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Annual Recurring Revenue</h3>
+                            <p id="arr-value" class="text-3xl font-bold text-blue-600">$0</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Churn Rate</h3>
+                            <p id="churn-rate" class="text-3xl font-bold text-red-600">0%</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Customer</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Plan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Next Billing</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subscriptions-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Subscriptions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Plans Section -->
+                <div id="plans-section" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Subscription Plans</h2>
+                        <button onclick="showCreatePlanModal()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            Create Plan
+                        </button>
+                    </div>
+
+                    <div id="plans-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Plans will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- SMS Settings Section -->
+                <div id="sms-section" class="section hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">SMS Configuration</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Provider Settings -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Provider Settings</h3>
+                            <form id="sms-provider-form">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Provider</label>
+                                        <select id="sms-provider" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                            <option value="twilio">Twilio</option>
+                                            <option value="aws">AWS SNS</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Account SID / Access Key</label>
+                                        <input type="text" id="sms-account-sid" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Auth Token / Secret Key</label>
+                                        <input type="password" id="sms-auth-token" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">From Number</label>
+                                        <input type="text" id="sms-from-number" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                        Save SMS Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- SMS Statistics -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">SMS Statistics</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Today:</span>
+                                    <span id="sms-today" class="font-medium">0 messages</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">This Week:</span>
+                                    <span id="sms-week" class="font-medium">0 messages</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">This Month:</span>
+                                    <span id="sms-month" class="font-medium">0 messages</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600 dark:text-gray-400">Total Cost:</span>
+                                    <span id="sms-cost" class="font-medium">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Templates -->
+                    <div class="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Message Templates</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Goal Reminder</label>
+                                <textarea id="template-goal-reminder" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" placeholder="Hi {user_name}, don't forget to work on your goal: {goal_title}"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Goal Completion</label>
+                                <textarea id="template-goal-completion" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white" placeholder="🎉 Congratulations {user_name}! You completed your goal: {goal_title}"></textarea>
+                            </div>
+                            <button onclick="saveMessageTemplates()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                Save Templates
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Backups Section -->
+                <div id="backups-section" class="section hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Database Backups</h2>
+                        <button onclick="createBackup()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            Create Backup
+                        </button>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Filename</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Size</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backups-table" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Backups will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="settings-section" class="section hidden">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">System Settings</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Stripe Settings -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Stripe Configuration</h3>
+                            <form id="stripe-settings-form">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Publishable Key</label>
+                                        <input type="text" id="stripe-publishable-key" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Secret Key</label>
+                                        <input type="password" id="stripe-secret-key" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Webhook Secret</label>
+                                        <input type="password" id="stripe-webhook-secret" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                        Save Stripe Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- General Settings -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">General Settings</h3>
+                            <form id="general-settings-form">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="maintenance-mode" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Maintenance Mode</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="auto-backup" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Auto Backups</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Backup Retention (days)</label>
+                                        <input type="number" id="backup-retention" value="30" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white">
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                        Save General Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-1/2 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800 transform -translate-y-1/2">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mt-2">Processing...</h3>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

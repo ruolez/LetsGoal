@@ -14,9 +14,77 @@ services:
       - FLASK_ENV=development
       - FLASK_APP=backend/app.py
       - DATABASE_URL=sqlite:////app/database/letsgoal.db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
     command: python -m flask run --host=0.0.0.0
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    networks:
+      - letsgoal-network
+
+  admin:
+    build: .
+    container_name: letsgoal-admin
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - ./database:/app/database
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=backend/admin_app.py
+      - DATABASE_URL=sqlite:////app/database/letsgoal.db
+      - REDIS_URL=redis://redis:6379/0
+      - ADMIN_MODE=true
+    depends_on:
+      - redis
+    command: python -m flask run --host=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - letsgoal-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: letsgoal-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - letsgoal-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: letsgoal-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - admin
+    networks:
+      - letsgoal-network
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  letsgoal-network:
+    driver: bridge

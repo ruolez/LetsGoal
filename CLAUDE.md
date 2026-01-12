@@ -6,11 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Starting the Application
 ```bash
-# Start the application with Docker
+# Start the application with Docker (includes admin dashboard)
 docker-compose up --build -d
 
+# Quick development setup
+./setup-dev.sh
+
 # Access the application
-open http://localhost:5001
+open http://localhost:5001      # Main application
+open http://localhost:5002/admin # Admin dashboard
 ```
 
 ### Development Commands
@@ -19,13 +23,18 @@ open http://localhost:5001
 docker-compose down && docker-compose up --build -d
 
 # View application logs
-docker logs letsgoal-backend
+docker logs letsgoal-backend    # Main app logs
+docker logs letsgoal-admin      # Admin dashboard logs
+docker logs letsgoal-redis      # Redis logs
 
 # View recent logs
 docker logs letsgoal-backend --tail 20
 
 # Stop the application
 docker-compose down
+
+# Troubleshoot admin issues
+./troubleshoot-admin.sh
 ```
 
 ### Running Tests
@@ -58,11 +67,15 @@ SELECT * FROM users;  # Query users
 
 ### Backend Structure
 - **Flask application** with factory pattern (`backend/app.py`)
-- **SQLAlchemy models**: User, Goal, Subgoal, ProgressEntry, Event, Tag (`backend/models.py`)
+- **Admin Flask application** with separate entry point (`backend/admin_app.py`)
+- **SQLAlchemy models**: User, Goal, Subgoal, ProgressEntry, Event, Tag, AdminSettings (`backend/models.py`)
 - **Authentication blueprint** with Flask-Login (`backend/auth.py`)
+- **Admin management system** with user management and analytics (`backend/admin.py`)
 - **Event tracking system** with comprehensive activity logging (`backend/event_tracker.py`)
+- **SMS service integration** with Redis-based scheduling (`backend/sms_service.py`, `backend/reminder_scheduler.py`)
 - **SQLite database** with automatic schema creation and migrations
-- **RESTful API endpoints** for goal management, tagging, and dashboard stats (25+ endpoints)
+- **Redis cache/queue** for SMS scheduling and session management
+- **RESTful API endpoints** for goal management, tagging, dashboard stats, and admin operations (35+ endpoints)
 - **Migration system** for database schema evolution (`backend/migrations/` directory)
 
 ### Frontend Structure
@@ -70,8 +83,9 @@ SELECT * FROM users;  # Query users
 - **Vanilla JavaScript** with modular structure:
   - `frontend/js/auth.js` - Authentication utilities and login/register
   - `frontend/js/dashboard.js` - Goal management, progress tracking, Chart.js integration (49K+ tokens)
-- **Tailwind CSS** for styling with custom CSS in `frontend/css/styles.css`
-- **Two main pages**: `login.html` and `dashboard.html`
+  - `frontend/js/admin.js` - Admin dashboard functionality, user management, analytics
+- **Tailwind CSS** for styling with custom CSS in `frontend/css/styles.css` and `frontend/css/admin.css`
+- **Three main pages**: `login.html`, `dashboard.html`, and `admin.html`
 
 ### Key Data Flow
 1. **Goal-Subgoal Relationship**: Goals contain subgoals; goal progress auto-updates based on subgoal completion
@@ -132,10 +146,17 @@ SELECT * FROM users;  # Query users
 - **Optimistic updates**: UI updates immediately before backend confirmation
 
 ### Docker Configuration
+- **Multi-container architecture**: Main app (port 5001), Admin dashboard (port 5002), Redis (port 6379)
+- **Shared database volume**: SQLite database accessible by both main and admin containers
+- **Redis integration**: Used for SMS scheduling, caching, and session management
 - **Volume mounts** enable live code reloading during development
-- **Health checks** monitor application status with `/health` endpoint
-- **Environment variables** configure Flask and database paths
-- **Port mapping**: Container port 5000 → Host port 5001
+- **Health checks** monitor all container status with `/health` endpoints
+- **Environment variables** configure Flask, database paths, and Redis URLs
+- **Port mapping**: 
+  - Main app: Container 5000 → Host 5001
+  - Admin: Container 5000 → Host 5002
+  - Redis: Container 6379 → Host 6379
+- **Docker networking**: Containers communicate via `letsgoal-network` bridge
 
 ### UI Interaction Patterns
 - **Clickable subgoal titles**: Clicking subgoal text toggles checkbox state
@@ -150,10 +171,12 @@ SELECT * FROM users;  # Query users
 - **Optimistic UI updates**: Frontend updates immediately, then syncs with backend for consistency
 
 ### CSS Architecture
-- **Grid layout**: 4-column responsive grid with `minmax(320px, 1fr)` for goal cards
+- **Enhanced responsive grid**: Dynamic grid system with ResizeObserver-controlled columns (1-6 columns based on container width)
+- **Minimum card width**: 320px minimum with intelligent breakpoint system for optimal content display
 - **Controlled expansion**: JavaScript-driven `.sticky-hover` class controls card expansion, no CSS `:hover`
 - **Z-index hierarchy**: Dropdowns (`z-index: 9999`) > expanded cards (`z-index: 2`) > normal cards (`z-index: 1`)
 - **Conic-gradient progress**: `conic-gradient(color deg, background deg)` for smooth progress circles
+- **Grid transitions**: Smooth 0.3s ease transitions for grid column changes with CSS custom properties
 
 ### API Endpoints Pattern
 - **Authentication**: `/api/auth/login`, `/api/auth/logout`, `/api/auth/register`
@@ -169,6 +192,9 @@ SELECT * FROM users;  # Query users
 - **Memory management**: Chart.js instances destroyed/recreated to prevent memory leaks
 - **Database indexing**: Strategic indexes on user_id, goal relationships, and timestamps
 - **Optimized queries**: SQLAlchemy relationships configured for efficient loading
+- **ResizeObserver optimization**: Debounced with 100ms timing and 10px threshold to prevent layout thrashing
+- **requestAnimationFrame**: Used for smooth grid transitions and hover animations
+- **Layout shift prevention**: Absolute positioning for hover elements to avoid flickering
 
 ### Navbar Design System
 - **Modern minimalist design** with Concept 1: floating elements and gradient backgrounds
@@ -227,6 +253,26 @@ SELECT * FROM users;  # Query users
 - **Integration**: Uses `selectTagFromBar(tagId)` for filtering, `populateTagFilterBar()` for rendering
 - **No dropdown fallback**: Tag filter dropdown completely removed in favor of permanent bar
 
+### Enhanced Responsive Grid System
+- **ResizeObserver-based**: Modern browser API for precise container width monitoring instead of window resize events
+- **Dynamic column calculation**: Automatically adjusts columns (1-6) based on available space and 320px minimum card width
+- **Intelligent breakpoints**: Mobile (1 col) → Tablet portrait (2 cols) → Tablet landscape (3 cols) → Desktop (4 cols) → Large (5 cols) → Ultra-wide (6 cols)
+- **Smooth transitions**: CSS transitions with 0.3s ease for grid column changes
+- **Performance optimized**: 100ms debounce, 10px change threshold, and requestAnimationFrame for 60fps updates
+- **Fallback support**: Graceful degradation to window resize events for older browsers
+- **Mobile-first**: CSS media queries handle mobile layout, JavaScript manages larger screens
+- **Memory management**: Cleanup on page unload to prevent memory leaks
+
+### Shared Card Indicators System
+- **Space-efficient design**: Shows only blue share icon by default to save card space
+- **Hover-to-reveal**: Text appears on icon hover with smooth opacity and transform transitions
+- **Dual indicator types**: 
+  - Owner shared goals: Icon + "Shared" text
+  - Received shared goals: Icon + "shared by @username" badge with styling
+- **No layout shifts**: Absolute positioning prevents flickering and layout movement
+- **Conditional rendering**: Mutually exclusive display logic prevents duplicate icons
+- **Accessibility maintained**: Tooltips preserved for screen readers and quick reference
+
 ### Common Issues
 - **Modal conflicts**: Inline forms used instead of nested modals
 - **Form validation**: Hidden required fields can cause "invalid form control" errors
@@ -245,3 +291,8 @@ SELECT * FROM users;  # Query users
 - **Spacing accumulation**: Hidden subgoals must have `margin: 0` in CSS to prevent accumulated spacing proportional to subgoal count
 - **DOM cleanup timing**: Remove dynamically created subgoals immediately after collapse animation completes, not in batch cleanup
 - **Quote duplicates**: Ensure all 350 quotes in `motivationalQuotes` array are unique to prevent repetition
+- **Grid column conflicts**: Don't override CSS grid on mobile - let media queries handle single column layout
+- **ResizeObserver support**: Always check for `'ResizeObserver' in window` and provide window resize fallback
+- **Shared indicator flickering**: Use absolute positioning and visibility/opacity instead of display for hover text
+- **Layout thrashing**: Use 10px threshold for container width changes to prevent excessive grid recalculations
+- **Memory leaks**: Always call `cleanupResizeObserver()` on page unload and disconnect observers properly

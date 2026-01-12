@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LetsGoal Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Clean, professional styling - no animations or effects */
+        .admin-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .admin-button:hover {
+            background: #2563eb;
+        }
+        
+        .admin-button-secondary {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .admin-button-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .nav-item:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .stat-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Dark mode */
+        [data-theme="dark"] .admin-card {
+            background: #1f2937;
+            border: 1px solid #374151;
+        }
+        
+        [data-theme="dark"] .stat-card {
+            background: #1f2937;
+            border: 1px solid #374151;
+        }
+        
+        [data-theme="dark"] .nav-item:hover {
+            background: #374151;
+            color: #d1d5db;
+        }
+        
+        /* Remove all the animated/magic effects */
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <!-- Simple navigation header -->
+    <nav class="bg-white dark:bg-gray-800 shadow border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">L</span>
+                        </div>
+                        <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
+                            LetsGoal Admin
+                        </h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleTheme()" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Admin</span>
+                    </div>
+                    <button onclick="logout()" class="admin-button">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex min-h-screen">
+        <!-- Simple sidebar -->
+        <div class="w-64 bg-white dark:bg-gray-800 shadow border-r border-gray-200 dark:border-gray-700">
+            <div class="p-4">
+                <nav class="space-y-1">
+                    <a onclick="showSection('overview')" class="nav-item active cursor-pointer">
+                        <span class="mr-3">📊</span>
+                        Overview
+                    </a>
+                    <a onclick="showSection('users')" class="nav-item cursor-pointer">
+                        <span class="mr-3">👥</span>
+                        Users
+                    </a>
+                    <a onclick="showSection('subscriptions')" class="nav-item cursor-pointer">
+                        <span class="mr-3">💳</span>
+                        Subscriptions
+                    </a>
+                    <a onclick="showSection('plans')" class="nav-item cursor-pointer">
+                        <span class="mr-3">📋</span>
+                        Plans
+                    </a>
+                    <a onclick="showSection('sms')" class="nav-item cursor-pointer">
+                        <span class="mr-3">📱</span>
+                        SMS Settings
+                    </a>
+                    <a onclick="showSection('backups')" class="nav-item cursor-pointer">
+                        <span class="mr-3">💾</span>
+                        Backups
+                    </a>
+                    <a onclick="showSection('settings')" class="nav-item cursor-pointer">
+                        <span class="mr-3">⚙️</span>
+                        Settings
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6">
+            <!-- Overview Section -->
+            <div id="overview-section" class="section">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Monitor your platform's key metrics</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
+                                <p id="total-users" class="text-2xl font-semibold text-gray-900 dark:text-white">0</p>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                <span class="text-blue-600 dark:text-blue-400">👥</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Active Subscriptions</p>
+                                <p id="active-subscriptions" class="text-2xl font-semibold text-gray-900 dark:text-white">0</p>
+                            </div>
+                            <div class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                                <span class="text-green-600 dark:text-green-400">💳</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Revenue</p>
+                                <p id="monthly-revenue" class="text-2xl font-semibold text-gray-900 dark:text-white">$0</p>
+                            </div>
+                            <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                                <span class="text-purple-600 dark:text-purple-400">💰</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">SMS Sent Today</p>
+                                <p id="sms-sent" class="text-2xl font-semibold text-gray-900 dark:text-white">0</p>
+                            </div>
+                            <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                                <span class="text-orange-600 dark:text-orange-400">📱</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="admin-card rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue Trends</h3>
+                        <canvas id="revenue-chart" class="w-full h-64"></canvas>
+                    </div>
+
+                    <div class="admin-card rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Subscription Distribution</h3>
+                        <canvas id="subscription-chart" class="w-full h-64"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="users-section" class="section hidden">
+                <div class="mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">User Management</h2>
+                        <p class="text-gray-600 dark:text-gray-300">Manage user accounts and permissions</p>
+                    </div>
+                    <button onclick="refreshUsers()" class="admin-button">
+                        Refresh Users
+                    </button>
+                </div>
+
+                <div class="admin-card rounded-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Plan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Goals</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                                <!-- Users will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMS Section -->
+            <div id="sms-section" class="section hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">SMS Configuration</h2>
+                    <p class="text-gray-600 dark:text-gray-300">Configure SMS notifications and view statistics</p>
+                </div>
+
+                <!-- SMS Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card text-center">
+                        <div class="text-2xl mb-2">📱</div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Today</p>
+                        <p id="sms-today" class="text-xl font-semibold text-gray-900 dark:text-white">0</p>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="text-2xl mb-2">📊</div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">This Week</p>
+                        <p id="sms-week" class="text-xl font-semibold text-gray-900 dark:text-white">0</p>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="text-2xl mb-2">📈</div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">This Month</p>
+                        <p id="sms-month" class="text-xl font-semibold text-gray-900 dark:text-white">0</p>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="text-2xl mb-2">💰</div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Total Cost</p>
+                        <p id="sms-cost" class="text-xl font-semibold text-gray-900 dark:text-white">$0.00</p>
+                    </div>
+                </div>
+
+                <!-- SMS Settings -->
+                <div class="admin-card rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-6">Provider Settings</h3>
+                    <form id="sms-provider-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SMS Provider</label>
+                                <select id="sms-provider" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                                    <option value="twilio">Twilio</option>
+                                    <option value="aws">AWS SNS</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Account SID</label>
+                                <input type="text" id="sms-account-sid" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Enter Account SID">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Auth Token</label>
+                                <input type="password" id="sms-auth-token" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Enter Auth Token">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">From Number</label>
+                                <input type="text" id="sms-from-number" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="+1234567890">
+                            </div>
+                        </div>
+                        <button type="submit" class="admin-button">
+                            Save SMS Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Other sections would be added here as needed -->
+            <div id="subscriptions-section" class="section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Subscription Management</h2>
+                <p class="text-gray-600 dark:text-gray-300">Coming soon...</p>
+            </div>
+
+            <div id="plans-section" class="section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Plan Management</h2>
+                <p class="text-gray-600 dark:text-gray-300">Coming soon...</p>
+            </div>
+
+            <!-- Backups Section -->
+            <div id="backups-section" class="section hidden">
+                <div class="mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Database Backups</h2>
+                        <p class="text-gray-600 dark:text-gray-300">Create, manage, and restore database backups</p>
+                    </div>
+                    <button onclick="createBackup()" class="admin-button">
+                        Create Backup
+                    </button>
+                </div>
+
+                <!-- Backup Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="stat-card text-center">
+                        <div class="text-2xl mb-2">💾</div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Total Backups</p>
+                        <p id="backup-count" class="text-xl font-semibold text-gray-900 dark:text-white">0</p>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="text-2xl mb-2">📊</div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Total Size</p>
+                        <p id="backup-size" class="text-xl font-semibold text-gray-900 dark:text-white">0 MB</p>
+                    </div>
+                    <div class="stat-card text-center">
+                        <div class="text-2xl mb-2">⏰</div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Last Backup</p>
+                        <p id="last-backup" class="text-xl font-semibold text-gray-900 dark:text-white">Never</p>
+                    </div>
+                </div>
+
+                <!-- Backup Actions Panel -->
+                <div class="admin-card rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="createBackup()" class="admin-button">
+                            Create Manual Backup
+                        </button>
+                        <button onclick="cleanupOldBackups()" class="admin-button-secondary">
+                            Cleanup Old Backups
+                        </button>
+                        <button onclick="cleanupOrphanedBackups()" class="admin-button-secondary">
+                            Cleanup Orphaned Records
+                        </button>
+                        <button onclick="refreshBackups()" class="admin-button-secondary">
+                            Refresh List
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Backup List -->
+                <div class="admin-card rounded-lg overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Backup History</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-50 dark:bg-gray-800">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Size</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Created</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backups-table" class="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading backups...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings-section" class="section hidden">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">System Settings</h2>
+                <p class="text-gray-600 dark:text-gray-300">Coming soon...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Simple loading indicator -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p class="text-gray-900 dark:text-white">Loading...</p>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+    <script>
+        // Theme management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const themeIcon = document.getElementById('theme-icon');
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function initializeTheme() {
+            const storedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = storedTheme || (systemPrefersDark ? 'dark' : 'light');
+            
+            document.documentElement.setAttribute('data-theme', theme);
+            const themeIcon = document.getElementById('theme-icon');
+            themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+            
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find and activate the clicked nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                if (item.getAttribute('onclick')?.includes(sectionName)) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Load section data
+            switch(sectionName) {
+                case 'overview':
+                    loadOverviewData();
+                    break;
+                case 'users':
+                    loadUsersData();
+                    break;
+                case 'sms':
+                    loadSMSData();
+                    break;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            showSection('overview');
+        });
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                }).then(() => {
+                    window.location.href = '/login?next=/admin';
+                });
+            }
+        }
+    </script>
+</body>
+</html>
