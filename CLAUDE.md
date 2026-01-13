@@ -13,8 +13,8 @@ docker-compose up --build -d
 ./setup-dev.sh
 
 # Access the application
-open http://localhost:5001      # Main application
-open http://localhost:5002/admin # Admin dashboard
+open http://localhost           # Main application (via nginx on port 80)
+open http://localhost/admin     # Admin dashboard
 ```
 
 ### Development Commands
@@ -146,16 +146,16 @@ SELECT * FROM users;  # Query users
 - **Optimistic updates**: UI updates immediately before backend confirmation
 
 ### Docker Configuration
-- **Multi-container architecture**: Main app (port 5001), Admin dashboard (port 5002), Redis (port 6379)
+- **Multi-container architecture**: Nginx reverse proxy (port 80), backend, admin, and Redis containers
 - **Shared database volume**: SQLite database accessible by both main and admin containers
 - **Redis integration**: Used for SMS scheduling, caching, and session management
 - **Volume mounts** enable live code reloading during development
 - **Health checks** monitor all container status with `/health` endpoints
 - **Environment variables** configure Flask, database paths, and Redis URLs
-- **Port mapping**: 
-  - Main app: Container 5000 → Host 5001
-  - Admin: Container 5000 → Host 5002
-  - Redis: Container 6379 → Host 6379
+- **Port mapping**:
+  - Nginx: Port 80 (routes to backend and admin internally)
+  - Backend/Admin: Internal only (exposed via nginx)
+  - Redis: Container 6379 → Host 6380
 - **Docker networking**: Containers communicate via `letsgoal-network` bridge
 
 ### UI Interaction Patterns

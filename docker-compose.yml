@@ -4,8 +4,8 @@ services:
   backend:
     build: .
     container_name: letsgoal-backend
-    ports:
-      - "5001:5000"
+    expose:
+      - "5000"
     volumes:
       - ./backend:/app/backend
       - ./frontend:/app/frontend
@@ -29,8 +29,8 @@ services:
   admin:
     build: .
     container_name: letsgoal-admin
-    ports:
-      - "5002:5000"
+    expose:
+      - "5000"
     volumes:
       - ./backend:/app/backend
       - ./frontend:/app/frontend

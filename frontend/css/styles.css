@@ -2187,15 +2187,20 @@ html {
 
 /* Subgoal Items in Edit Modal */
 .subgoal-item {
-  transition: all 0.2s ease;
-  border-radius: 8px;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-primary);
+  transition: background-color 0.2s ease;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  padding: 0.125rem 0.25rem;
+  margin: 0;
 }
 
 .subgoal-item:hover {
-  border-color: var(--color-border-secondary);
-  box-shadow: 0 2px 4px var(--color-shadow-sm);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .subgoal-item:hover {
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 /* Modal Layout Improvements */
@@ -3842,4 +3847,1553 @@ html[data-theme="dark"] .card {
   0%, 100% { box-shadow: 0 0 0 0 transparent; }
   25% { box-shadow: 0 0 0 3px var(--color-interactive-primary); }
   75% { box-shadow: 0 0 0 3px var(--color-interactive-primary); }
+}
+
+/* ==============================================
+   STREAMLINED UI/UX IMPROVEMENTS - 2025
+   ============================================== */
+
+/* Compact Control Bar */
+.control-bar-compact {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
+  transition: all 0.2s ease;
+}
+
+.compact-search {
+  font-size: 0.875rem;
+  font-weight: 400;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.compact-search:focus {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.compact-search::placeholder {
+  color: var(--color-text-muted);
+}
+
+.compact-btn {
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.compact-btn:hover {
+  background: var(--color-interactive-secondary);
+  border-color: var(--color-border-secondary);
+}
+
+/* Filter Count Badge */
+.filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: white;
+  background: var(--color-interactive-primary);
+  border-radius: 999px;
+  margin-left: 0.25rem;
+}
+
+/* Unified Filter Panel */
+.unified-filter-panel {
+  animation: panel-slide-down 0.2s ease-out;
+  transform-origin: top;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
+  box-shadow: 0 10px 40px var(--color-shadow-lg), 0 4px 12px var(--color-shadow-md);
+}
+
+@keyframes panel-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Status Chips in Filter Panel */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.status-chip:hover {
+  background: var(--color-interactive-secondary);
+  border-color: var(--color-border-secondary);
+}
+
+.status-chip.active {
+  background: var(--color-interactive-primary);
+  border-color: var(--color-interactive-primary);
+  color: white;
+}
+
+.status-chip.active span {
+  background: white !important;
+}
+
+/* Sort Chips in Filter Panel */
+.sort-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sort-chip i {
+  font-size: 0.625rem;
+  color: var(--color-text-muted);
+}
+
+.sort-chip:hover {
+  background: var(--color-interactive-secondary);
+  border-color: var(--color-border-secondary);
+}
+
+.sort-chip.active {
+  background: var(--color-info-bg);
+  border-color: var(--color-interactive-primary);
+  color: var(--color-interactive-primary);
+}
+
+.sort-chip.active i {
+  color: var(--color-interactive-primary);
+}
+
+/* Tag Chips in Filter Panel */
+.filter-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: white;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 2px solid transparent;
+}
+
+.filter-tag-chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px var(--color-shadow-md);
+}
+
+.filter-tag-chip.active {
+  border-color: var(--color-text-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* View Toggle Compact */
+.view-toggle-compact {
+  transition: all 0.15s ease;
+}
+
+.view-toggle-compact.active {
+  background: var(--color-bg-surface);
+  box-shadow: 0 1px 3px var(--color-shadow-sm);
+  color: var(--color-text-primary);
+}
+
+/* Quick Stats Pill */
+.quick-stats-pill {
+  background: var(--gradient-bg);
+  border: 1px solid var(--color-border-primary);
+  transition: all 0.2s ease;
+}
+
+.quick-stats-pill:hover {
+  border-color: var(--color-interactive-primary);
+  box-shadow: 0 4px 12px var(--color-shadow-md);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .quick-stats-pill {
+  background: linear-gradient(to right, var(--color-bg-secondary), var(--color-bg-tertiary));
+  border-color: var(--color-border-primary);
+}
+
+/* Active Filters Bar */
+#active-filters-bar {
+  background: var(--color-bg-tertiary);
+}
+
+.active-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 999px;
+}
+
+.active-filter-chip button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.5rem;
+  color: var(--color-text-muted);
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.active-filter-chip button:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+/* Floating Action Button (FAB) */
+.fab-new-goal {
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fab-new-goal:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5);
+}
+
+.fab-new-goal:active {
+  transform: scale(1.05);
+}
+
+/* FAB tooltip on hover */
+.fab-new-goal::before {
+  content: 'New Goal';
+  position: absolute;
+  right: calc(100% + 0.75rem);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+  background: var(--color-bg-elevated);
+  border-radius: 0.5rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px var(--color-shadow-md);
+  color: var(--color-text-primary);
+}
+
+.fab-new-goal:hover::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Dark mode FAB */
+[data-theme="dark"] .fab-new-goal {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="dark"] .fab-new-goal:hover {
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+}
+
+/* Enhanced Goal Card Title */
+.goal-card-title-enhanced {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.expandable-goal-card:hover .goal-card-title-enhanced {
+  color: var(--color-interactive-primary);
+}
+
+/* Improved Card Shadows */
+.expandable-goal-card {
+  box-shadow:
+    0 1px 3px var(--color-shadow-sm),
+    0 1px 2px var(--color-shadow-sm);
+}
+
+/* Responsive Adjustments for New UI */
+@media (max-width: 1024px) {
+  .quick-stats-pill {
+    display: none !important;
+  }
+
+  .control-bar-compact .flex-1.max-w-xs {
+    max-width: none;
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .control-bar-compact {
+    padding: 0.75rem;
+  }
+
+  .compact-search {
+    font-size: 0.8125rem;
+  }
+
+  .unified-filter-panel {
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    max-width: none;
+    top: auto;
+    bottom: 5rem;
+  }
+
+  .fab-new-goal {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+
+  .fab-new-goal::before {
+    display: none;
+  }
+}
+
+/* Ensure proper z-index stacking */
+.unified-filter-panel {
+  z-index: 9999 !important;
+}
+
+#unified-filter-btn.active #unified-filter-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dark mode adjustments for new components */
+[data-theme="dark"] .control-bar-compact {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .unified-filter-panel {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .status-chip {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-primary);
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .status-chip:hover {
+  background: var(--color-interactive-secondary);
+  border-color: var(--color-border-secondary);
+}
+
+[data-theme="dark"] .sort-chip {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-primary);
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .sort-chip:hover {
+  background: var(--color-interactive-secondary);
+}
+
+[data-theme="dark"] .sort-chip.active {
+  background: var(--color-info-bg);
+  border-color: var(--color-interactive-primary);
+}
+
+[data-theme="dark"] #active-filters-bar {
+  background: var(--color-bg-tertiary);
+}
+
+[data-theme="dark"] .active-filter-chip {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-primary);
+}
+
+/* ==============================================
+   VISUAL HIERARCHY ENHANCEMENT SYSTEM
+   Priority-based styling for improved UX
+   ============================================== */
+
+/* --- 1. URGENT DEADLINE STYLING --- */
+
+/* Overdue items - Critical urgency */
+.goal-card-grid.urgency-overdue .expandable-goal-card {
+  border-color: #ef4444 !important;
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.3),
+    0 4px 12px rgba(239, 68, 68, 0.15),
+    inset 0 0 0 1px rgba(239, 68, 68, 0.1) !important;
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(239, 68, 68, 0.03) 100%) !important;
+}
+
+.goal-card-grid.urgency-overdue .expandable-goal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+/* Due today - High urgency */
+.goal-card-grid.urgency-today .expandable-goal-card {
+  border-color: #f59e0b !important;
+  box-shadow:
+    0 0 0 1px rgba(245, 158, 11, 0.3),
+    0 4px 12px rgba(245, 158, 11, 0.12),
+    inset 0 0 0 1px rgba(245, 158, 11, 0.08) !important;
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(245, 158, 11, 0.03) 100%) !important;
+}
+
+.goal-card-grid.urgency-today .expandable-goal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+/* Due within 3 days - Medium urgency */
+.goal-card-grid.urgency-soon .expandable-goal-card {
+  border-color: #f59e0b !important;
+  box-shadow:
+    0 0 0 1px rgba(245, 158, 11, 0.2),
+    0 4px 10px rgba(245, 158, 11, 0.08) !important;
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(245, 158, 11, 0.02) 100%) !important;
+}
+
+/* Due within a week - Low urgency indicator */
+.goal-card-grid.urgency-week .expandable-goal-card {
+  border-color: rgba(234, 179, 8, 0.4) !important;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.1) !important;
+}
+
+/* Pulsing animation for overdue items */
+@keyframes urgency-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(239, 68, 68, 0.3),
+      0 4px 12px rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(239, 68, 68, 0.4),
+      0 6px 20px rgba(239, 68, 68, 0.25);
+  }
+}
+
+.goal-card-grid.urgency-overdue .expandable-goal-card {
+  animation: urgency-pulse 2s ease-in-out infinite;
+}
+
+/* Disable pulse on hover to prevent visual conflict */
+.goal-card-grid.urgency-overdue.sticky-hover .expandable-goal-card {
+  animation: none;
+}
+
+/* --- 2. ENHANCED PROGRESS BAR --- */
+
+/* Thicker progress bar with gradient */
+.progress-bar-enhanced {
+  height: 8px !important;
+  border-radius: 4px;
+  background: var(--color-bg-tertiary);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-enhanced .progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  position: relative;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Progress gradient based on completion */
+.progress-bar-enhanced .progress-fill.progress-low {
+  background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+}
+
+.progress-bar-enhanced .progress-fill.progress-medium {
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+}
+
+.progress-bar-enhanced .progress-fill.progress-high {
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.progress-bar-enhanced .progress-fill.progress-complete {
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+}
+
+/* Shine effect on progress bar */
+.progress-bar-enhanced .progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: progress-shine 2s ease-in-out infinite;
+}
+
+@keyframes progress-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* --- 3. CARD STATE THEMING --- */
+
+/* Created/Not started - Subtle gray tint */
+.goal-card-grid.progress-state-idle .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(107, 114, 128, 0.02) 100%) !important;
+}
+
+.goal-card-grid.progress-state-idle .progress-stats-section {
+  background: rgba(107, 114, 128, 0.05) !important;
+}
+
+/* Started/In progress - Blue tint */
+.goal-card-grid.progress-state-active .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(59, 130, 246, 0.03) 100%) !important;
+}
+
+.goal-card-grid.progress-state-active .progress-stats-section {
+  background: rgba(59, 130, 246, 0.06) !important;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 0.5rem;
+}
+
+/* Almost done (75%+) - Green tint */
+.goal-card-grid.progress-state-almost .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(16, 185, 129, 0.08) 100%) !important;
+}
+
+.goal-card-grid.progress-state-almost .progress-stats-section {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 0.5rem;
+}
+
+/* Completed - Celebration styling */
+.goal-card-grid.progress-state-complete .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(16, 185, 129, 0.1) 100%) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2), 0 4px 12px rgba(16, 185, 129, 0.1) !important;
+}
+
+.goal-card-grid.progress-state-complete .progress-stats-section {
+  background: rgba(16, 185, 129, 0.12) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 0.5rem;
+}
+
+/* --- 4. PRIORITY INDICATOR ICONS --- */
+
+.priority-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: bold;
+  margin-right: 6px;
+  flex-shrink: 0;
+  animation: priority-bounce 1s ease-in-out infinite;
+}
+
+.priority-indicator.priority-critical {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.priority-indicator.priority-high {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+
+.priority-indicator.priority-medium {
+  background: linear-gradient(135deg, #eab308, #ca8a04);
+  color: white;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.3);
+}
+
+@keyframes priority-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Disable bounce on hover */
+.goal-card-grid:hover .priority-indicator {
+  animation: none;
+  transform: scale(1.05);
+}
+
+/* --- 5. ENHANCED DEADLINE BADGE --- */
+
+.deadline-badge-enhanced {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.deadline-badge-enhanced.overdue {
+  background: linear-gradient(135deg, #fef2f2, #fee2e2);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+}
+
+.deadline-badge-enhanced.due-today {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+}
+
+.deadline-badge-enhanced.due-soon {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  color: #b45309;
+  border: 1px solid rgba(180, 83, 9, 0.2);
+}
+
+.deadline-badge-enhanced.due-week {
+  background: linear-gradient(135deg, #fefce8, #fef9c3);
+  color: #a16207;
+  border: 1px solid rgba(161, 98, 7, 0.15);
+}
+
+.deadline-badge-enhanced.due-normal {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border-primary);
+}
+
+/* --- 6. ENHANCED PROGRESS CIRCLE --- */
+
+.progress-circle-enhanced {
+  position: relative;
+}
+
+.progress-circle-enhanced .progress-glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  opacity: 0.3;
+  filter: blur(4px);
+  z-index: -1;
+}
+
+.progress-circle-enhanced.progress-low .progress-glow {
+  background: #ef4444;
+}
+
+.progress-circle-enhanced.progress-medium .progress-glow {
+  background: #f59e0b;
+}
+
+.progress-circle-enhanced.progress-high .progress-glow {
+  background: #3b82f6;
+}
+
+.progress-circle-enhanced.progress-complete .progress-glow {
+  background: #10b981;
+}
+
+/* --- 7. DARK MODE ADJUSTMENTS --- */
+
+[data-theme="dark"] .goal-card-grid.urgency-overdue .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(239, 68, 68, 0.12) 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.4),
+    0 4px 16px rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme="dark"] .goal-card-grid.urgency-today .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(245, 158, 11, 0.1) 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(245, 158, 11, 0.35),
+    0 4px 14px rgba(245, 158, 11, 0.15) !important;
+}
+
+[data-theme="dark"] .goal-card-grid.urgency-soon .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(245, 158, 11, 0.08) 100%) !important;
+  box-shadow:
+    0 0 0 1px rgba(245, 158, 11, 0.25),
+    0 4px 12px rgba(245, 158, 11, 0.1) !important;
+}
+
+[data-theme="dark"] .goal-card-grid.urgency-week .expandable-goal-card {
+  box-shadow: 0 2px 10px rgba(234, 179, 8, 0.15) !important;
+}
+
+[data-theme="dark"] .goal-card-grid.progress-state-idle .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(107, 114, 128, 0.06) 100%) !important;
+}
+
+[data-theme="dark"] .goal-card-grid.progress-state-active .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(59, 130, 246, 0.1) 100%) !important;
+}
+
+[data-theme="dark"] .goal-card-grid.progress-state-almost .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(16, 185, 129, 0.12) 100%) !important;
+}
+
+[data-theme="dark"] .goal-card-grid.progress-state-complete .expandable-goal-card {
+  background: linear-gradient(135deg,
+    var(--color-bg-surface) 0%,
+    rgba(16, 185, 129, 0.15) 100%) !important;
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3), 0 4px 14px rgba(16, 185, 129, 0.15) !important;
+}
+
+[data-theme="dark"] .deadline-badge-enhanced.overdue {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.15));
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .deadline-badge-enhanced.due-today {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.15));
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+[data-theme="dark"] .deadline-badge-enhanced.due-soon {
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.15), rgba(146, 64, 14, 0.1));
+  color: #fcd34d;
+  border-color: rgba(180, 83, 9, 0.3);
+}
+
+[data-theme="dark"] .deadline-badge-enhanced.due-week {
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.12), rgba(133, 77, 14, 0.08));
+  color: #fde047;
+  border-color: rgba(161, 98, 7, 0.25);
+}
+
+[data-theme="dark"] .deadline-badge-enhanced.due-normal {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .progress-bar-enhanced {
+  background: var(--color-bg-tertiary);
+}
+
+/* --- 8. GOAL TITLE ENHANCEMENT --- */
+
+.goal-title-enhanced {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  transition: color 0.2s ease;
+}
+
+.goal-card-grid.urgency-overdue .goal-title-enhanced,
+.goal-card-grid.urgency-overdue .goal-title-modern {
+  color: #dc2626;
+}
+
+[data-theme="dark"] .goal-card-grid.urgency-overdue .goal-title-enhanced,
+[data-theme="dark"] .goal-card-grid.urgency-overdue .goal-title-modern {
+  color: #f87171;
+}
+
+.goal-card-grid.urgency-today .goal-title-enhanced,
+.goal-card-grid.urgency-today .goal-title-modern {
+  color: #b45309;
+}
+
+[data-theme="dark"] .goal-card-grid.urgency-today .goal-title-enhanced,
+[data-theme="dark"] .goal-card-grid.urgency-today .goal-title-modern {
+  color: #fbbf24;
+}
+
+/* --- 9. COMPLETION CELEBRATION --- */
+
+@keyframes celebrate {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.02); }
+  50% { transform: scale(1); }
+  75% { transform: scale(1.01); }
+  100% { transform: scale(1); }
+}
+
+.goal-card-grid.progress-state-complete .expandable-goal-card {
+  animation: celebrate 0.6s ease-out;
+}
+
+/* Checkmark glow for completed items */
+.goal-card-grid.progress-state-complete .status-dot {
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+/* ==============================================
+   ENHANCED GOAL CARD REDESIGN - OPTION B
+   Focus on horizontal progress bar
+   ============================================== */
+
+/* --- OPTION B: PROGRESS BAR FOCUS LAYOUT --- */
+
+.progress-section-enhanced {
+  background: var(--color-bg-tertiary);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--color-border-primary);
+  transition: all 0.3s ease;
+}
+
+.progress-section-enhanced:hover {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-secondary);
+  box-shadow: 0 2px 8px var(--color-shadow-sm);
+}
+
+/* Enhanced horizontal progress bar - Option B main element */
+.progress-bar-option-b {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    var(--color-bg-tertiary) 0%,
+    rgba(0,0,0,0.05) 100%);
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px var(--color-shadow-sm);
+}
+
+.progress-bar-option-b .progress-fill-enhanced {
+  height: 100%;
+  border-radius: 6px;
+  position: relative;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Progress fill gradients based on percentage */
+.progress-fill-enhanced.fill-low {
+  background: linear-gradient(90deg, #ef4444 0%, #f87171 50%, #fca5a5 100%);
+}
+
+.progress-fill-enhanced.fill-medium {
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #fcd34d 100%);
+}
+
+.progress-fill-enhanced.fill-high {
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+}
+
+.progress-fill-enhanced.fill-complete {
+  background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+}
+
+/* Animated shine effect */
+.progress-fill-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: shine-sweep 2.5s ease-in-out infinite;
+}
+
+@keyframes shine-sweep {
+  0% { left: -100%; }
+  50% { left: 100%; }
+  100% { left: 100%; }
+}
+
+/* Progress percentage badge */
+.progress-percentage-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  transition: all 0.3s ease;
+}
+
+.progress-percentage-badge.badge-low {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.progress-percentage-badge.badge-medium {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.progress-percentage-badge.badge-high {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.progress-percentage-badge.badge-complete {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Task count display */
+.task-count-display {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+.task-count-display .count-done {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+/* Deadline display enhanced */
+.deadline-display-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.deadline-display-enhanced .date-text {
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+/* --- ENHANCED CHECKBOX ANIMATIONS --- */
+
+.subgoal-checkbox-enhanced {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--color-border-secondary);
+  border-radius: 4px;
+  background: var(--color-bg-surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.subgoal-checkbox-enhanced:hover {
+  border-color: var(--color-interactive-primary);
+  transform: scale(1.1);
+}
+
+.subgoal-checkbox-enhanced:checked {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-color: #10b981;
+  animation: checkbox-pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.subgoal-checkbox-enhanced:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  animation: checkmark-draw 0.2s ease-out 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes checkbox-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes checkmark-draw {
+  0% {
+    opacity: 0;
+    transform: rotate(45deg) scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+/* Checkbox ripple effect */
+.subgoal-checkbox-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(16, 185, 129, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.subgoal-checkbox-enhanced:checked::before {
+  width: 30px;
+  height: 30px;
+  opacity: 0;
+  animation: ripple-out 0.4s ease-out;
+}
+
+@keyframes ripple-out {
+  0% {
+    width: 0;
+    height: 0;
+    opacity: 0.5;
+  }
+  100% {
+    width: 40px;
+    height: 40px;
+    opacity: 0;
+  }
+}
+
+/* Subgoal text strikethrough animation */
+.subgoal-text-enhanced {
+  position: relative;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.subgoal-text-enhanced.completed {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.subgoal-text-enhanced.completed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1.5px;
+  background: var(--color-text-muted);
+  animation: strikethrough 0.3s ease-out forwards;
+  transform-origin: left center;
+}
+
+@keyframes strikethrough {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* --- ENHANCED CARD ELEVATION --- */
+
+.expandable-goal-card-enhanced {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+
+  /* Enhanced shadow system */
+  box-shadow:
+    0 1px 3px var(--color-shadow-sm),
+    0 4px 12px var(--color-shadow-sm);
+
+  /* Smooth transitions */
+  transition:
+    transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+
+  /* GPU optimization */
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+}
+
+.expandable-goal-card-enhanced:hover {
+  transform: translateY(-4px) translateZ(0);
+  box-shadow:
+    0 8px 25px var(--color-shadow-md),
+    0 12px 40px var(--color-shadow-lg);
+  border-color: var(--color-border-secondary);
+}
+
+/* Active/Focused card glow */
+.goal-card-grid:focus-within .expandable-goal-card {
+  box-shadow:
+    0 0 0 2px var(--color-interactive-primary),
+    0 8px 25px var(--color-shadow-md);
+}
+
+/* --- CONFETTI CELEBRATION SYSTEM --- */
+
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  opacity: 0;
+  animation: confetti-fall 3s ease-out forwards;
+}
+
+.confetti-piece.shape-square {
+  border-radius: 2px;
+}
+
+.confetti-piece.shape-circle {
+  border-radius: 50%;
+}
+
+.confetti-piece.shape-triangle {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 10px solid currentColor;
+  background: transparent !important;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(-100px) rotate(0deg) scale(0);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) rotate(90deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg) scale(0.5);
+  }
+}
+
+/* Goal completion celebration overlay */
+.goal-celebration {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  animation: celebration-pulse 1s ease-out;
+}
+
+@keyframes celebration-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+/* Star burst for 100% completion */
+.star-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.star-burst::before,
+.star-burst::after {
+  content: '⭐';
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0;
+  animation: star-pop 0.6s ease-out forwards;
+}
+
+.star-burst::before {
+  animation-delay: 0.1s;
+  transform: translate(-20px, -20px);
+}
+
+.star-burst::after {
+  animation-delay: 0.2s;
+  transform: translate(20px, -20px);
+}
+
+@keyframes star-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) rotate(360deg) translateY(-30px);
+  }
+}
+
+/* --- GAMIFICATION ELEMENTS --- */
+
+/* Streak indicator */
+.streak-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.streak-indicator i {
+  color: #f59e0b;
+  animation: flame-flicker 0.5s ease-in-out infinite;
+}
+
+@keyframes flame-flicker {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Achievement badge */
+.achievement-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: white;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  animation: badge-bounce 2s ease-in-out infinite;
+}
+
+@keyframes badge-bounce {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.1) rotate(-5deg); }
+  75% { transform: scale(1.1) rotate(5deg); }
+}
+
+/* Progress milestone markers */
+.milestone-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.milestone-marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  background: var(--color-border-secondary);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+.milestone-marker::after {
+  content: attr(data-milestone);
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.milestone-marker.reached {
+  background: var(--color-success);
+  opacity: 1;
+  animation: milestone-pop 0.3s ease-out;
+}
+
+@keyframes milestone-pop {
+  0% { transform: translateY(-50%) scale(1); }
+  50% { transform: translateY(-50%) scale(1.5); }
+  100% { transform: translateY(-50%) scale(1); }
+}
+
+/* --- URGENCY ENHANCEMENTS --- */
+
+/* Pulsing glow for overdue */
+.urgency-glow-overdue {
+  animation: urgency-glow-red 2s ease-in-out infinite;
+}
+
+@keyframes urgency-glow-red {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Urgency badge with icon */
+.urgency-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.urgency-badge.urgency-overdue {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+.urgency-badge.urgency-today {
+  background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+  color: #ea580c;
+  border: 1px solid rgba(234, 88, 12, 0.3);
+}
+
+.urgency-badge.urgency-soon {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.urgency-badge.urgency-week {
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  color: #a16207;
+  border: 1px solid rgba(161, 98, 7, 0.2);
+}
+
+.urgency-badge.urgency-safe {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border-primary);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* --- DARK MODE ENHANCEMENTS --- */
+
+[data-theme="dark"] .progress-section-enhanced {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .progress-bar-option-b {
+  background: linear-gradient(90deg,
+    var(--color-bg-tertiary) 0%,
+    rgba(255,255,255,0.05) 100%);
+}
+
+[data-theme="dark"] .progress-percentage-badge.badge-low {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+[data-theme="dark"] .progress-percentage-badge.badge-medium {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.15) 100%);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="dark"] .progress-percentage-badge.badge-high {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .progress-percentage-badge.badge-complete {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .subgoal-checkbox-enhanced {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-secondary);
+}
+
+[data-theme="dark"] .streak-indicator {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.15) 100%);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+[data-theme="dark"] .urgency-badge.urgency-overdue {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.2) 100%);
+  color: #f87171;
+}
+
+[data-theme="dark"] .urgency-badge.urgency-today {
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.25) 0%, rgba(194, 65, 12, 0.2) 100%);
+  color: #fb923c;
+}
+
+[data-theme="dark"] .urgency-badge.urgency-soon {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.2) 0%, rgba(180, 83, 9, 0.15) 100%);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .urgency-badge.urgency-week {
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.2) 0%, rgba(133, 77, 14, 0.15) 100%);
+  color: #fcd34d;
+}
+
+/* --- ENHANCED TITLE STYLING --- */
+
+.goal-title-option-b {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+  margin-bottom: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

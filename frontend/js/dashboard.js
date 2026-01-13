@@ -1928,6 +1928,10 @@ async function loadDashboardData() {
             renderProgressSummary(summary);
         }
 
+        // Update quick stats pill and active filters display
+        updateQuickStatsPill();
+        updateActiveFiltersDisplay();
+
     } catch (error) {
         console.error('Error loading dashboard data:', error);
         authUtils.showErrorMessage('Failed to load dashboard data');
@@ -2551,29 +2555,37 @@ function setupStickyHover() {
 
 // Render goal card for grid view
 function renderGoalCardGrid(goal) {
-    // Enhanced progress colors with gradients
-    const progressColor = goal.progress >= 100 ? '#10b981' : 
-                         goal.progress >= 75 ? '#3b82f6' : 
-                         goal.progress >= 25 ? '#f59e0b' : '#ef4444';
-    
-    // Improved circle calculations for cleaner appearance
-    const radius = 26;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (goal.progress / 100) * circumference;
-    
     const hasHiddenSubgoals = goal.subgoals.length > 3;
-    
+
+    // Visual hierarchy enhancement classes
+    const urgencyClass = getUrgencyClass(goal.target_date, goal.status, goal.progress);
+    const progressStateClass = getProgressStateClass(goal.progress, goal.status);
+
+    // Option B: Enhanced progress fill class
+    const progressFillClassB = getProgressFillClassOptionB(goal.progress);
+    const progressBadgeClass = getProgressBadgeClass(goal.progress);
+    const urgencyBadgeHTML = getUrgencyBadgeHTML(goal.target_date, goal.status, goal.progress);
+
+    // Check if goal just completed for celebration
+    const isCompleted = goal.progress >= 100 || goal.status === 'completed';
+    const completedSubgoals = goal.subgoals.filter(sg => sg.status === 'achieved').length;
+    const totalSubgoals = goal.subgoals.length;
+
     return `
-        <div class="goal-card-grid expandable-goal-card" 
-             data-goal-id="${goal.id}">
-            
+        <div class="goal-card-grid ${urgencyClass} ${progressStateClass}"
+             data-goal-id="${goal.id}"
+             data-progress="${goal.progress}">
+            <div class="expandable-goal-card">
+
+                ${isCompleted ? `<div class="achievement-badge" title="Goal completed!">⭐</div>` : ''}
+
             <!-- Modern Header with Integrated Status -->
             <div class="card-header-section">
                 <div class="flex items-start justify-between gap-3 mb-2">
                     <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <div class="status-dot ${getStatusDotClass(goal.status)}" 
+                        <div class="status-dot ${getStatusDotClass(goal.status)}"
                              title="${goal.status.replace('_', ' ').toUpperCase()}"></div>
-                        <h3 class="goal-title-modern ${getTextSizeClass(goal.title, goal.description)}">${goal.title}</h3>
+                        <h3 class="goal-title-option-b">${goal.title}</h3>
                         ${goal.is_owner === false ? `
                             <div class="shared-by-hover-container">
                                 <i class="fas fa-share-alt text-blue-500 text-sm" title="Shared by ${goal.owner ? goal.owner.username : 'another user'}"></i>
@@ -2614,7 +2626,7 @@ function renderGoalCardGrid(goal) {
                                     <span>Archive</span>
                                 </button>
                             `}
-                            
+
                             <!-- Sharing Options (Only for owners) -->
                             ${goal.is_owner !== false ? `
                                 <div class="card-menu-divider"></div>
@@ -2629,7 +2641,7 @@ function renderGoalCardGrid(goal) {
                                     </button>
                                 ` : ''}
                             ` : ''}
-                            
+
                             <div class="card-menu-divider"></div>
                             ${goal.is_owner !== false ? `
                                 <button onclick="deleteGoal(${goal.id}); closeCardMenu(${goal.id}); event.stopPropagation();" class="card-menu-item card-menu-danger">
@@ -2640,174 +2652,238 @@ function renderGoalCardGrid(goal) {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Tags Row -->
                 ${goal.tags && goal.tags.length > 0 ? `
-                    <div class="tags-container mb-3">
+                    <div class="tags-container mb-2">
                         ${renderModernTagBadges(goal, 3)}
                     </div>
                 ` : ''}
-                
-                <!-- Description with consistent 1-line spacing -->
-                <div class="${goal.description ? 'description-container' : 'description-placeholder'}">
-                    ${goal.description ? `
-                        <p class="goal-description-modern ${getTextSizeClass(goal.title, goal.description)}" id="desc-${goal.id}">${goal.description}</p>
-                    ` : ''}
-                </div>
-                
-                <!-- Compact Progress and Date Section -->
-                <div class="px-2 py-2 progress-stats-section rounded-lg">
-                    <div class="flex items-center justify-between gap-2">
-                        <!-- Compact Progress Circle -->
-                        <div class="relative w-10 h-10 flex-shrink-0">
-                            <svg class="w-10 h-10 transform -rotate-90" viewBox="0 0 40 40">
-                                <circle cx="20" cy="20" r="16" stroke="#e5e7eb" stroke-width="3" fill="none"/>
-                                <circle cx="20" cy="20" r="16"
-                                        stroke="${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}"
-                                        stroke-width="3"
-                                        fill="none"
-                                        stroke-dasharray="${2 * Math.PI * 16}"
-                                        stroke-dashoffset="${2 * Math.PI * 16 * (1 - goal.progress / 100)}"
-                                        stroke-linecap="round"/>
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-xs font-semibold text-gray-800">${Math.round(goal.progress)}%</span>
-                            </div>
+
+                <!-- Description -->
+                ${goal.description ? `
+                    <p class="text-sm text-gray-600 mb-3 line-clamp-2" id="desc-${goal.id}">${goal.description}</p>
+                ` : ''}
+
+                <!-- OPTION B: Enhanced Progress Section -->
+                <div class="progress-section-enhanced">
+                    <!-- Progress Bar with percentage badge -->
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="progress-percentage-badge ${progressBadgeClass}">${Math.round(goal.progress)}%</span>
+                        <div class="flex-1 progress-bar-option-b">
+                            <div class="progress-fill-enhanced ${progressFillClassB}"
+                                 style="width: ${goal.progress}%;"></div>
                         </div>
-                        <!-- Inline Progress Info -->
-                        <div class="flex items-center gap-2 flex-1 min-w-0">
-                            <span class="text-xs text-gray-600 whitespace-nowrap">
-                                ${goal.subgoals.filter(sg => sg.status === 'achieved').length}/${goal.subgoals.length} done
-                            </span>
-                            <div class="flex-1 h-1.5 bg-gray-200 rounded-full min-w-[40px]">
-                                <div class="h-1.5 rounded-full transition-all duration-300"
-                                     style="width: ${goal.progress}%; background-color: ${goal.progress >= 100 ? '#10b981' : goal.progress >= 75 ? '#3b82f6' : goal.progress >= 25 ? '#f59e0b' : '#ef4444'}"></div>
-                            </div>
+                    </div>
+
+                    <!-- Stats row: tasks done + deadline -->
+                    <div class="flex items-center justify-between">
+                        <div class="task-count-display">
+                            <span class="count-done">${completedSubgoals}</span>
+                            <span>/</span>
+                            <span>${totalSubgoals}</span>
+                            <span class="ml-1">tasks</span>
                         </div>
-                        <!-- Compact Target Date -->
+
                         ${goal.target_date ? `
-                            <div class="flex items-center gap-1 flex-shrink-0">
-                                <span class="text-xs font-medium text-gray-700">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
-                                ${formatDaysLeft(goal.target_date, goal.status, goal.progress)}
+                            <div class="deadline-display-enhanced">
+                                <span class="date-text">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
+                                ${urgencyBadgeHTML}
                             </div>
                         ` : ''}
                     </div>
                 </div>
             </div>
-            
+
             <!-- Flexible content area -->
-            <div class="flex flex-col flex-1 mt-4">
-                <!-- Quick Add Subgoal Input - now in consistent position -->
+            <div class="flex flex-col flex-1 mt-3">
+                <!-- Quick Add Subgoal Input -->
                 ${goal.status !== 'completed' ? `
-                    <div class="mt-1 mb-2 px-1">
-                        <input type="text" 
+                    <div class="mb-2 px-1">
+                        <input type="text"
                                id="quick-subgoal-${goal.id}"
-                               class="quick-subgoal-input w-full text-xs px-2 py-1.5 border border-gray-200 rounded-md focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none transition-all duration-200"
-                               placeholder="Add quick sub-goal..." 
+                               class="quick-subgoal-input w-full text-xs px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all duration-200"
+                               placeholder="+ Add quick sub-goal..."
                                onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
                                onclick="event.stopPropagation();"
                                onfocus="event.stopPropagation(); maintainStickyHover(${goal.id})"
                                onblur="event.stopPropagation();">
                     </div>
                 ` : ''}
-                
-                <!-- Subgoals Preview with Pure CSS Hover Expansion -->
+
+                <!-- Subgoals with Enhanced Checkboxes -->
                 ${goal.subgoals.length > 0 ? `
-                    <div class="pt-1.5 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
-                        <!-- Clean spacer div to maintain layout spacing -->
-                        <div class="mb-0.5" style="height: 0.25rem; background: transparent;">
-                            <!-- Empty spacer for layout consistency -->
-                        </div>
-                        
-                        <!-- Single Unified Subgoals List -->
-                        <div class="subgoals-list space-y-0">
+                    <div class="pt-1 mt-auto subgoals-section ${hasHiddenSubgoals ? 'has-hidden-subgoals' : ''}">
+                        <div class="subgoals-list space-y-1">
                             ${(() => {
                                 const sortedSubgoals = sortSubgoalsForDisplay(goal.subgoals);
                                 const visibleSlots = 3;
                                 let output = '';
-                                
-                                // Only render visible subgoals initially (first 3)
+
                                 sortedSubgoals.slice(0, visibleSlots).forEach((subgoal, index) => {
+                                    const isAchieved = subgoal.status === 'achieved';
                                     output += `
-                                        <div class="subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} visible-subgoal" 
-                                             style="--animation-delay: ${index * 0.05}s">
-                                            <div class="flex items-center w-full py-0.25">
-                                                <input type="checkbox" 
+                                        <div class="subgoal-item ${isAchieved ? 'completed' : ''} visible-subgoal"
+                                             style="--animation-delay: ${index * 0.05}s"
+                                             data-subgoal-id="${subgoal.id}">
+                                            <div class="flex items-center w-full py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                                                <input type="checkbox"
                                                        id="subgoal-${subgoal.id}"
-                                                       class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
-                                                       ${subgoal.status === 'achieved' ? 'checked' : ''}
+                                                       class="subgoal-checkbox-enhanced mr-2"
+                                                       ${isAchieved ? 'checked' : ''}
                                                        onclick="event.stopPropagation();"
-                                                       onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
-                                                <span class="truncate flex-1 cursor-pointer text-sm"
+                                                       onchange="quickUpdateSubgoalEnhanced(${subgoal.id}, this.checked, ${goal.id}); event.stopPropagation();">
+                                                <span class="subgoal-text-enhanced truncate flex-1 cursor-pointer text-sm ${isAchieved ? 'completed' : ''}"
                                                       onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goal.id});">${subgoal.title}</span>
                                             </div>
                                         </div>`;
                                 });
-                                
-                                // Store hidden subgoals data for later expansion (if any exist)
+
                                 if (sortedSubgoals.length > visibleSlots) {
                                     const hiddenSubgoals = sortedSubgoals.slice(visibleSlots);
-                                    // Add hidden subgoals as data attribute for expansion logic
                                     output += `<div class="hidden-subgoals-data" style="display: none;" data-hidden-subgoals='${JSON.stringify(hiddenSubgoals)}'></div>`;
                                 }
-                                
-                                // Add empty spacer divs to ensure consistent height for cards with fewer subgoals
+
                                 const visibleCount = Math.min(sortedSubgoals.length, visibleSlots);
                                 for (let i = visibleCount; i < visibleSlots; i++) {
                                     output += `<div class="subgoal-item visible-subgoal spacer-item">
-                                        <div class="flex items-center w-full py-0.25" style="height: 1.5rem;">
-                                            <!-- Empty spacer to maintain consistent card height -->
-                                        </div>
+                                        <div class="flex items-center w-full py-1" style="height: 1.75rem;"></div>
                                     </div>`;
                                 }
-                                
+
                                 return output;
                             })()}
-                            
+
                             ${hasHiddenSubgoals ? `
-                                <div class="hover-hint-item text-xs text-gray-400 mt-1">
+                                <div class="hover-hint-item text-xs text-gray-400 mt-1 flex items-center">
                                     <i class="fas fa-chevron-down mr-1"></i>
                                     <span class="hint-text">+${goal.subgoals.length - 3} more (hover to expand)</span>
                                 </div>
                             ` : `
-                                <div class="hover-hint-item text-xs text-gray-400 mt-1" style="opacity: 0; height: 1rem;">
-                                    <!-- Invisible spacer to maintain consistent spacing -->
-                                </div>
+                                <div class="hover-hint-item text-xs text-gray-400 mt-1" style="opacity: 0; height: 1rem;"></div>
                             `}
                         </div>
                     </div>
                 ` : `
-                    <div class="pt-1.5 mt-auto subgoals-section">
-                        <!-- Clean spacer div to maintain layout spacing - same as cards with subgoals -->
-                        <div class="mb-0.5" style="height: 0.25rem; background: transparent;">
-                            <!-- Empty spacer for layout consistency -->
-                        </div>
-                        
-                        <!-- Reserve space for consistent card height - match collapsed card structure -->
-                        <div class="subgoals-list space-y-0">
-                            <!-- Add 1 empty subgoal slot to match collapsed view height -->
-                            <div class="subgoal-item visible-subgoal spacer-item">
-                                <div class="flex items-center w-full py-0.25">
-                                    <!-- Empty subgoal slot -->
-                                </div>
-                            </div>
-                            
-                            <!-- Match the hint area from collapsed cards -->
-                            <div class="hover-hint-item text-xs text-gray-400 mt-1" style="opacity: 0; height: 1rem;">
-                                <!-- Invisible spacer matching collapsed card hint area -->
-                            </div>
-                        </div>
-                        
-                        <!-- "No sub-goals yet" message positioned over the spacers -->
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-sm text-gray-500">No sub-goals yet</span>
+                    <div class="pt-1 mt-auto subgoals-section relative" style="min-height: 80px;">
+                        <div class="flex items-center justify-center h-full">
+                            <span class="text-sm text-gray-400">No sub-goals yet</span>
                         </div>
                     </div>
                 `}
             </div>
-            
-        </div>
+
+            </div><!-- /.expandable-goal-card -->
+        </div><!-- /.goal-card-grid -->
     `;
+}
+
+// Option B: Get progress fill class for enhanced horizontal bar
+function getProgressFillClassOptionB(progress) {
+    if (progress >= 100) return 'fill-complete';
+    if (progress >= 75) return 'fill-high';
+    if (progress >= 25) return 'fill-medium';
+    return 'fill-low';
+}
+
+// Get progress badge class based on percentage
+function getProgressBadgeClass(progress) {
+    if (progress >= 100) return 'badge-complete';
+    if (progress >= 75) return 'badge-high';
+    if (progress >= 25) return 'badge-medium';
+    return 'badge-low';
+}
+
+// Get urgency badge HTML for deadline
+function getUrgencyBadgeHTML(targetDate, status, progress) {
+    if (!targetDate || status === 'completed' || progress >= 100) {
+        return '';
+    }
+
+    const daysLeft = getDaysUntilDeadline(targetDate);
+    if (daysLeft === null) return '';
+
+    let badgeClass = 'urgency-badge ';
+    let icon = '';
+    let text = '';
+
+    if (daysLeft < 0) {
+        badgeClass += 'urgency-overdue';
+        icon = '<i class="fas fa-exclamation-triangle"></i>';
+        text = `${Math.abs(daysLeft)}d overdue`;
+    } else if (daysLeft === 0) {
+        badgeClass += 'urgency-today';
+        icon = '<i class="fas fa-fire"></i>';
+        text = 'Due today';
+    } else if (daysLeft <= 3) {
+        badgeClass += 'urgency-soon';
+        icon = '<i class="fas fa-clock"></i>';
+        text = `${daysLeft}d left`;
+    } else if (daysLeft <= 7) {
+        badgeClass += 'urgency-week';
+        icon = '<i class="fas fa-calendar-day"></i>';
+        text = `${daysLeft}d left`;
+    } else {
+        badgeClass += 'urgency-safe';
+        text = `${daysLeft}d left`;
+    }
+
+    return `<span class="${badgeClass}">${icon} ${text}</span>`;
+}
+
+// Enhanced subgoal update with celebration
+function quickUpdateSubgoalEnhanced(subgoalId, isChecked, goalId) {
+    // Call original function
+    quickUpdateSubgoal(subgoalId, isChecked, goalId);
+
+    // Add visual feedback
+    const checkbox = document.getElementById(`subgoal-${subgoalId}`);
+    if (checkbox) {
+        const textSpan = checkbox.parentElement.querySelector('.subgoal-text-enhanced');
+        if (textSpan) {
+            if (isChecked) {
+                textSpan.classList.add('completed');
+            } else {
+                textSpan.classList.remove('completed');
+            }
+        }
+    }
+}
+
+// Trigger confetti celebration
+function triggerConfetti() {
+    const container = document.createElement('div');
+    container.className = 'confetti-container';
+    document.body.appendChild(container);
+
+    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+    const shapes = ['shape-square', 'shape-circle', 'shape-triangle'];
+
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = `confetti-piece ${shapes[Math.floor(Math.random() * shapes.length)]}`;
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+        confetti.style.animationDuration = `${2 + Math.random() * 2}s`;
+        container.appendChild(confetti);
+    }
+
+    setTimeout(() => container.remove(), 4000);
+}
+
+// Trigger goal completion celebration
+function celebrateGoalCompletion(goalId) {
+    triggerConfetti();
+
+    const goalCard = document.querySelector(`[data-goal-id="${goalId}"] .expandable-goal-card`);
+    if (goalCard) {
+        const celebration = document.createElement('div');
+        celebration.className = 'goal-celebration';
+        goalCard.appendChild(celebration);
+
+        setTimeout(() => celebration.remove(), 1000);
+    }
 }
 
 // Simple CSS-based text compression - no JavaScript needed
@@ -2924,41 +3000,107 @@ function sortSubgoalsForDisplay(subgoals) {
     });
 }
 
-// Helper function to format days left indicator
+// ==============================================
+// VISUAL HIERARCHY HELPER FUNCTIONS
+// ==============================================
+
+// Get urgency class based on deadline
+function getUrgencyClass(targetDate, status, progress) {
+    // Don't show urgency for completed goals
+    if (status === 'completed' || progress >= 100) return '';
+
+    if (!targetDate) return '';
+
+    const daysLeft = getDaysUntilDeadline(targetDate);
+    if (daysLeft === null) return '';
+
+    if (daysLeft < 0) return 'urgency-overdue';
+    if (daysLeft === 0) return 'urgency-today';
+    if (daysLeft <= 3) return 'urgency-soon';
+    if (daysLeft <= 7) return 'urgency-week';
+
+    return '';
+}
+
+// Get progress state class based on completion percentage
+function getProgressStateClass(progress, status) {
+    if (progress >= 100 || status === 'completed') return 'progress-state-complete';
+    if (progress >= 75) return 'progress-state-almost';
+    if (progress > 0) return 'progress-state-active';
+    return 'progress-state-idle';
+}
+
+// Get progress fill class for enhanced progress bar
+function getProgressFillClass(progress) {
+    if (progress >= 100) return 'progress-complete';
+    if (progress >= 75) return 'progress-high';
+    if (progress >= 25) return 'progress-medium';
+    return 'progress-low';
+}
+
+// Get priority indicator HTML for urgent items
+function getPriorityIndicator(targetDate, status, progress) {
+    // Don't show for completed goals
+    if (status === 'completed' || progress >= 100) return '';
+
+    if (!targetDate) return '';
+
+    const daysLeft = getDaysUntilDeadline(targetDate);
+    if (daysLeft === null) return '';
+
+    if (daysLeft < 0) {
+        return `<span class="priority-indicator priority-critical" title="Overdue!">!</span>`;
+    }
+    if (daysLeft === 0) {
+        return `<span class="priority-indicator priority-high" title="Due today!">!</span>`;
+    }
+    if (daysLeft <= 3) {
+        return `<span class="priority-indicator priority-medium" title="Due soon">!</span>`;
+    }
+
+    return '';
+}
+
+// Helper function to format days left indicator (ENHANCED VERSION)
 function formatDaysLeft(targetDate, status, progress = null) {
     if (!targetDate || status === 'achieved') return '';
-    
+
     // If progress is provided and is 100%, don't show overdue/due dates
     if (progress !== null && progress >= 100) return '';
-    
+
     const daysLeft = getDaysUntilDeadline(targetDate);
-    
+
     if (daysLeft === null) return '';
-    
-    let colorClass = '';
+
+    let badgeClass = 'deadline-badge-enhanced ';
     let text = '';
-    
+    let icon = '';
+
     if (daysLeft < 0) {
-        colorClass = 'text-red-500 bg-red-50';
+        badgeClass += 'overdue';
         text = `${Math.abs(daysLeft)}d overdue`;
+        icon = '<i class="fas fa-exclamation-triangle mr-1"></i>';
     } else if (daysLeft === 0) {
-        colorClass = 'text-orange-600 bg-orange-50';
+        badgeClass += 'due-today';
         text = 'Due today';
+        icon = '<i class="fas fa-fire mr-1"></i>';
     } else if (daysLeft === 1) {
-        colorClass = 'text-orange-600 bg-orange-50';
-        text = 'Due tomorrow';
+        badgeClass += 'due-soon';
+        text = 'Tomorrow';
+        icon = '<i class="fas fa-clock mr-1"></i>';
     } else if (daysLeft <= 3) {
-        colorClass = 'text-orange-600 bg-orange-50';
+        badgeClass += 'due-soon';
         text = `${daysLeft}d left`;
+        icon = '<i class="fas fa-hourglass-half mr-1"></i>';
     } else if (daysLeft <= 7) {
-        colorClass = 'text-yellow-600 bg-yellow-50';
+        badgeClass += 'due-week';
         text = `${daysLeft}d left`;
     } else {
-        colorClass = 'text-gray-500 bg-gray-50';
+        badgeClass += 'due-normal';
         text = `${daysLeft}d left`;
     }
-    
-    return `<span class="px-1.5 py-0.5 rounded-full ${colorClass} ml-auto flex-shrink-0" style="font-size: 0.65rem;">${text}</span>`;
+
+    return `<span class="${badgeClass} ml-auto flex-shrink-0">${icon}${text}</span>`;
 }
 
 // Helper function to determine text size class based on content length
@@ -4623,8 +4765,8 @@ function closeSortDropdown() {
 window.setFilter = function(filterValue) {
     currentFilter = filterValue;
     currentPage = 0;
-    
-    // Update label
+
+    // Update label (old dropdown - keeping for compatibility)
     const label = document.getElementById('filter-label');
     const filterLabels = {
         'all': 'All Goals',
@@ -4633,12 +4775,21 @@ window.setFilter = function(filterValue) {
         'working': 'Working',
         'completed': 'Completed'
     };
-    
+
     if (label) {
         label.textContent = filterLabels[filterValue];
     }
-    
+
+    // Update unified filter panel status chips
+    document.querySelectorAll('.status-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (chip.dataset.status === filterValue) {
+            chip.classList.add('active');
+        }
+    });
+
     closeFilterDropdown();
+    updateActiveFiltersDisplay();
     renderGoals();
     saveUserSettings();
 }
@@ -4646,8 +4797,8 @@ window.setFilter = function(filterValue) {
 window.setSort = function(sortValue) {
     currentSort = sortValue;
     currentPage = 0;
-    
-    // Update label
+
+    // Update label (old dropdown - keeping for compatibility)
     const label = document.getElementById('sort-label');
     const sortLabels = {
         'recent': 'Recently Updated',
@@ -4656,12 +4807,265 @@ window.setSort = function(sortValue) {
         'name': 'Name',
         'urgent_subgoals': 'Due Date'
     };
-    label.textContent = sortLabels[sortValue];
-    
+    if (label) {
+        label.textContent = sortLabels[sortValue];
+    }
+
+    // Update unified filter panel sort chips
+    document.querySelectorAll('.sort-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (chip.dataset.sort === sortValue) {
+            chip.classList.add('active');
+        }
+    });
+
     closeSortDropdown();
+    updateActiveFiltersDisplay();
     renderGoals();
     saveUserSettings();
 }
+
+// ===== UNIFIED FILTER PANEL FUNCTIONS =====
+
+// Toggle unified filter panel
+window.toggleUnifiedFilterPanel = function() {
+    const panel = document.getElementById('unified-filter-panel');
+    const btn = document.getElementById('unified-filter-btn');
+    const chevron = document.getElementById('unified-filter-chevron');
+
+    if (panel.classList.contains('hidden')) {
+        panel.classList.remove('hidden');
+        btn.classList.add('active');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        // Populate tags in filter panel
+        populateFilterPanelTags();
+    } else {
+        closeUnifiedFilterPanel();
+    }
+}
+
+function closeUnifiedFilterPanel() {
+    const panel = document.getElementById('unified-filter-panel');
+    const btn = document.getElementById('unified-filter-btn');
+    const chevron = document.getElementById('unified-filter-chevron');
+
+    if (panel && !panel.classList.contains('hidden')) {
+        panel.classList.add('hidden');
+        btn.classList.remove('active');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Populate tags in the unified filter panel
+function populateFilterPanelTags() {
+    const container = document.getElementById('filter-panel-tags');
+    if (!container) return;
+
+    if (tags.length === 0) {
+        container.innerHTML = '<span class="text-xs text-gray-400">No tags created yet</span>';
+        return;
+    }
+
+    container.innerHTML = tags.map(tag => `
+        <button type="button"
+                onclick="selectTagFromFilterPanel(${tag.id})"
+                class="filter-tag-chip ${currentTagFilter === tag.id ? 'active' : ''}"
+                style="background-color: ${tag.color};"
+                data-tag-id="${tag.id}">
+            ${tag.name}
+        </button>
+    `).join('');
+}
+
+// Select tag from filter panel
+window.selectTagFromFilterPanel = function(tagId) {
+    currentTagFilter = currentTagFilter === tagId ? null : tagId;
+    currentPage = 0;
+
+    // Update filter panel tags appearance
+    document.querySelectorAll('#filter-panel-tags .filter-tag-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (parseInt(chip.dataset.tagId) === currentTagFilter) {
+            chip.classList.add('active');
+        }
+    });
+
+    // Also update the tag filter bar if it exists
+    if (typeof populateTagFilterBar === 'function') {
+        populateTagFilterBar();
+    }
+
+    updateActiveFiltersDisplay();
+    renderGoals();
+    saveUserSettings();
+}
+
+// Reset all filters
+window.resetAllFilters = function() {
+    currentFilter = 'all';
+    currentSort = 'recent';
+    currentTagFilter = null;
+    currentPage = 0;
+
+    // Reset status chips
+    document.querySelectorAll('.status-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (chip.dataset.status === 'all') {
+            chip.classList.add('active');
+        }
+    });
+
+    // Reset sort chips
+    document.querySelectorAll('.sort-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (chip.dataset.sort === 'recent') {
+            chip.classList.add('active');
+        }
+    });
+
+    // Reset tag chips in filter panel
+    document.querySelectorAll('#filter-panel-tags .filter-tag-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+
+    // Also update legacy elements
+    const filterLabel = document.getElementById('filter-label');
+    if (filterLabel) filterLabel.textContent = 'All Goals';
+
+    const sortLabel = document.getElementById('sort-label');
+    if (sortLabel) sortLabel.textContent = 'Recently Updated';
+
+    // Reset tag filter bar
+    if (typeof resetTagFilter === 'function') {
+        resetTagFilter();
+    }
+
+    updateActiveFiltersDisplay();
+    closeUnifiedFilterPanel();
+    renderGoals();
+    saveUserSettings();
+}
+
+// Update active filters display bar
+function updateActiveFiltersDisplay() {
+    const activeFiltersBar = document.getElementById('active-filters-bar');
+    const chipsContainer = document.getElementById('active-filters-chips');
+    const filterCountBadge = document.getElementById('active-filter-count');
+
+    if (!activeFiltersBar || !chipsContainer) return;
+
+    const activeFilters = [];
+
+    // Check status filter
+    if (currentFilter && currentFilter !== 'all') {
+        const filterLabels = {
+            'created': 'Status: Created',
+            'started': 'Status: Started',
+            'working': 'Status: Working',
+            'completed': 'Status: Completed'
+        };
+        activeFilters.push({
+            type: 'status',
+            label: filterLabels[currentFilter],
+            clear: () => setFilter('all')
+        });
+    }
+
+    // Check sort (only show if not default)
+    if (currentSort && currentSort !== 'recent') {
+        const sortLabels = {
+            'target': 'Sort: Target Date',
+            'progress': 'Sort: Progress',
+            'name': 'Sort: Name',
+            'urgent_subgoals': 'Sort: Due Date'
+        };
+        activeFilters.push({
+            type: 'sort',
+            label: sortLabels[currentSort],
+            clear: () => setSort('recent')
+        });
+    }
+
+    // Check tag filter
+    if (currentTagFilter !== null) {
+        const tag = tags.find(t => t.id === currentTagFilter);
+        if (tag) {
+            activeFilters.push({
+                type: 'tag',
+                label: `Tag: ${tag.name}`,
+                color: tag.color,
+                clear: () => {
+                    currentTagFilter = null;
+                    updateActiveFiltersDisplay();
+                    renderGoals();
+                    saveUserSettings();
+                }
+            });
+        }
+    }
+
+    // Update display
+    if (activeFilters.length > 0) {
+        activeFiltersBar.classList.remove('hidden');
+        chipsContainer.innerHTML = activeFilters.map(filter => `
+            <span class="active-filter-chip" ${filter.color ? `style="border-left: 3px solid ${filter.color};"` : ''}>
+                ${filter.label}
+                <button onclick="(${filter.clear.toString()})()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </span>
+        `).join('');
+
+        // Update filter count badge
+        if (filterCountBadge) {
+            filterCountBadge.textContent = activeFilters.length;
+            filterCountBadge.classList.remove('hidden');
+        }
+    } else {
+        activeFiltersBar.classList.add('hidden');
+        if (filterCountBadge) {
+            filterCountBadge.classList.add('hidden');
+        }
+    }
+}
+
+// Update quick stats pill with current data
+function updateQuickStatsPill() {
+    const goalsCount = document.getElementById('pill-goals-count');
+    const tasksCount = document.getElementById('pill-tasks-count');
+    const streakCount = document.getElementById('pill-streak-count');
+
+    if (goalsCount) {
+        const completedGoals = goals.filter(g => g.status === 'completed').length;
+        goalsCount.textContent = completedGoals;
+    }
+
+    if (tasksCount) {
+        const completedTasks = goals.reduce((sum, goal) => {
+            return sum + (goal.subgoals || []).filter(s => s.status === 'completed').length;
+        }, 0);
+        tasksCount.textContent = completedTasks;
+    }
+
+    if (streakCount) {
+        const streakDays = document.getElementById('streak-days');
+        if (streakDays) {
+            streakCount.textContent = streakDays.textContent || '0';
+        }
+    }
+}
+
+// Close unified filter panel when clicking outside
+document.addEventListener('click', function(e) {
+    const panel = document.getElementById('unified-filter-panel');
+    const btn = document.getElementById('unified-filter-btn');
+
+    if (panel && !panel.classList.contains('hidden')) {
+        if (!panel.contains(e.target) && !btn.contains(e.target)) {
+            closeUnifiedFilterPanel();
+        }
+    }
+});
 
 // Enhanced view mode management
 window.setViewMode = function(mode) {
@@ -5912,22 +6316,10 @@ window.focusOnItem = function(type, goalId) {
 // Toggle progress summary collapse state
 window.toggleProgressSummary = function() {
     const summary = document.getElementById('progress-summary');
-    const toggleBtn = document.getElementById('summary-toggle');
 
-    if (!summary || !toggleBtn) return;
+    if (!summary) return;
 
     const isCollapsed = summary.classList.toggle('collapsed');
-
-    // Update toggle button icon and text
-    const icon = toggleBtn.querySelector('i');
-    const text = toggleBtn.querySelector('span');
-
-    if (icon) {
-        icon.className = isCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
-    }
-    if (text) {
-        text.textContent = isCollapsed ? 'Show Progress Summary' : 'Hide Progress Summary';
-    }
 
     // Save state to localStorage
     localStorage.setItem('progressSummaryCollapsed', isCollapsed.toString());
@@ -5936,18 +6328,13 @@ window.toggleProgressSummary = function() {
 // Initialize summary collapse state from localStorage
 function initializeSummaryState() {
     const summary = document.getElementById('progress-summary');
-    const toggleBtn = document.getElementById('summary-toggle');
 
-    if (!summary || !toggleBtn) return;
+    if (!summary) return;
 
     const isCollapsed = localStorage.getItem('progressSummaryCollapsed') === 'true';
 
     if (isCollapsed) {
         summary.classList.add('collapsed');
-        const icon = toggleBtn.querySelector('i');
-        const text = toggleBtn.querySelector('span');
-        if (icon) icon.className = 'fas fa-chevron-down';
-        if (text) text.textContent = 'Show Progress Summary';
     }
 }
 
