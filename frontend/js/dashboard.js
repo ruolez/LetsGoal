@@ -2533,7 +2533,7 @@ function setupStickyHover() {
 
 // Render goal card for grid view
 function renderGoalCardGrid(goal) {
-    const hasHiddenSubgoals = goal.subgoals.length > 3;
+    const hasHiddenSubgoals = goal.subgoals.length > 2;  // Condensed: was > 3
 
     // Visual hierarchy enhancement classes
     const urgencyClass = getUrgencyClass(goal.target_date, goal.status, goal.progress);
@@ -2560,7 +2560,8 @@ function renderGoalCardGrid(goal) {
                     <div class="flex items-center gap-2 flex-1 min-w-0">
                         <div class="status-dot ${getStatusDotClass(goal.status)}"
                              title="${goal.status.replace('_', ' ').toUpperCase()}"></div>
-                        <h3 class="goal-title-option-b">${goal.title}</h3>
+                        <h3 class="goal-title-option-b truncate">${goal.title}</h3>
+                        ${goal.tags && goal.tags.length > 0 ? renderInlineTagBadge(goal.tags[0]) : ''}
                         ${goal.is_owner === false ? `
                             <div class="shared-by-hover-container">
                                 <i class="fas fa-share-alt text-blue-500 text-sm" title="Shared by ${goal.owner ? goal.owner.username : 'another user'}"></i>
@@ -2628,12 +2629,7 @@ function renderGoalCardGrid(goal) {
                     </div>
                 </div>
 
-                <!-- Tags Row -->
-                ${goal.tags && goal.tags.length > 0 ? `
-                    <div class="tags-container mb-2">
-                        ${renderModernTagBadges(goal, 3)}
-                    </div>
-                ` : ''}
+                <!-- Tags: Now inline with title (condensed layout) -->
 
                 <!-- Description -->
                 ${goal.description ? `
@@ -2692,7 +2688,7 @@ function renderGoalCardGrid(goal) {
                         <div class="subgoals-list space-y-1">
                             ${(() => {
                                 const sortedSubgoals = sortSubgoalsForDisplay(goal.subgoals);
-                                const visibleSlots = 3;
+                                const visibleSlots = 2;  // Condensed: was 3
                                 let output = '';
 
                                 sortedSubgoals.slice(0, visibleSlots).forEach((subgoal, index) => {
@@ -2716,15 +2712,12 @@ function renderGoalCardGrid(goal) {
 
                                 if (sortedSubgoals.length > visibleSlots) {
                                     const hiddenSubgoals = sortedSubgoals.slice(visibleSlots);
-                                    output += `<div class="hidden-subgoals-data" style="display: none;" data-hidden-subgoals='${JSON.stringify(hiddenSubgoals)}'></div>`;
+                                    // Escape for HTML attribute (handle apostrophes and special chars)
+                                    const escapedJson = JSON.stringify(hiddenSubgoals).replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+                                    output += `<div class="hidden-subgoals-data" style="display: none;" data-hidden-subgoals="${escapedJson}"></div>`;
                                 }
 
-                                const visibleCount = Math.min(sortedSubgoals.length, visibleSlots);
-                                for (let i = visibleCount; i < visibleSlots; i++) {
-                                    output += `<div class="subgoal-item visible-subgoal spacer-item">
-                                        <div class="flex items-center w-full py-1" style="height: 1.75rem;"></div>
-                                    </div>`;
-                                }
+                                // Condensed: removed spacer items to save vertical space
 
                                 return output;
                             })()}
@@ -2732,17 +2725,15 @@ function renderGoalCardGrid(goal) {
                             ${hasHiddenSubgoals ? `
                                 <div class="hover-hint-item text-xs text-gray-400 mt-1 flex items-center">
                                     <i class="fas fa-chevron-down mr-1"></i>
-                                    <span class="hint-text">+${goal.subgoals.length - 3} more (hover to expand)</span>
+                                    <span class="hint-text">+${goal.subgoals.length - 2} more (hover to expand)</span>
                                 </div>
-                            ` : `
-                                <div class="hover-hint-item text-xs text-gray-400 mt-1" style="opacity: 0; height: 1rem;"></div>
-                            `}
+                            ` : ''}
                         </div>
                     </div>
                 ` : `
-                    <div class="pt-1 mt-auto subgoals-section relative" style="min-height: 80px;">
+                    <div class="pt-1 mt-auto subgoals-section relative" style="min-height: 40px;">
                         <div class="flex items-center justify-center h-full">
-                            <span class="text-sm text-gray-400">No sub-goals yet</span>
+                            <span class="text-xs text-gray-400">No sub-goals yet</span>
                         </div>
                     </div>
                 `}
@@ -5360,6 +5351,12 @@ function renderModernTagBadges(goal, maxVisible = 3) {
     return badgesHtml;
 }
 
+// Render a single inline tag badge for condensed card header
+function renderInlineTagBadge(tag) {
+    if (!tag) return '';
+    return `<span class="inline-tag-badge" style="background: ${tag.color}20; color: ${tag.color}; border: 1px solid ${tag.color}40;">${tag.name}</span>`;
+}
+
 // ========================
 // TAG SELECTION FUNCTIONS
 // ========================
@@ -6173,32 +6170,277 @@ function updateLoadMoreButton() {
 // Pure CSS hover animations - no JavaScript manipulation needed
 
 // ========================
-// PROGRESS SUMMARY DASHBOARD FUNCTIONS
+// FOCUS HERO DASHBOARD FUNCTIONS
 // ========================
 
-// Render the complete progress summary dashboard
+// Calculate urgency level based on deadline
+function calculateUrgency(targetDate) {
+    if (!targetDate) return { level: 'none', text: '', class: '' };
+
+    const target = parseLocalDate(targetDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    target.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+        return { level: 'critical', text: `${Math.abs(diffDays)}d overdue`, class: 'urgency-critical', icon: 'fa-exclamation-circle' };
+    } else if (diffDays === 0) {
+        return { level: 'critical', text: 'Due today', class: 'urgency-critical', icon: 'fa-clock' };
+    } else if (diffDays <= 3) {
+        return { level: 'high', text: `${diffDays}d left`, class: 'urgency-high', icon: 'fa-clock' };
+    } else if (diffDays <= 7) {
+        return { level: 'medium', text: `${diffDays}d left`, class: 'urgency-medium', icon: 'fa-calendar' };
+    } else {
+        return { level: 'low', text: `${diffDays}d left`, class: 'urgency-low', icon: 'fa-calendar-check' };
+    }
+}
+
+// Find the most urgent pending subgoal from all goals
+function findPriorityTask() {
+    let priorityTask = null;
+    let priorityScore = Infinity; // Lower is more urgent
+
+    for (const goal of goals) {
+        if (goal.status === 'completed') continue;
+
+        const subgoals = goal.subgoals || [];
+        for (const subgoal of subgoals) {
+            if (subgoal.status === 'completed') continue;
+
+            // Calculate priority score based on deadline
+            let score = 1000; // Default score for no deadline
+
+            if (subgoal.target_date || goal.target_date) {
+                const targetDate = subgoal.target_date || goal.target_date;
+                const target = parseLocalDate(targetDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                target.setHours(0, 0, 0, 0);
+
+                const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+                score = diffDays; // Lower (or negative) = more urgent
+            }
+
+            if (score < priorityScore) {
+                priorityScore = score;
+                priorityTask = {
+                    type: 'subgoal',
+                    id: subgoal.id,
+                    title: subgoal.title,
+                    goal_id: goal.id,
+                    goal_title: goal.title,
+                    target_date: subgoal.target_date || goal.target_date,
+                    tag: goal.tags && goal.tags.length > 0 ? goal.tags[0] : null
+                };
+            }
+        }
+
+        // If goal has no subgoals, consider the goal itself
+        if (subgoals.length === 0) {
+            let score = 1000;
+            if (goal.target_date) {
+                const target = parseLocalDate(goal.target_date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                target.setHours(0, 0, 0, 0);
+
+                const diffDays = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+                score = diffDays;
+            }
+
+            if (score < priorityScore) {
+                priorityScore = score;
+                priorityTask = {
+                    type: 'goal',
+                    id: goal.id,
+                    title: goal.title,
+                    goal_id: goal.id,
+                    goal_title: null,
+                    target_date: goal.target_date,
+                    tag: goal.tags && goal.tags.length > 0 ? goal.tags[0] : null
+                };
+            }
+        }
+    }
+
+    return priorityTask;
+}
+
+// Render the Focus Hero section
+function renderFocusHero(summary) {
+    // Update streak badge
+    const heroStreakCount = document.getElementById('hero-streak-count');
+    const streakDays = document.getElementById('streak-days');
+
+    if (summary?.streak) {
+        if (heroStreakCount) heroStreakCount.textContent = summary.streak.days || 0;
+        if (streakDays) streakDays.textContent = summary.streak.days || 0;
+    }
+
+    // Find and render priority task
+    const priorityTask = findPriorityTask();
+    renderFocusPriorityTask(priorityTask);
+
+    // Update bento grid stats
+    renderBentoStats(summary);
+}
+
+// Render the priority task in the hero section
+function renderFocusPriorityTask(task) {
+    const focusContent = document.getElementById('focus-hero-content');
+    if (!focusContent) return;
+
+    if (!task) {
+        focusContent.innerHTML = `
+            <div class="focus-empty-state">
+                <div class="focus-empty-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="focus-empty-title">All caught up!</div>
+                <div class="focus-empty-subtitle">No pending tasks. Time to set new goals!</div>
+            </div>
+        `;
+        return;
+    }
+
+    const urgency = calculateUrgency(task.target_date);
+    const tagBadge = task.tag ?
+        `<span class="focus-task-tag" style="color: ${task.tag.color};">
+            <i class="fas fa-tag" style="font-size: 0.625rem;"></i> ${task.tag.name}
+        </span>` : '';
+
+    const deadlineBadge = urgency.level !== 'none' ?
+        `<span class="focus-task-deadline ${urgency.class}">
+            <i class="fas ${urgency.icon}"></i> ${urgency.text}
+        </span>` : '';
+
+    const parentInfo = task.goal_title ?
+        `<span class="focus-task-goal">
+            <i class="fas fa-bullseye"></i> ${task.goal_title}
+        </span>` : '';
+
+    focusContent.innerHTML = `
+        <div class="focus-priority-task">
+            <div class="focus-task-info">
+                <div class="focus-task-title">${task.title}</div>
+                <div class="focus-task-meta">
+                    ${parentInfo}
+                    ${tagBadge}
+                    ${deadlineBadge}
+                </div>
+            </div>
+            <div class="focus-task-actions">
+                <button class="focus-action-btn secondary" onclick="focusOnItem('${task.type}', ${task.goal_id})" title="Go to task">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                ${task.type === 'subgoal' ? `
+                    <button class="focus-action-btn primary" onclick="quickCompleteSubgoal(${task.id}, ${task.goal_id})" title="Mark complete">
+                        <i class="fas fa-check"></i> Done
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+// Quick complete subgoal from focus hero
+window.quickCompleteSubgoal = async function(subgoalId, goalId) {
+    try {
+        const response = await fetch(`/api/subgoals/${subgoalId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ status: 'completed' })
+        });
+
+        if (response.ok) {
+            authUtils.showSuccessMessage('Task completed!');
+            // Refresh data
+            await refreshGoalsData();
+            await refreshFocusHero();
+        } else {
+            throw new Error('Failed to complete task');
+        }
+    } catch (error) {
+        console.error('Error completing task:', error);
+        authUtils.showErrorMessage('Failed to complete task');
+    }
+};
+
+// Render bento grid stats
+function renderBentoStats(summary) {
+    // Weekly stats
+    const goalsEl = document.getElementById('goals-completed-week');
+    const subgoalsEl = document.getElementById('subgoals-completed-week');
+    const progressEl = document.getElementById('overall-progress');
+    const activeGoalsEl = document.getElementById('active-goals-count');
+
+    if (summary?.weekly_stats) {
+        if (goalsEl) goalsEl.textContent = summary.weekly_stats.goals_completed || 0;
+        if (subgoalsEl) subgoalsEl.textContent = summary.weekly_stats.subgoals_completed || 0;
+        if (progressEl) progressEl.textContent = `${summary.weekly_stats.overall_progress || 0}%`;
+    }
+
+    // Count active (non-completed) goals
+    const activeGoals = goals.filter(g => g.status !== 'completed').length;
+    if (activeGoalsEl) activeGoalsEl.textContent = activeGoals;
+
+    // Render recent wins in bento grid
+    renderBentoWins(summary?.recent_wins);
+}
+
+// Render recent wins in bento card
+function renderBentoWins(wins) {
+    const winsContainer = document.getElementById('bento-wins-list');
+    if (!winsContainer) return;
+
+    if (!wins || wins.length === 0) {
+        winsContainer.innerHTML = `<span class="bento-empty">No completions yet</span>`;
+        return;
+    }
+
+    winsContainer.innerHTML = wins.slice(0, 2).map(win => `
+        <div class="bento-win-item" onclick="focusOnItem('${win.type}', ${win.goal_id})">
+            <i class="fas fa-check-circle"></i>
+            <span>${win.title}</span>
+        </div>
+    `).join('');
+}
+
+// Refresh focus hero section
+async function refreshFocusHero() {
+    try {
+        const response = await fetch('/api/stats/summary', { credentials: 'include' });
+        if (response.ok) {
+            const summary = await response.json();
+            renderFocusHero(summary);
+            updateQuickStatsPill();
+        }
+    } catch (error) {
+        console.error('Error refreshing focus hero:', error);
+    }
+}
+
+// Render the complete progress summary dashboard (backward compatibility + new Focus Hero)
 function renderProgressSummary(summary) {
     if (!summary) {
         console.warn('No summary data provided');
         return;
     }
 
-    // Remove skeleton loading states
-    document.querySelectorAll('.progress-summary-dashboard .skeleton').forEach(el => {
-        el.classList.remove('skeleton');
-    });
+    // Render new Focus Hero section
+    renderFocusHero(summary);
 
-    // Render each section
+    // Update hidden elements for backward compatibility
     renderTodayFocus(summary.today_focus);
     renderWeeklyStats(summary.weekly_stats);
     renderStreak(summary.streak);
     renderRecentWins(summary.recent_wins);
-
-    // Initialize collapse state from localStorage
-    initializeSummaryState();
 }
 
-// Render Today's Focus section
+// Render Today's Focus section (backward compatibility)
 function renderTodayFocus(focus) {
     const focusContent = document.getElementById('today-focus-content');
     if (!focusContent) return;
@@ -6224,7 +6466,7 @@ function renderTodayFocus(focus) {
     `;
 }
 
-// Render Weekly Stats section
+// Render Weekly Stats section (updates both old and new elements)
 function renderWeeklyStats(stats) {
     const goalsEl = document.getElementById('goals-completed-week');
     const subgoalsEl = document.getElementById('subgoals-completed-week');
@@ -6239,14 +6481,17 @@ function renderWeeklyStats(stats) {
 function renderStreak(streak) {
     const streakNumber = document.getElementById('streak-days');
     const streakStatus = document.getElementById('streak-message');
+    const heroStreakCount = document.getElementById('hero-streak-count');
 
     if (!streak) {
         if (streakNumber) streakNumber.textContent = '0';
+        if (heroStreakCount) heroStreakCount.textContent = '0';
         if (streakStatus) streakStatus.textContent = 'No activity yet';
         return;
     }
 
     if (streakNumber) streakNumber.textContent = streak.days || 0;
+    if (heroStreakCount) heroStreakCount.textContent = streak.days || 0;
 
     if (streakStatus) {
         if (streak.days === 0) {
