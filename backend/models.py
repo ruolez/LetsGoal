@@ -137,7 +137,7 @@ class Goal(db.Model):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'last_activity_at': self.get_last_activity_at().isoformat() if self.get_last_activity_at() else None,
-            'subgoals': [sg.to_dict() for sg in self.subgoals],
+            'subgoals': [sg.to_dict() for sg in sorted(self.subgoals, key=lambda x: x.order_index or 0)],
             'tags': [tag.to_dict() for tag in self.tags],
             'progress': self.calculate_progress(),
             'is_shared': self.is_shared(),

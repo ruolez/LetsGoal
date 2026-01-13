@@ -2722,12 +2722,6 @@ function renderGoalCardGrid(goal) {
                                 return output;
                             })()}
 
-                            ${hasHiddenSubgoals ? `
-                                <div class="hover-hint-item text-xs text-gray-400 mt-1 flex items-center">
-                                    <i class="fas fa-chevron-down mr-1"></i>
-                                    <span class="hint-text">+${goal.subgoals.length - 2} more (hover to expand)</span>
-                                </div>
-                            ` : ''}
                         </div>
                     </div>
                 ` : `
@@ -3661,30 +3655,33 @@ function setupEditModalEventListeners() {
 window.closeEditGoalModal = function() {
     const editModal = document.getElementById('edit-goal-modal');
     const subgoalModal = document.getElementById('subgoal-creator-modal');
-    
+
+    // Destroy sortable instance
+    destroySubgoalSortable();
+
     // Re-enable background scrolling
     document.body.classList.remove('modal-open');
-    
+
     // Remove ESC key listener when closing modal
     if (window.editModalEscHandler) {
         document.removeEventListener('keydown', window.editModalEscHandler);
         window.editModalEscHandler = null;
         console.log('⌨️ ESC key listener removed'); // Debug log
     }
-    
+
     // Close both modals
     editModal.classList.add('hidden');
     if (subgoalModal) {
         subgoalModal.classList.add('hidden');
     }
-    
+
     // Reset visibility
     editModal.style.visibility = 'visible';
-    
+
     // Reset forms
     document.getElementById('edit-goal-form').reset();
     document.getElementById('subgoals-container').innerHTML = '';
-    
+
     // Reset inline form if it exists
     const inlineForm = document.getElementById('inline-subgoal-form');
     if (inlineForm) {
@@ -3692,7 +3689,7 @@ window.closeEditGoalModal = function() {
         document.getElementById('inline-subgoal-title').value = '';
         document.getElementById('inline-subgoal-description').value = '';
         document.getElementById('inline-subgoal-target-date').value = '';
-        
+
         // Reset button
         const btn = document.getElementById('add-subgoal-btn');
         if (btn) {
@@ -3700,7 +3697,7 @@ window.closeEditGoalModal = function() {
             btn.onclick = toggleInlineSubgoalForm;
         }
     }
-    
+
     // Clear subgoal creator form if it was open
     const newSubgoalTitle = document.getElementById('new-subgoal-title');
     if (newSubgoalTitle) {
@@ -3710,55 +3707,146 @@ window.closeEditGoalModal = function() {
     }
 }
 
-function loadSubgoalsForEdit(subgoals) {
+// Sortable instance reference for subgoal reordering
+let subgoalSortable = null;
+
+function initializeSubgoalSortable() {
     const container = document.getElementById('subgoals-container');
-    const emptyState = document.getElementById('subgoals-empty-state');
-    
-    container.innerHTML = '';
-    
-    if (subgoals.length === 0) {
-        emptyState.classList.remove('hidden');
-    } else {
-        emptyState.classList.add('hidden');
-        subgoals.forEach(subgoal => {
-            addSubgoalToList(subgoal);
-        });
+    if (!container) return;
+
+    // Destroy existing instance if any
+    if (subgoalSortable) {
+        subgoalSortable.destroy();
+        subgoalSortable = null;
+    }
+
+    // Only initialize if SortableJS is available
+    if (typeof Sortable === 'undefined') {
+        console.warn('SortableJS not loaded, drag-and-drop disabled');
+        return;
+    }
+
+    subgoalSortable = new Sortable(container, {
+        animation: 200,
+        handle: '.drag-handle',
+        ghostClass: 'subgoal-ghost',
+        chosenClass: 'subgoal-chosen',
+        dragClass: 'subgoal-drag',
+        filter: '#inline-subgoal-form',
+        preventOnFilter: false,
+        onEnd: function(evt) {
+            updateSubgoalOrderNumbers();
+        }
+    });
+}
+
+function updateSubgoalOrderNumbers() {
+    const container = document.getElementById('subgoals-container');
+    const items = container.querySelectorAll('.subgoal-item:not(#inline-subgoal-form)');
+    items.forEach((item, index) => {
+        const orderIndicator = item.querySelector('.order-indicator');
+        if (orderIndicator) {
+            orderIndicator.textContent = index + 1;
+        }
+    });
+}
+
+function destroySubgoalSortable() {
+    if (subgoalSortable) {
+        subgoalSortable.destroy();
+        subgoalSortable = null;
     }
 }
 
-window.addSubgoalToList = function(subgoal = null) {
+// Reorder subgoals API call
+async function reorderSubgoals(goalId, subgoalIds) {
+    try {
+        const response = await fetch(`/api/goals/${goalId}/subgoals/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order: subgoalIds }),
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to reorder subgoals');
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Error reordering subgoals:', error);
+        throw error;
+    }
+}
+
+function loadSubgoalsForEdit(subgoals) {
     const container = document.getElementById('subgoals-container');
     const emptyState = document.getElementById('subgoals-empty-state');
-    
+
+    container.innerHTML = '';
+
+    // Sort subgoals by order_index before displaying
+    const sortedSubgoals = subgoals.slice().sort((a, b) =>
+        (a.order_index || 0) - (b.order_index || 0)
+    );
+
+    if (sortedSubgoals.length === 0) {
+        emptyState.classList.remove('hidden');
+    } else {
+        emptyState.classList.add('hidden');
+        sortedSubgoals.forEach((subgoal, index) => {
+            addSubgoalToList(subgoal, index);
+        });
+    }
+
+    // Initialize drag-and-drop after subgoals are loaded
+    initializeSubgoalSortable();
+}
+
+window.addSubgoalToList = function(subgoal = null, orderIndex = null) {
+    const container = document.getElementById('subgoals-container');
+    const emptyState = document.getElementById('subgoals-empty-state');
+
     // Hide empty state
     emptyState.classList.add('hidden');
-    
+
+    // Calculate display order number
+    const existingItems = container.querySelectorAll('.subgoal-item:not(#inline-subgoal-form)');
+    const displayOrder = orderIndex !== null ? orderIndex + 1 : existingItems.length + 1;
+
     const row = document.createElement('div');
     row.className = 'subgoal-item modern-card border rounded-md p-2 hover:border-gray-300 transition-all';
+    row.setAttribute('data-subgoal-id', subgoal?.id || '');
     row.innerHTML = `
         <input type="hidden" class="subgoal-id" value="${subgoal?.id || ''}">
         <div class="flex items-start space-x-2">
-            <input type="checkbox" 
-                   class="form-checkbox subgoal-checkbox mt-0.5 w-3 h-3" 
+            <!-- Drag Handle -->
+            <div class="drag-handle flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 pt-1" title="Drag to reorder">
+                <i class="fas fa-grip-vertical text-xs"></i>
+                <span class="order-indicator text-[10px] font-medium mt-0.5">${displayOrder}</span>
+            </div>
+            <input type="checkbox"
+                   class="form-checkbox subgoal-checkbox mt-0.5 w-3 h-3"
                    ${subgoal?.status === 'achieved' ? 'checked' : ''}
                    onchange="toggleSubgoalStatus(this)"
                    ${!subgoal?.id ? 'disabled' : ''}>
             <div class="flex-1">
-                <input type="text" 
-                       class="subgoal-title input-field w-full mb-1 text-xs py-1 ${subgoal?.status === 'achieved' ? 'line-through text-gray-500' : ''}" 
-                       value="${subgoal?.title || ''}" 
-                       placeholder="Enter sub-goal title" 
+                <input type="text"
+                       class="subgoal-title input-field w-full mb-1 text-xs py-1 ${subgoal?.status === 'achieved' ? 'line-through text-gray-500' : ''}"
+                       value="${subgoal?.title || ''}"
+                       placeholder="Enter sub-goal title"
                        required>
-                <textarea class="subgoal-description input-field w-full text-xs py-1" 
-                          rows="1" 
+                <textarea class="subgoal-description input-field w-full text-xs py-1"
+                          rows="1"
                           placeholder="Description (optional)">${subgoal?.description || ''}</textarea>
                 ${subgoal?.target_date ? `
-                    <input type="date" 
-                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1" 
+                    <input type="date"
+                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1"
                            value="${subgoal.target_date}">
                 ` : `
-                    <input type="date" 
-                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1" 
+                    <input type="date"
+                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1"
                            placeholder="Target date (optional)">
                 `}
                 <input type="hidden" class="subgoal-status" value="${subgoal?.status || 'pending'}">
@@ -3768,26 +3856,31 @@ window.addSubgoalToList = function(subgoal = null) {
             </button>
         </div>
     `;
-    
+
     container.appendChild(row);
-    
+
+    // Re-initialize sortable when new item is added
+    initializeSubgoalSortable();
+
+    // Update order numbers
+    updateSubgoalOrderNumbers();
+
     // Scroll to the new item within the subgoals container
     const scrollContainer = container.closest('.subgoals-scroll-area');
     if (scrollContainer) {
-        // Scroll the container to show the new item
         setTimeout(() => {
-            row.scrollIntoView({ 
-                behavior: 'smooth', 
+            row.scrollIntoView({
+                behavior: 'smooth',
                 block: 'nearest',
                 inline: 'nearest'
             });
         }, 100);
     }
-    
-    // Focus on the title input after a brief delay
+
+    // Focus on the title input after a brief delay (only for new subgoals)
     setTimeout(() => {
         const titleInput = row.querySelector('.subgoal-title');
-        if (titleInput) {
+        if (titleInput && !subgoal?.id) {
             titleInput.focus();
         }
     }, 200);
@@ -4530,13 +4623,29 @@ async function handleGoalUpdate() {
         // Update subgoals first - exclude the inline form
         const subgoalRows = document.querySelectorAll('.subgoal-item:not(#inline-subgoal-form)');
         console.log(`📋 Found ${subgoalRows.length} subgoal rows to process`); // Debug log
-        
+
         if (subgoalRows.length > 0) {
             console.log('🔄 Updating subgoals...'); // Debug log
             await updateSubgoals(goalId, subgoalRows);
             console.log('✅ Subgoals updated successfully'); // Debug log
+
+            // Get current order of subgoal IDs from DOM for reordering
+            const existingSubgoalIds = [];
+            subgoalRows.forEach(row => {
+                const subgoalId = row.querySelector('.subgoal-id')?.value;
+                if (subgoalId) {
+                    existingSubgoalIds.push(parseInt(subgoalId, 10));
+                }
+            });
+
+            // Reorder existing subgoals if there are any with IDs
+            if (existingSubgoalIds.length > 0) {
+                console.log('🔄 Reordering subgoals...', existingSubgoalIds); // Debug log
+                await reorderSubgoals(goalId, existingSubgoalIds);
+                console.log('✅ Subgoals reordered successfully'); // Debug log
+            }
         }
-        
+
         // Update goal
         console.log('🔄 Updating main goal...'); // Debug log
         await updateGoal(goalData);
@@ -5030,7 +5139,7 @@ function updateQuickStatsPill() {
 
     if (tasksCount) {
         const completedTasks = goals.reduce((sum, goal) => {
-            return sum + (goal.subgoals || []).filter(s => s.status === 'completed').length;
+            return sum + (goal.subgoals || []).filter(s => s.status === 'achieved').length;
         }, 0);
         tasksCount.textContent = completedTasks;
     }
@@ -6207,7 +6316,7 @@ function findPriorityTask() {
 
         const subgoals = goal.subgoals || [];
         for (const subgoal of subgoals) {
-            if (subgoal.status === 'completed') continue;
+            if (subgoal.status === 'achieved') continue;
 
             // Calculate priority score based on deadline
             let score = 1000; // Default score for no deadline
@@ -6352,7 +6461,7 @@ window.quickCompleteSubgoal = async function(subgoalId, goalId) {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ status: 'completed' })
+            body: JSON.stringify({ status: 'achieved' })
         });
 
         if (response.ok) {

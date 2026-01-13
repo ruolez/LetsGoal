@@ -952,6 +952,90 @@ html[data-theme="dark"] .subgoal-item:hover {
   will-change: auto;
 }
 
+/* ==============================================
+   DRAG-AND-DROP SUBGOAL STYLES
+   ============================================== */
+
+/* Drag handle styling */
+.drag-handle {
+  width: 20px;
+  min-width: 20px;
+  user-select: none;
+  touch-action: none;
+  transition: color 0.15s ease;
+}
+
+.drag-handle:hover {
+  color: var(--color-interactive-primary);
+}
+
+/* Order indicator */
+.order-indicator {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ghost element (placeholder during drag) */
+.subgoal-ghost {
+  opacity: 0.4;
+  background: var(--color-info-bg) !important;
+  border: 2px dashed var(--color-interactive-primary) !important;
+  border-radius: 6px;
+}
+
+/* Chosen/selected element */
+.subgoal-chosen {
+  box-shadow: 0 4px 12px var(--color-shadow-lg) !important;
+  transform: scale(1.02);
+  z-index: 100;
+}
+
+/* Element being dragged */
+.subgoal-drag {
+  opacity: 0.9;
+  background: var(--color-bg-elevated) !important;
+  border-color: var(--color-interactive-primary) !important;
+  cursor: grabbing !important;
+}
+
+/* Prevent text selection during drag */
+.subgoal-item.sortable-chosen * {
+  user-select: none;
+}
+
+/* Smooth reorder animation */
+.subgoal-item {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Disable transition during drag for performance */
+.sortable-dragging .subgoal-item {
+  transition: none !important;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .subgoal-ghost {
+  background: var(--color-info-bg) !important;
+  border-color: var(--color-interactive-primary) !important;
+}
+
+[data-theme="dark"] .subgoal-chosen {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .drag-handle:hover {
+  color: var(--color-interactive-primary);
+}
+
+/* Larger touch target on mobile */
+@media (max-width: 768px) {
+  .drag-handle {
+    width: 32px;
+    min-width: 32px;
+    padding: 8px 4px;
+  }
+}
+
 /* Goal Card Title Enhancement */
 .goal-card-title {
   font-size: 1.125rem;

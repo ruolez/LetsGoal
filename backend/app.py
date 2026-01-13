@@ -440,36 +440,81 @@ def create_app():
     @login_required
     def delete_subgoal(subgoal_id):
         subgoal = Subgoal.query.get(subgoal_id)
-        
+
         if not subgoal:
             return jsonify({'error': 'Subgoal not found'}), 404
-        
+
         # Check if user can edit this subgoal (owner or shared with edit permission)
         if not subgoal.goal.can_edit(current_user.id):
             return jsonify({'error': 'Permission denied'}), 403
-        
+
         # Store info for event logging before deletion
         subgoal_title = subgoal.title
         goal_id = subgoal.goal_id
         goal_title = subgoal.goal.title if subgoal.goal else None
         goal = subgoal.goal
-        
+
         try:
             # Log deletion event
             EventTracker.log_subgoal_deleted(subgoal.id, subgoal_title, goal_id, goal_title)
-            
+
             db.session.delete(subgoal)
-            
+
             # Update parent goal's timestamp for cascading updates
             if goal:
                 goal.updated_at = datetime.utcnow()
-            
+
             db.session.commit()
             return jsonify({'message': 'Subgoal deleted successfully'})
         except Exception as e:
             db.session.rollback()
             return jsonify({'error': 'Failed to delete subgoal'}), 500
-    
+
+    @app.route('/api/goals/<int:goal_id>/subgoals/reorder', methods=['PUT'])
+    @login_required
+    def reorder_subgoals(goal_id):
+        """Batch update subgoal order_index values"""
+        goal = Goal.query.get(goal_id)
+        if not goal:
+            return jsonify({'error': 'Goal not found'}), 404
+
+        # Check if user can edit this goal
+        if not goal.can_edit(current_user.id):
+            return jsonify({'error': 'Permission denied'}), 403
+
+        data = request.get_json()
+        subgoal_order = data.get('order', [])
+
+        if not isinstance(subgoal_order, list):
+            return jsonify({'error': 'order must be a list of subgoal IDs'}), 400
+
+        # Validate all subgoal IDs belong to this goal
+        goal_subgoal_ids = {sg.id for sg in goal.subgoals}
+        request_ids = set(subgoal_order)
+
+        if not request_ids.issubset(goal_subgoal_ids):
+            return jsonify({'error': 'Invalid subgoal IDs'}), 400
+
+        try:
+            # Update order_index for each subgoal
+            for index, subgoal_id in enumerate(subgoal_order):
+                subgoal = Subgoal.query.get(subgoal_id)
+                if subgoal and subgoal.goal_id == goal_id:
+                    subgoal.order_index = index
+
+            # Update goal timestamp
+            goal.updated_at = datetime.utcnow()
+
+            db.session.commit()
+            return jsonify({
+                'success': True,
+                'message': 'Subgoals reordered successfully',
+                'goal': goal.to_dict(current_user.id)
+            })
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to reorder subgoals'}), 500
+
     # Progress tracking endpoints
     @app.route('/api/goals/<int:goal_id>/progress', methods=['POST'])
     @login_required
