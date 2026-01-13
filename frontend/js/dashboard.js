@@ -2352,14 +2352,14 @@ function setupStickyHover() {
                         subgoalElement.className = `subgoal-item ${subgoal.status === 'achieved' ? 'completed' : ''} hidden-subgoal`;
                         subgoalElement.style.setProperty('--animation-delay', `${(index + 3) * 0.05}s`);
                         subgoalElement.innerHTML = `
-                            <div class="flex items-center w-full py-0.25">
-                                <input type="checkbox" 
+                            <div class="flex items-center w-full py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                                <input type="checkbox"
                                        id="subgoal-${subgoal.id}"
-                                       class="h-3 w-3 text-blue-600 rounded mr-2 flex-shrink-0" 
+                                       class="subgoal-checkbox-enhanced mr-2"
                                        ${subgoal.status === 'achieved' ? 'checked' : ''}
                                        onclick="event.stopPropagation();"
-                                       onchange="quickUpdateSubgoal(${subgoal.id}, this.checked, ${goalId}); event.stopPropagation();">
-                                <span class="truncate flex-1 cursor-pointer text-sm"
+                                       onchange="quickUpdateSubgoalEnhanced(${subgoal.id}, this.checked, ${goalId}); event.stopPropagation();">
+                                <span class="subgoal-text-enhanced truncate flex-1 cursor-pointer text-sm ${subgoal.status === 'achieved' ? 'completed' : ''}"
                                       onclick="event.stopPropagation(); toggleSubgoalCheckbox(${subgoal.id}, ${goalId});">${subgoal.title}</span>
                             </div>`;
                         
@@ -2445,31 +2445,9 @@ function setupStickyHover() {
                 card.classList.remove('sticky-hover', 'hover-exit');
                 stickyHoverStates.set(goalId, false);
                 isExpanded = false;
-                
-                // Re-render the card to apply sorting after collapse
-                const goal = goals.find(g => g.id == goalId);
-                if (goal && card.parentNode && canReplaceCard(goalId)) {
-                    markCardReplacement(goalId);
-                    try {
-                        // Clear any pending timeouts before replacing the card
-                        clearTimeout(expandTimeout);
-                        clearTimeout(collapseTimeout);
-                        if (animationFrame) {
-                            cancelAnimationFrame(animationFrame);
-                        }
-                        
-                        const newCardHTML = renderGoalCardGrid(goal);
-                        card.outerHTML = newCardHTML;
-                        // Re-setup hover functionality for the new card
-                        setupStickyHover();
-                    } catch (error) {
-                        console.warn(`Failed to re-render card for goal ${goalId}:`, error);
-                        // Clean up state even if re-render fails
-                        stickyHoverStates.set(goalId, false);
-                    } finally {
-                        clearCardReplacement(goalId);
-                    }
-                }
+
+                // Hidden subgoals are already removed during collapse animation (line 2431)
+                // No need to re-render the card - DOM is already correct
             }, totalCollapseTime);
         };
         
@@ -2567,7 +2545,6 @@ function renderGoalCardGrid(goal) {
     const urgencyBadgeHTML = getUrgencyBadgeHTML(goal.target_date, goal.status, goal.progress);
 
     // Check if goal just completed for celebration
-    const isCompleted = goal.progress >= 100 || goal.status === 'completed';
     const completedSubgoals = goal.subgoals.filter(sg => sg.status === 'achieved').length;
     const totalSubgoals = goal.subgoals.length;
 
@@ -2576,8 +2553,6 @@ function renderGoalCardGrid(goal) {
              data-goal-id="${goal.id}"
              data-progress="${goal.progress}">
             <div class="expandable-goal-card">
-
-                ${isCompleted ? `<div class="achievement-badge" title="Goal completed!">⭐</div>` : ''}
 
             <!-- Modern Header with Integrated Status -->
             <div class="card-header-section">
@@ -4014,16 +3989,16 @@ async function quickUpdateSubgoal(subgoalId, isChecked, goalId) {
                     const completedSubgoals = goal.subgoals.filter(sg => sg.status === 'achieved').length;
                     goal.progress = goal.subgoals.length > 0 ? Math.round((completedSubgoals / goal.subgoals.length) * 100) : 0;
                     
-                    // Auto-update goal status based on new system: Created -> Started -> Working -> Completed
+                    // Auto-update goal status based on progress
                     const previousStatus = goal.status;
-                    if (goal.progress === 100 && goal.status !== 'completed') {
+                    if (goal.progress === 100) {
                         goal.status = 'completed';
-                    } else if (completedSubgoals === 1 && goal.status === 'created') {
-                        goal.status = 'started';
-                    } else if (completedSubgoals >= 2 && (goal.status === 'created' || goal.status === 'started')) {
-                        goal.status = 'working';
                     } else if (goal.progress === 0) {
                         goal.status = 'created';
+                    } else if (completedSubgoals === 1) {
+                        goal.status = 'started';
+                    } else if (completedSubgoals >= 2) {
+                        goal.status = 'working';
                     }
                     
                     // Update goal status on backend if it changed
@@ -4324,44 +4299,34 @@ function updateGoalProgressBar(goalId) {
     const goalCard = document.querySelector(`[data-goal-id="${goalId}"]`);
     if (!goalCard) return;
     
-    const progressColor = goal.progress >= 100 ? '#10b981' : 
-                         goal.progress >= 75 ? '#3b82f6' : 
+    const progressColor = goal.progress >= 100 ? '#10b981' :
+                         goal.progress >= 75 ? '#3b82f6' :
                          goal.progress >= 25 ? '#f59e0b' : '#ef4444';
-    
-    // Update SVG circular progress (grid view)
-    const progressCircle = goalCard.querySelector('circle[stroke-dasharray]');
-    if (progressCircle) {
-        const circumference = 2 * Math.PI * 20; // r=20 from the SVG
-        const offset = circumference * (1 - goal.progress / 100);
-        progressCircle.setAttribute('stroke-dashoffset', offset);
-        progressCircle.setAttribute('stroke', progressColor);
+
+    // Update progress percentage badge (grid view)
+    const progressBadge = goalCard.querySelector('.progress-percentage-badge');
+    if (progressBadge) {
+        progressBadge.textContent = `${Math.round(goal.progress)}%`;
     }
-    
-    // Update progress percentage text (grid view)
-    const progressText = goalCard.querySelector('.absolute.inset-0 span');
-    if (progressText) {
-        progressText.textContent = `${Math.round(goal.progress)}%`;
+
+    // Update progress bar fill (grid view)
+    const progressFill = goalCard.querySelector('.progress-fill-enhanced');
+    if (progressFill) {
+        progressFill.style.width = `${goal.progress}%`;
     }
-    
-    // Update linear progress bar width (grid view)
-    const progressBarDiv = goalCard.querySelector('.h-2.rounded-full.transition-all');
-    if (progressBarDiv) {
-        progressBarDiv.style.width = `${goal.progress}%`;
-        progressBarDiv.style.backgroundColor = progressColor;
+
+    // Update task count display (grid view)
+    const countDone = goalCard.querySelector('.count-done');
+    if (countDone) {
+        const completed = goal.subgoals.filter(sg => sg.status === 'achieved').length;
+        countDone.textContent = completed;
     }
-    
+
     // Update list view progress bar (list view)
     const listProgressBar = goalCard.querySelector('.progress-bar');
     if (listProgressBar) {
         listProgressBar.style.width = `${goal.progress}%`;
         listProgressBar.style.backgroundColor = progressColor;
-    }
-    
-    // Update subgoals completion text
-    const completionText = goalCard.querySelector('.text-xs.font-medium.text-gray-700');
-    if (completionText) {
-        const completed = goal.subgoals.filter(sg => sg.status === 'achieved').length;
-        completionText.textContent = `${completed} of ${goal.subgoals.length} completed`;
     }
     
     // Update list view completion text
@@ -4392,6 +4357,38 @@ function updateGoalProgressBar(goalId) {
     const targetDateDiv = goalCard.querySelector('.inline-block');
     if (targetDateDiv && goal.target_date) {
         targetDateDiv.innerHTML = formatDaysLeft(goal.target_date, goal.status, goal.progress);
+    }
+
+    // Update quick add input visibility based on goal status
+    const expandableCard = goalCard.querySelector('.expandable-goal-card');
+    const quickInputContainer = goalCard.querySelector('.quick-subgoal-input')?.parentElement;
+    const flexContent = expandableCard?.querySelector('.flex.flex-col.flex-1');
+
+    if (goal.status === 'completed' && quickInputContainer) {
+        // Hide quick add input when goal is completed
+        quickInputContainer.remove();
+    } else if (goal.status !== 'completed' && !quickInputContainer && flexContent) {
+        // Show quick add input when goal becomes incomplete
+        const inputHTML = `
+            <div class="mb-2 px-1">
+                <input type="text"
+                       id="quick-subgoal-${goal.id}"
+                       class="quick-subgoal-input w-full text-xs px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all duration-200"
+                       placeholder="+ Add quick sub-goal..."
+                       onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
+                       onclick="event.stopPropagation();"
+                       onfocus="event.stopPropagation(); maintainStickyHover(${goal.id})"
+                       onblur="event.stopPropagation();">
+            </div>
+        `;
+        flexContent.insertAdjacentHTML('afterbegin', inputHTML);
+    }
+
+    // Update status dot
+    const statusDot = goalCard.querySelector('.status-dot');
+    if (statusDot) {
+        statusDot.className = `status-dot ${getStatusDotClass(goal.status)}`;
+        statusDot.setAttribute('title', goal.status.replace('_', ' ').toUpperCase());
     }
 }
 
