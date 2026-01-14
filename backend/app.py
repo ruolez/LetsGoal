@@ -147,11 +147,19 @@ def create_app():
         if data.get('target_date'):
             new_target_date = datetime.strptime(data['target_date'], '%Y-%m-%d').date()
             if new_target_date != goal.target_date:
+                old_target_date = goal.target_date
                 changes['target_date'] = {
-                    'old': goal.target_date.isoformat() if goal.target_date else None,
+                    'old': old_target_date.isoformat() if old_target_date else None,
                     'new': new_target_date.isoformat()
                 }
                 goal.target_date = new_target_date
+
+                # Cascade target_date change to subgoals that had the old date
+                if old_target_date:
+                    for subgoal in goal.subgoals:
+                        if subgoal.target_date == old_target_date:
+                            subgoal.target_date = new_target_date
+                            subgoal.updated_at = datetime.utcnow()
                 
         if data.get('status') and data['status'] != goal.status:
             changes['status'] = {'old': goal.status, 'new': data['status']}
