@@ -6580,7 +6580,7 @@ html[data-theme="dark"] .card {
 /* Search Section */
 .header-search {
   flex: 1;
-  max-width: 400px;
+  max-width: 500px;
   min-width: 150px;
 }
 
@@ -6626,6 +6626,7 @@ html[data-theme="dark"] .card {
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .header-btn {
@@ -6839,7 +6840,6 @@ html[data-theme="dark"] .card {
   border-radius: 0.375rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-left: auto;
 }
 
 .unified-header .theme-toggle-btn:hover {
