@@ -6106,7 +6106,7 @@ function showShareGoalModal(goalId) {
                                    style="background-color: var(--color-bg-secondary); border-color: var(--color-border-primary); color: var(--color-text-primary);"
                                    placeholder="Enter user email (e.g. john@example.com)"
                                    onkeypress="if(event.key==='Enter') shareWithUser(${goalId})">
-                            <button onclick="shareWithUser(${goalId})" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-105 shadow-lg font-medium">
+                            <button onclick="shareWithUser(${goalId})" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all transform hover:scale-105 shadow-lg font-medium">
                                 <i class="fas fa-share mr-2"></i>Share
                             </button>
                         </div>

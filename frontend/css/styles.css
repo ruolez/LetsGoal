@@ -57,7 +57,7 @@
   --color-shadow-xl: rgba(0, 0, 0, 0.25);
   
   /* Gradient Colors */
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  --gradient-primary: #4F46E5;
   --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
   --gradient-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
   --gradient-navbar: linear-gradient(to right, #f8fafc, #f1f5f9);
@@ -119,7 +119,7 @@
   --color-shadow-xl: rgba(0, 0, 0, 0.6);
   
   /* Gradient Colors */
-  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  --gradient-primary: #6366F1;
   --gradient-success: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   --gradient-navbar: linear-gradient(to right, #1e293b, #334155);
