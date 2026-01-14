@@ -30,305 +30,149 @@
     </style>
 </head>
 <body class="min-h-screen">
-    <!-- Navigation Header - Concept 1: Minimalist Floating -->
-    <header class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 sticky top-0 z-40" style="box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);">
-        <div class="max-w-7xl mx-auto">
-            <div class="flex items-center justify-between h-16 px-6">
-                <!-- Brand Section with Breathing Lotus Logo -->
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="lotus-wrapper">
-                            <div class="breathing-lotus">
-                                <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-                                    <defs>
-                                        <linearGradient id="breath1" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style="stop-color:#667eea"/>
-                                            <stop offset="50%" style="stop-color:#764ba2"/>
-                                            <stop offset="100%" style="stop-color:#f093fb"/>
-                                        </linearGradient>
-                                        <linearGradient id="breath2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" style="stop-color:#4facfe"/>
-                                            <stop offset="100%" style="stop-color:#00f2fe"/>
-                                        </linearGradient>
-                                        <radialGradient id="breathCore" cx="50%" cy="50%">
-                                            <stop offset="0%" style="stop-color:#ffffff" stop-opacity="0.9"/>
-                                            <stop offset="70%" style="stop-color:#ffd700" stop-opacity="0.6"/>
-                                            <stop offset="100%" style="stop-color:#ff6b6b" stop-opacity="0.8"/>
-                                        </radialGradient>
-                                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                                            <feMerge>
-                                                <feMergeNode in="coloredBlur"/>
-                                                <feMergeNode in="SourceGraphic"/>
-                                            </feMerge>
-                                        </filter>
-                                    </defs>
-                                    
-                                    <!-- Breathing central lotus -->
-                                    <g id="breathingCore" transform-origin="60 60">
-                                        <animateTransform 
-                                            attributeName="transform" 
-                                            attributeType="XML" 
-                                            type="scale" 
-                                            values="1;1.2;1" 
-                                            dur="8s" 
-                                            repeatCount="indefinite"/>
-                                        
-                                        <circle cx="60" cy="60" r="15" fill="url(#breathCore)" opacity="0.8" filter="url(#glow)"/>
-                                        <circle cx="60" cy="60" r="10" fill="rgba(255,255,255,0.4)"/>
-                                        <circle cx="60" cy="60" r="5" fill="url(#breath2)"/>
-                                        
-                                        <circle cx="60" cy="60" r="3" fill="white" opacity="0.9">
-                                            <animate attributeName="opacity" values="0.9;0.5;0.9" dur="8s" repeatCount="indefinite"/>
-                                        </circle>
-                                    </g>
-                                    
-                                    <!-- Lotus petals -->
-                                    <g id="petals" transform-origin="60 60">
-                                        <animateTransform 
-                                            attributeName="transform" 
-                                            attributeType="XML" 
-                                            type="scale" 
-                                            values="0.9;1.1;0.9" 
-                                            dur="8s" 
-                                            repeatCount="indefinite"
-                                            begin="1s"/>
-                                        
-                                        <g transform="rotate(0 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                        <g transform="rotate(45 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                        <g transform="rotate(90 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                        <g transform="rotate(135 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                        <g transform="rotate(180 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                        <g transform="rotate(225 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                        <g transform="rotate(270 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                        <g transform="rotate(315 60 60)">
-                                            <ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/>
-                                            <ellipse cx="60" cy="32" rx="2" ry="6" fill="rgba(255,255,255,0.3)"/>
-                                        </g>
-                                    </g>
-                                    
-                                    <!-- Outer completion markers -->
-                                    <g id="markers" transform-origin="60 60">
-                                        <animateTransform 
-                                            attributeName="transform" 
-                                            attributeType="XML" 
-                                            type="scale" 
-                                            values="1;0.8;1" 
-                                            dur="8s" 
-                                            repeatCount="indefinite"
-                                            begin="2s"/>
-                                        
-                                        <g transform="rotate(30 60 60)">
-                                            <circle cx="60" cy="18" r="3" fill="#ffd700" filter="url(#glow)"/>
-                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
-                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#ffd700" stroke-width="0.5" fill="none"/>
-                                        </g>
-                                        <g transform="rotate(90 60 60)">
-                                            <circle cx="60" cy="18" r="3" fill="#4facfe" filter="url(#glow)"/>
-                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
-                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#4facfe" stroke-width="0.5" fill="none"/>
-                                        </g>
-                                        <g transform="rotate(150 60 60)">
-                                            <circle cx="60" cy="18" r="3" fill="#ffd700" filter="url(#glow)"/>
-                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
-                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#ffd700" stroke-width="0.5" fill="none"/>
-                                        </g>
-                                        <g transform="rotate(210 60 60)">
-                                            <circle cx="60" cy="18" r="3" fill="#f093fb" opacity="0.6"/>
-                                            <circle cx="60" cy="18" r="1" fill="rgba(255,255,255,0.7)"/>
-                                        </g>
-                                        <g transform="rotate(270 60 60)">
-                                            <circle cx="60" cy="18" r="3" fill="#4facfe" filter="url(#glow)"/>
-                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
-                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#4facfe" stroke-width="0.5" fill="none"/>
-                                        </g>
-                                        <g transform="rotate(330 60 60)">
-                                            <circle cx="60" cy="18" r="3" fill="#ffd700" filter="url(#glow)"/>
-                                            <circle cx="60" cy="18" r="1.5" fill="white" opacity="0.9"/>
-                                            <path d="M 59 17 L 60 19 L 61 17" stroke="#ffd700" stroke-width="0.5" fill="none"/>
-                                        </g>
-                                    </g>
-                                    
-                                    <!-- Pulsing energy rings -->
-                                    <circle cx="60" cy="60" r="25" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
-                                    <circle cx="60" cy="60" r="35" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-                                    
-                                    <circle cx="60" cy="60" r="25" fill="none" stroke="url(#breath2)" stroke-width="2" opacity="0.6">
-                                        <animate attributeName="r" values="25;30;25" dur="6s" repeatCount="indefinite"/>
-                                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="6s" repeatCount="indefinite"/>
-                                    </circle>
-                                    
-                                    <circle cx="60" cy="60" r="35" fill="none" stroke="url(#breath1)" stroke-width="1" opacity="0.4">
-                                        <animate attributeName="r" values="35;40;35" dur="8s" repeatCount="indefinite"/>
-                                        <animate attributeName="opacity" values="0.4;0.1;0.4" dur="8s" repeatCount="indefinite"/>
-                                    </circle>
-                                    
-                                    <!-- Floating particles -->
-                                    <circle cx="85" cy="35" r="1" fill="#ffd700" opacity="0.8">
-                                        <animate attributeName="cy" values="35;25;35" dur="10s" repeatCount="indefinite"/>
-                                        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="10s" repeatCount="indefinite"/>
-                                    </circle>
-                                    <circle cx="35" cy="85" r="1.5" fill="#4facfe" opacity="0.6">
-                                        <animate attributeName="cx" values="35;45;35" dur="12s" repeatCount="indefinite"/>
-                                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="12s" repeatCount="indefinite"/>
-                                    </circle>
-                                    <circle cx="85" cy="85" r="1" fill="white" opacity="0.7">
-                                        <animate attributeName="cy" values="85;75;85" dur="8s" repeatCount="indefinite"/>
-                                        <animate attributeName="cx" values="85;75;85" dur="8s" repeatCount="indefinite"/>
-                                    </circle>
-                                    <circle cx="35" cy="35" r="1.2" fill="#f093fb" opacity="0.5">
-                                        <animate attributeName="cy" values="35;25;35" dur="14s" repeatCount="indefinite"/>
-                                    </circle>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="flex flex-col">
-                            <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-none">Lets Goal</h1>
-                        </div>
+    <!-- Unified Header - Single Row Navigation -->
+    <header class="unified-header sticky top-0 z-40">
+        <div class="header-container">
+            <!-- Left: Brand with Quote Subtitle -->
+            <div class="header-brand">
+                <div class="lotus-wrapper-compact">
+                    <div class="breathing-lotus-compact">
+                        <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="breath1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#667eea"/>
+                                    <stop offset="50%" style="stop-color:#764ba2"/>
+                                    <stop offset="100%" style="stop-color:#f093fb"/>
+                                </linearGradient>
+                                <linearGradient id="breath2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#4facfe"/>
+                                    <stop offset="100%" style="stop-color:#00f2fe"/>
+                                </linearGradient>
+                                <radialGradient id="breathCore" cx="50%" cy="50%">
+                                    <stop offset="0%" style="stop-color:#ffffff" stop-opacity="0.9"/>
+                                    <stop offset="70%" style="stop-color:#ffd700" stop-opacity="0.6"/>
+                                    <stop offset="100%" style="stop-color:#ff6b6b" stop-opacity="0.8"/>
+                                </radialGradient>
+                                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+
+                            <!-- Breathing central lotus -->
+                            <g id="breathingCore" transform-origin="60 60">
+                                <animateTransform attributeName="transform" attributeType="XML" type="scale" values="1;1.15;1" dur="8s" repeatCount="indefinite"/>
+                                <circle cx="60" cy="60" r="15" fill="url(#breathCore)" opacity="0.8" filter="url(#glow)"/>
+                                <circle cx="60" cy="60" r="10" fill="rgba(255,255,255,0.4)"/>
+                                <circle cx="60" cy="60" r="5" fill="url(#breath2)"/>
+                                <circle cx="60" cy="60" r="3" fill="white" opacity="0.9">
+                                    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="8s" repeatCount="indefinite"/>
+                                </circle>
+                            </g>
+
+                            <!-- Lotus petals -->
+                            <g id="petals" transform-origin="60 60">
+                                <animateTransform attributeName="transform" attributeType="XML" type="scale" values="0.9;1.1;0.9" dur="8s" repeatCount="indefinite" begin="1s"/>
+                                <g transform="rotate(0 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/></g>
+                                <g transform="rotate(45 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/></g>
+                                <g transform="rotate(90 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/></g>
+                                <g transform="rotate(135 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/></g>
+                                <g transform="rotate(180 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/></g>
+                                <g transform="rotate(225 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/></g>
+                                <g transform="rotate(270 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath1)" opacity="0.7" filter="url(#glow)"/></g>
+                                <g transform="rotate(315 60 60)"><ellipse cx="60" cy="35" rx="4" ry="12" fill="url(#breath2)" opacity="0.8" filter="url(#glow)"/></g>
+                            </g>
+
+                            <!-- Pulsing energy rings -->
+                            <circle cx="60" cy="60" r="25" fill="none" stroke="url(#breath2)" stroke-width="2" opacity="0.6">
+                                <animate attributeName="r" values="25;30;25" dur="6s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="0.6;0.2;0.6" dur="6s" repeatCount="indefinite"/>
+                            </circle>
+                        </svg>
                     </div>
                 </div>
-
-                <!-- Floating Quote -->
-                <div class="hidden lg:flex flex-1 px-6 min-w-0 items-center h-full">
-                    <div class="max-w-md mx-auto w-full h-full flex items-center">
-                        <div class="floating-quote text-center quote-short w-full">
-                            <p id="daily-quote" class="text-sm font-medium text-gray-700">
-                                Loading inspiration...
-                            </p>
-                            <div id="quote-author" class="quote-author">
-                                — Author
-                            </div>
-                        </div>
-                    </div>
+                <div class="brand-text">
+                    <h1 class="brand-name">Lets Goal</h1>
+                    <p class="brand-quote" id="daily-quote" onclick="refreshQuote()" title="Click for new quote">
+                        Loading inspiration...
+                    </p>
                 </div>
+            </div>
 
-                <!-- User Section -->
-                <div class="flex items-center space-x-4">
-                    <!-- User Info -->
-                    <div class="hidden sm:flex items-center space-x-3">
-                        <div class="text-right">
-                            <span id="user-welcome" class="text-sm font-semibold text-gray-700 block leading-none">
-                                Welcome back!
-                            </span>
-                        </div>
-                    </div>
+            <!-- Center: Search -->
+            <div class="header-search">
+                <div class="search-input-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="goal-search" placeholder="Search goals..." class="search-input">
+                </div>
+            </div>
 
-                    <!-- Theme Toggle Button -->
-                    <button 
-                        id="theme-toggle" 
-                        onclick="toggleTheme()"
-                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-all duration-200 ease-in-out"
-                        title="Toggle dark mode">
-                        <svg id="theme-icon-light" class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                        </svg>
-                        <svg id="theme-icon-dark" class="w-4 h-4 mr-1.5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                        </svg>
-                        <span id="theme-label">Dark</span>
+            <!-- Right: Controls -->
+            <div class="header-right">
+                <!-- Filters Button -->
+                <button type="button" id="unified-filter-btn" onclick="openFilterModal()" class="header-btn" title="Filters">
+                    <i class="fas fa-sliders-h"></i>
+                    <span class="btn-label">Filters</span>
+                    <span id="active-filter-count" class="filter-count-badge hidden">0</span>
+                </button>
+
+                <!-- View Toggle -->
+                <div class="view-toggle-group">
+                    <button id="grid-view-btn" onclick="setViewMode('grid')" class="view-toggle-btn active" title="Grid view">
+                        <i class="fas fa-th-large"></i>
                     </button>
+                    <button id="list-view-btn" onclick="setViewMode('list')" class="view-toggle-btn" title="List view">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
 
-                    <!-- Sign Out Button -->
-                    <button 
-                        onclick="authUtils.logout()" 
-                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-all duration-200 ease-in-out"
-                        title="Sign out">
-                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                <!-- New Goal Button -->
+                <button onclick="showCreateGoalModal()" class="new-goal-btn" title="Create new goal">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span class="btn-label">New Goal</span>
+                </button>
+
+                <!-- User Menu -->
+                <div class="user-menu">
+                    <span id="user-welcome" class="user-name">Welcome</span>
+                    <button onclick="authUtils.logout()" class="signout-btn" title="Sign out">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
-                        Sign out
                     </button>
                 </div>
+
+            </div>
+
+            <!-- Theme Toggle (far right) -->
+            <button id="theme-toggle" onclick="toggleTheme()" class="theme-toggle-btn" title="Toggle dark mode">
+                <svg id="theme-icon-light" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <svg id="theme-icon-dark" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Active Filters Bar (shows below when filters applied) -->
+        <div id="active-filters-bar" class="active-filters-bar hidden">
+            <div class="active-filters-content">
+                <span class="filters-label">Active:</span>
+                <div id="active-filters-chips" class="filters-chips"></div>
+                <button onclick="resetAllFilters()" class="clear-filters-btn">Clear all</button>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-4">
-        <!-- Streamlined Control Bar - Compact Single Row -->
-        <div class="control-bar-compact bg-white rounded-xl border border-gray-200 shadow-sm mb-4">
-            <div class="flex items-center gap-3 px-4 py-2.5">
-                <!-- Search - Takes available space -->
-                <div class="relative flex-1 max-w-xs">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400 text-xs"></i>
-                    </div>
-                    <input type="text" id="goal-search" placeholder="Search goals..."
-                           class="compact-search block w-full pl-9 pr-3 py-2 text-sm border-0 rounded-lg bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-200">
-                </div>
-
-                <!-- Filters Button -->
-                <button type="button" id="unified-filter-btn" onclick="openFilterModal()"
-                        class="compact-btn flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg text-gray-600 hover:bg-gray-100 transition-all duration-200">
-                    <i class="fas fa-sliders-h text-xs"></i>
-                    <span class="text-sm font-medium">Filters</span>
-                    <span id="active-filter-count" class="filter-count-badge hidden">0</span>
-                </button>
-
-                <!-- View Toggle - Icon only on mobile -->
-                <div class="flex bg-gray-100 rounded-lg p-0.5">
-                    <button id="grid-view-btn" onclick="setViewMode('grid')" class="view-toggle-compact p-2 rounded-md bg-white text-gray-700 shadow-sm" title="Grid view">
-                        <i class="fas fa-th-large text-sm"></i>
-                    </button>
-                    <button id="list-view-btn" onclick="setViewMode('list')" class="view-toggle-compact p-2 rounded-md text-gray-400 hover:text-gray-600" title="List view">
-                        <i class="fas fa-list text-sm"></i>
-                    </button>
-                </div>
-
-                <!-- Spacer -->
-                <div class="flex-1"></div>
-
-                <!-- Quick Stats Pill (Condensed Summary) - Now just a display element -->
-                <div id="quick-stats-pill" class="quick-stats-pill hidden lg:flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-100 transition-all duration-200">
-                    <div class="flex items-center gap-1.5">
-                        <i class="fas fa-bullseye text-blue-500 text-xs"></i>
-                        <span class="text-sm font-semibold text-gray-700" id="pill-goals-count">0</span>
-                    </div>
-                    <div class="w-px h-4 bg-blue-200"></div>
-                    <div class="flex items-center gap-1.5">
-                        <i class="fas fa-tasks text-emerald-500 text-xs"></i>
-                        <span class="text-sm font-semibold text-gray-700" id="pill-tasks-count">0</span>
-                    </div>
-                    <div class="w-px h-4 bg-blue-200"></div>
-                    <div class="flex items-center gap-1.5">
-                        <i class="fas fa-fire text-orange-500 text-xs"></i>
-                        <span class="text-sm font-semibold text-gray-700" id="pill-streak-count">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Active Filters Display (shows below when filters applied) -->
-            <div id="active-filters-bar" class="hidden border-t border-gray-100 px-4 py-2">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs text-gray-500">Active:</span>
-                    <div id="active-filters-chips" class="flex flex-wrap gap-1.5">
-                        <!-- Active filter chips populated by JavaScript -->
-                    </div>
-                    <button onclick="resetAllFilters()" class="text-xs text-blue-600 hover:text-blue-700 ml-auto">Clear all</button>
-                </div>
-            </div>
-        </div>
 
         <!-- Today's Focus Hero Section - Always Visible -->
         <section id="focus-hero" class="focus-hero-section mb-4">

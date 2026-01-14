@@ -3218,42 +3218,47 @@ document.addEventListener('click', function(event) {
 });
 
 // Set daily motivational quote
-function setDailyQuote() {
+function setDailyQuote(forceNewQuote = false) {
     // Calculate days since epoch to ensure daily rotation through all quotes
     const today = new Date();
     const daysSinceEpoch = Math.floor(today.getTime() / (1000 * 60 * 60 * 24));
-    const quoteIndex = daysSinceEpoch % motivationalQuotes.length;
+
+    // For forced new quotes, use a random index different from current
+    let quoteIndex;
+    if (forceNewQuote) {
+        const currentIndex = daysSinceEpoch % motivationalQuotes.length;
+        do {
+            quoteIndex = Math.floor(Math.random() * motivationalQuotes.length);
+        } while (quoteIndex === currentIndex && motivationalQuotes.length > 1);
+    } else {
+        quoteIndex = daysSinceEpoch % motivationalQuotes.length;
+    }
+
     const quote = motivationalQuotes[quoteIndex];
-    
-    // Set quote text
+
+    // Set quote text in the unified header brand subtitle
     const quoteElement = document.getElementById('daily-quote');
-    const quoteContainer = document.querySelector('.floating-quote');
-    const authorElement = document.getElementById('quote-author');
-    
-    if (quoteElement && quoteContainer) {
-        quoteElement.innerHTML = quote.text;
-        
-        // Remove any existing quote length classes
-        quoteContainer.classList.remove('quote-short', 'quote-medium', 'quote-long', 'quote-extra-long');
-        
-        // Apply appropriate class based on quote length
-        const quoteLength = quote.text.length;
-        if (quoteLength < 80) {
-            quoteContainer.classList.add('quote-short');
-        } else if (quoteLength < 120) {
-            quoteContainer.classList.add('quote-medium');
-        } else if (quoteLength < 180) {
-            quoteContainer.classList.add('quote-long');
-        } else {
-            quoteContainer.classList.add('quote-extra-long');
-        }
-        
-        // Set author
-        if (authorElement) {
-            authorElement.innerHTML = `— ${quote.author}`;
-        }
+
+    if (quoteElement) {
+        // Combined format: "quote text — author" for unified header
+        quoteElement.innerHTML = `"${quote.text}" — ${quote.author}`;
     }
 }
+
+// Refresh quote with a new random quote (click on brand quote to refresh)
+window.refreshQuote = function() {
+    const quoteElement = document.getElementById('daily-quote');
+
+    if (quoteElement) {
+        // Animate the quote change
+        quoteElement.style.opacity = '0';
+
+        setTimeout(() => {
+            setDailyQuote(true); // Force new quote
+            quoteElement.style.opacity = '1';
+        }, 150);
+    }
+};
 
 // Modal functions - make globally accessible
 window.showCreateGoalModal = function() {
@@ -5254,25 +5259,24 @@ function updateQuickStatsPill() {
 // Enhanced view mode management
 window.setViewMode = function(mode) {
     currentViewMode = mode;
-    
-    // Update button states
+
+    // Update button states for unified header view toggle
     const gridBtn = document.getElementById('grid-view-btn');
     const listBtn = document.getElementById('list-view-btn');
-    
-    // Remove active class from both
-    gridBtn.classList.remove('active', 'bg-white', 'text-gray-700', 'shadow-sm');
-    listBtn.classList.remove('active', 'bg-white', 'text-gray-700', 'shadow-sm');
-    gridBtn.classList.add('text-gray-500');
-    listBtn.classList.add('text-gray-500');
-    
-    if (mode === 'grid') {
-        gridBtn.classList.add('active', 'view-toggle-btn', 'shadow-sm');
-        gridBtn.classList.remove('text-gray-500');
-    } else {
-        listBtn.classList.add('active', 'view-toggle-btn', 'shadow-sm');
-        listBtn.classList.remove('text-gray-500');
+
+    if (gridBtn && listBtn) {
+        // Remove active class from both
+        gridBtn.classList.remove('active');
+        listBtn.classList.remove('active');
+
+        // Add active class to selected mode
+        if (mode === 'grid') {
+            gridBtn.classList.add('active');
+        } else {
+            listBtn.classList.add('active');
+        }
     }
-    
+
     renderGoals();
     saveUserSettings();
 }
