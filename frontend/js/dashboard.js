@@ -6487,60 +6487,46 @@ function renderFocusHero(summary) {
     renderBentoStats(summary);
 }
 
-// Render the priority task in the hero section
+// Render the priority task in the focus banner (compact inline layout)
 function renderFocusPriorityTask(task) {
     const focusContent = document.getElementById('focus-hero-content');
     if (!focusContent) return;
 
     if (!task) {
         focusContent.innerHTML = `
-            <div class="focus-empty-state">
-                <div class="focus-empty-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="focus-empty-title">All caught up!</div>
-                <div class="focus-empty-subtitle">No pending tasks. Time to set new goals!</div>
-            </div>
+            <span class="focus-empty">
+                <i class="fas fa-check-circle"></i>
+                All caught up! Time to set new goals.
+            </span>
         `;
         return;
     }
 
     const urgency = calculateUrgency(task.target_date);
-    const tagBadge = task.tag ?
-        `<span class="focus-task-tag" style="color: ${task.tag.color};">
-            <i class="fas fa-tag" style="font-size: 0.625rem;"></i> ${task.tag.name}
-        </span>` : '';
 
     const deadlineBadge = urgency.level !== 'none' ?
-        `<span class="focus-task-deadline ${urgency.class}">
+        `<span class="focus-deadline ${urgency.class}">
             <i class="fas ${urgency.icon}"></i> ${urgency.text}
         </span>` : '';
 
     const parentInfo = task.goal_title ?
-        `<span class="focus-task-goal">
+        `<span class="focus-meta-item">
             <i class="fas fa-bullseye"></i> ${task.goal_title}
         </span>` : '';
 
     focusContent.innerHTML = `
-        <div class="focus-priority-task">
-            <div class="focus-task-info">
-                <div class="focus-task-title">${task.title}</div>
-                <div class="focus-task-meta">
-                    ${parentInfo}
-                    ${tagBadge}
-                    ${deadlineBadge}
-                </div>
-            </div>
-            <div class="focus-task-actions">
-                <button class="focus-action-btn secondary" onclick="focusOnItem('${task.type}', ${task.goal_id})" title="Go to task">
-                    <i class="fas fa-arrow-right"></i>
+        <span class="focus-task-title" title="${task.title}">${task.title}</span>
+        ${parentInfo}
+        ${deadlineBadge}
+        <div class="focus-actions">
+            <button class="focus-btn" onclick="focusOnItem('${task.type}', ${task.goal_id})" title="Go to task">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+            ${task.type === 'subgoal' ? `
+                <button class="focus-btn primary" onclick="quickCompleteSubgoal(${task.id}, ${task.goal_id})" title="Mark complete">
+                    <i class="fas fa-check"></i>
                 </button>
-                ${task.type === 'subgoal' ? `
-                    <button class="focus-action-btn primary" onclick="quickCompleteSubgoal(${task.id}, ${task.goal_id})" title="Mark complete">
-                        <i class="fas fa-check"></i> Done
-                    </button>
-                ` : ''}
-            </div>
+            ` : ''}
         </div>
     `;
 }

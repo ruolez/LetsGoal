@@ -173,30 +173,16 @@
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-4">
 
-        <!-- Today's Focus Hero Section - Always Visible -->
-        <section id="focus-hero" class="focus-hero-section mb-4">
-            <!-- Hero Priority Task -->
-            <div class="focus-hero-card">
-                <div class="focus-hero-header">
-                    <div class="focus-hero-badge">
-                        <i class="fas fa-bolt"></i>
-                        <span>TODAY'S FOCUS</span>
-                    </div>
-                    <div class="focus-hero-streak" id="hero-streak-badge">
-                        <i class="fas fa-fire"></i>
-                        <span id="hero-streak-count">0</span>
-                        <span class="streak-label">day streak</span>
-                    </div>
-                </div>
-
-                <div class="focus-hero-content" id="focus-hero-content">
-                    <div class="focus-hero-loading">
-                        <div class="skeleton-text"></div>
-                        <div class="skeleton-text short"></div>
-                    </div>
-                </div>
+        <!-- Today's Focus Banner - Compact Inline Layout -->
+        <section id="focus-hero" class="focus-banner mb-4">
+            <span class="focus-label"><i class="fas fa-bolt"></i> FOCUS</span>
+            <div class="focus-content" id="focus-hero-content">
+                <span class="focus-loading-text">Loading...</span>
             </div>
-
+            <div class="focus-streak" id="hero-streak-badge">
+                <i class="fas fa-fire"></i>
+                <span id="hero-streak-count">0</span>
+            </div>
         </section>
 
         <!-- Hidden elements for backward compatibility -->
