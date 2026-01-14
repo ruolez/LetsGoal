@@ -179,6 +179,8 @@ const goalsPerPage = 12;
 let stickyHoverStates = new Map();
 // Track pending DOM operations to prevent race conditions
 let pendingCardOperations = new Map();
+// Track subgoals to delete when saving in edit modal
+let subgoalsToDelete = [];
 
 // Helper functions for atomic card operations
 function canReplaceCard(goalId) {
@@ -2640,7 +2642,7 @@ function renderGoalCardGrid(goal) {
                 <div class="progress-section-enhanced">
                     <!-- Progress Bar with percentage badge -->
                     <div class="flex items-center gap-3 mb-2">
-                        <span class="progress-percentage-badge ${progressBadgeClass}">${Math.round(goal.progress)}%</span>
+                        <span class="progress-percentage-badge ${progressBadgeClass}">${goal.progress === 0 ? '<i class="fas fa-play text-xs mr-1"></i>Let\'s Goal!' : Math.round(goal.progress) + '%'}</span>
                         <div class="flex-1 progress-bar-option-b">
                             <div class="progress-fill-enhanced ${progressFillClassB}"
                                  style="width: ${goal.progress}%;"></div>
@@ -2751,7 +2753,8 @@ function getProgressBadgeClass(progress) {
     if (progress >= 100) return 'badge-complete';
     if (progress >= 75) return 'badge-high';
     if (progress >= 25) return 'badge-medium';
-    return 'badge-low';
+    if (progress > 0) return 'badge-low';
+    return 'badge-lets-goal';  // 0% gets branded CTA
 }
 
 // Get urgency badge HTML for deadline
@@ -3565,7 +3568,10 @@ function editGoal(goalId) {
         authUtils.showErrorMessage('Goal not found');
         return;
     }
-    
+
+    // Clear any previously tracked subgoals for deletion (from previous edit sessions)
+    subgoalsToDelete = [];
+
     // Prevent background scrolling
     document.body.classList.add('modal-open');
     
@@ -3655,6 +3661,9 @@ function setupEditModalEventListeners() {
 window.closeEditGoalModal = function() {
     const editModal = document.getElementById('edit-goal-modal');
     const subgoalModal = document.getElementById('subgoal-creator-modal');
+
+    // Clear any tracked subgoals for deletion (cancel pending deletions)
+    subgoalsToDelete = [];
 
     // Destroy sortable instance
     destroySubgoalSortable();
@@ -3820,39 +3829,44 @@ window.addSubgoalToList = function(subgoal = null, orderIndex = null) {
     row.setAttribute('data-subgoal-id', subgoal?.id || '');
     row.innerHTML = `
         <input type="hidden" class="subgoal-id" value="${subgoal?.id || ''}">
-        <div class="flex items-start space-x-2">
+        <div style="display: flex; align-items: flex-start; gap: 8px; width: 100%;">
             <!-- Drag Handle -->
-            <div class="drag-handle flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 pt-1" title="Drag to reorder">
-                <i class="fas fa-grip-vertical text-xs"></i>
-                <span class="order-indicator text-[10px] font-medium mt-0.5">${displayOrder}</span>
+            <div class="drag-handle" style="display: flex; flex-direction: column; align-items: center; cursor: grab; color: #9ca3af; padding-top: 2px; width: 24px; flex-shrink: 0;" title="Drag to reorder">
+                <i class="fas fa-grip-vertical" style="font-size: 10px;"></i>
+                <span class="order-indicator" style="font-size: 9px; font-weight: 500;">${displayOrder}</span>
             </div>
             <input type="checkbox"
-                   class="form-checkbox subgoal-checkbox mt-0.5 w-3 h-3"
+                   class="form-checkbox subgoal-checkbox"
+                   style="margin-top: 4px; width: 14px; height: 14px; flex-shrink: 0;"
                    ${subgoal?.status === 'achieved' ? 'checked' : ''}
                    onchange="toggleSubgoalStatus(this)"
                    ${!subgoal?.id ? 'disabled' : ''}>
-            <div class="flex-1">
+            <div style="flex: 1; min-width: 0;">
                 <input type="text"
-                       class="subgoal-title input-field w-full mb-1 text-xs py-1 ${subgoal?.status === 'achieved' ? 'line-through text-gray-500' : ''}"
+                       class="subgoal-title input-field ${subgoal?.status === 'achieved' ? 'line-through text-gray-500' : ''}"
+                       style="width: 100%; margin-bottom: 4px; font-size: 13px; padding: 6px 10px;"
                        value="${subgoal?.title || ''}"
                        placeholder="Enter sub-goal title"
                        required>
-                <textarea class="subgoal-description input-field w-full text-xs py-1"
+                <textarea class="subgoal-description input-field"
+                          style="width: 100%; font-size: 12px; padding: 6px 10px;"
                           rows="1"
                           placeholder="Description (optional)">${subgoal?.description || ''}</textarea>
                 ${subgoal?.target_date ? `
                     <input type="date"
-                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1"
+                           class="subgoal-target-date input-field"
+                           style="width: 100%; font-size: 12px; padding: 6px 10px; margin-top: 4px;"
                            value="${subgoal.target_date}">
                 ` : `
                     <input type="date"
-                           class="subgoal-target-date input-field w-full text-xs py-1 mt-1"
+                           class="subgoal-target-date input-field"
+                           style="width: 100%; font-size: 12px; padding: 6px 10px; margin-top: 4px;"
                            placeholder="Target date (optional)">
                 `}
                 <input type="hidden" class="subgoal-status" value="${subgoal?.status || 'pending'}">
             </div>
-            <button type="button" onclick="removeSubgoalFromList(this)" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors" title="Remove sub-goal">
-                <i class="fas fa-trash text-xs"></i>
+            <button type="button" onclick="removeSubgoalFromList(this)" style="flex-shrink: 0; margin-top: 2px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; color: #9ca3af; background: transparent; border: none; border-radius: 4px; cursor: pointer; transition: color 0.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#9ca3af'" title="Remove sub-goal">
+                <i class="fas fa-times" style="font-size: 11px;"></i>
             </button>
         </div>
     `;
@@ -3907,9 +3921,21 @@ function toggleSubgoalStatus(checkbox) {
 function removeSubgoalFromList(button) {
     const container = document.getElementById('subgoals-container');
     const emptyState = document.getElementById('subgoals-empty-state');
-    
-    button.closest('.subgoal-item').remove();
-    
+
+    const subgoalItem = button.closest('.subgoal-item');
+
+    // Track the subgoal ID for deletion when saving (only if it's an existing subgoal with an ID)
+    const subgoalIdElement = subgoalItem.querySelector('.subgoal-id');
+    if (subgoalIdElement && subgoalIdElement.value) {
+        const subgoalId = parseInt(subgoalIdElement.value, 10);
+        if (!isNaN(subgoalId) && !subgoalsToDelete.includes(subgoalId)) {
+            subgoalsToDelete.push(subgoalId);
+            console.log('🗑️ Marked subgoal for deletion:', subgoalId);
+        }
+    }
+
+    subgoalItem.remove();
+
     // Show empty state if no subgoals left
     if (container.children.length === 0) {
         emptyState.classList.remove('hidden');
@@ -4338,9 +4364,10 @@ async function quickAddSubgoal(goalId) {
                             setupStickyHover();
                         }
                     }
+
                 }
             }
-            
+
             // Update stats
             const statsResponse = await fetch('/api/dashboard/stats', { credentials: 'include' });
             if (statsResponse.ok) {
@@ -4348,6 +4375,40 @@ async function quickAddSubgoal(goalId) {
                 updateStatsDisplay(stats);
                 updateProgressChart(stats);
             }
+
+            // Focus the new input for quick consecutive adds (stays focused for 5 seconds)
+            // Run after all DOM updates and stats refresh are complete
+            // Use longer delay to ensure all async operations are truly complete
+            setTimeout(() => {
+                const newInput = document.getElementById(`quick-subgoal-${goalId}`);
+                if (newInput) {
+                    newInput.focus();
+
+                    // Clear any existing blur timer for this input
+                    if (newInput._blurTimer) {
+                        clearTimeout(newInput._blurTimer);
+                    }
+
+                    // Auto-blur after 5 seconds of inactivity
+                    newInput._blurTimer = setTimeout(() => {
+                        if (document.activeElement === newInput && !newInput.value.trim()) {
+                            newInput.blur();
+                        }
+                    }, 5000);
+
+                    // Reset timer on new input
+                    newInput.addEventListener('input', function resetBlurTimer() {
+                        if (newInput._blurTimer) {
+                            clearTimeout(newInput._blurTimer);
+                        }
+                        newInput._blurTimer = setTimeout(() => {
+                            if (document.activeElement === newInput && !newInput.value.trim()) {
+                                newInput.blur();
+                            }
+                        }, 5000);
+                    }, { once: false });
+                }
+            }, 200);
             
         } else {
             const error = await response.json();
@@ -4390,7 +4451,16 @@ function updateGoalProgressBar(goalId) {
     // Update progress percentage badge (grid view)
     const progressBadge = goalCard.querySelector('.progress-percentage-badge');
     if (progressBadge) {
-        progressBadge.textContent = `${Math.round(goal.progress)}%`;
+        const newBadgeClass = getProgressBadgeClass(goal.progress);
+        // Remove all badge classes and add the correct one
+        progressBadge.classList.remove('badge-low', 'badge-medium', 'badge-high', 'badge-complete', 'badge-lets-goal');
+        progressBadge.classList.add(newBadgeClass);
+        // Update text content
+        if (Math.round(goal.progress) === 0) {
+            progressBadge.innerHTML = '<i class="fas fa-play text-xs mr-1"></i>Let\'s Goal!';
+        } else {
+            progressBadge.textContent = `${Math.round(goal.progress)}%`;
+        }
     }
 
     // Update progress bar fill (grid view)
@@ -4620,6 +4690,26 @@ async function handleGoalUpdate() {
             updateBtn.disabled = true;
         }
         
+        // Delete subgoals that were marked for deletion
+        if (subgoalsToDelete.length > 0) {
+            console.log('🗑️ Deleting marked subgoals:', subgoalsToDelete);
+            const deletePromises = subgoalsToDelete.map(subgoalId =>
+                fetch(`/api/subgoals/${subgoalId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                }).then(response => {
+                    console.log(`📡 Delete subgoal ${subgoalId} response:`, response.status);
+                    return response;
+                }).catch(error => {
+                    console.error(`❌ Failed to delete subgoal ${subgoalId}:`, error);
+                })
+            );
+            await Promise.all(deletePromises);
+            console.log('✅ Marked subgoals deleted');
+            // Clear the list after deletion
+            subgoalsToDelete = [];
+        }
+
         // Update subgoals first - exclude the inline form
         const subgoalRows = document.querySelectorAll('.subgoal-item:not(#inline-subgoal-form)');
         console.log(`📋 Found ${subgoalRows.length} subgoal rows to process`); // Debug log
@@ -4922,40 +5012,49 @@ window.setSort = function(sortValue) {
     saveUserSettings();
 }
 
-// ===== UNIFIED FILTER PANEL FUNCTIONS =====
+// ===== FILTER MODAL FUNCTIONS =====
 
-// Toggle unified filter panel
-window.toggleUnifiedFilterPanel = function() {
-    const panel = document.getElementById('unified-filter-panel');
-    const btn = document.getElementById('unified-filter-btn');
-    const chevron = document.getElementById('unified-filter-chevron');
-
-    if (panel.classList.contains('hidden')) {
-        panel.classList.remove('hidden');
-        btn.classList.add('active');
-        if (chevron) chevron.style.transform = 'rotate(180deg)';
-        // Populate tags in filter panel
-        populateFilterPanelTags();
-    } else {
-        closeUnifiedFilterPanel();
+// Open filter modal
+window.openFilterModal = function() {
+    const modal = document.getElementById('filter-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        populateFilterModalTags();
+        // Sync current filter states with modal UI
+        syncFilterModalState();
     }
 }
 
-function closeUnifiedFilterPanel() {
-    const panel = document.getElementById('unified-filter-panel');
-    const btn = document.getElementById('unified-filter-btn');
-    const chevron = document.getElementById('unified-filter-chevron');
-
-    if (panel && !panel.classList.contains('hidden')) {
-        panel.classList.add('hidden');
-        btn.classList.remove('active');
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
+// Close filter modal
+window.closeFilterModal = function() {
+    const modal = document.getElementById('filter-modal');
+    if (modal) {
+        modal.classList.add('hidden');
     }
 }
 
-// Populate tags in the unified filter panel
-function populateFilterPanelTags() {
-    const container = document.getElementById('filter-panel-tags');
+// Sync filter modal UI with current filter state
+function syncFilterModalState() {
+    // Update status chips
+    document.querySelectorAll('#filter-modal .status-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (chip.dataset.status === currentFilter) {
+            chip.classList.add('active');
+        }
+    });
+
+    // Update sort chips
+    document.querySelectorAll('#filter-modal .sort-chip').forEach(chip => {
+        chip.classList.remove('active');
+        if (chip.dataset.sort === currentSort) {
+            chip.classList.add('active');
+        }
+    });
+}
+
+// Populate tags in the filter modal
+function populateFilterModalTags() {
+    const container = document.getElementById('filter-modal-tags');
     if (!container) return;
 
     if (tags.length === 0) {
@@ -4965,7 +5064,7 @@ function populateFilterPanelTags() {
 
     container.innerHTML = tags.map(tag => `
         <button type="button"
-                onclick="selectTagFromFilterPanel(${tag.id})"
+                onclick="selectTagFromFilterModal(${tag.id})"
                 class="filter-tag-chip ${currentTagFilter === tag.id ? 'active' : ''}"
                 style="background-color: ${tag.color};"
                 data-tag-id="${tag.id}">
@@ -4974,13 +5073,13 @@ function populateFilterPanelTags() {
     `).join('');
 }
 
-// Select tag from filter panel
-window.selectTagFromFilterPanel = function(tagId) {
+// Select tag from filter modal
+window.selectTagFromFilterModal = function(tagId) {
     currentTagFilter = currentTagFilter === tagId ? null : tagId;
     currentPage = 0;
 
-    // Update filter panel tags appearance
-    document.querySelectorAll('#filter-panel-tags .filter-tag-chip').forEach(chip => {
+    // Update filter modal tags appearance
+    document.querySelectorAll('#filter-modal-tags .filter-tag-chip').forEach(chip => {
         chip.classList.remove('active');
         if (parseInt(chip.dataset.tagId) === currentTagFilter) {
             chip.classList.add('active');
@@ -5020,8 +5119,8 @@ window.resetAllFilters = function() {
         }
     });
 
-    // Reset tag chips in filter panel
-    document.querySelectorAll('#filter-panel-tags .filter-tag-chip').forEach(chip => {
+    // Reset tag chips in filter modal
+    document.querySelectorAll('#filter-modal-tags .filter-tag-chip').forEach(chip => {
         chip.classList.remove('active');
     });
 
@@ -5038,7 +5137,7 @@ window.resetAllFilters = function() {
     }
 
     updateActiveFiltersDisplay();
-    closeUnifiedFilterPanel();
+    closeFilterModal();
     renderGoals();
     saveUserSettings();
 }
@@ -5151,18 +5250,6 @@ function updateQuickStatsPill() {
         }
     }
 }
-
-// Close unified filter panel when clicking outside
-document.addEventListener('click', function(e) {
-    const panel = document.getElementById('unified-filter-panel');
-    const btn = document.getElementById('unified-filter-btn');
-
-    if (panel && !panel.classList.contains('hidden')) {
-        if (!panel.contains(e.target) && !btn.contains(e.target)) {
-            closeUnifiedFilterPanel();
-        }
-    }
-});
 
 // Enhanced view mode management
 window.setViewMode = function(mode) {

@@ -1036,6 +1036,26 @@ html[data-theme="dark"] .subgoal-item:hover {
   }
 }
 
+/* Subgoal delete button */
+.subgoal-delete-btn {
+  opacity: 0.5;
+  border: none;
+  background: transparent;
+}
+
+.subgoal-delete-btn:hover {
+  opacity: 1;
+}
+
+.subgoal-item:hover .subgoal-delete-btn {
+  opacity: 0.7;
+}
+
+[data-theme="dark"] .subgoal-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
 /* Goal Card Title Enhancement */
 .goal-card-title {
   font-size: 1.125rem;
@@ -3993,24 +4013,57 @@ html[data-theme="dark"] .card {
   margin-left: 0.25rem;
 }
 
-/* Unified Filter Panel */
-.unified-filter-panel {
-  animation: panel-slide-down 0.2s ease-out;
-  transform-origin: top;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-primary);
-  box-shadow: 0 10px 40px var(--color-shadow-lg), 0 4px 12px var(--color-shadow-md);
+/* Filter Modal */
+.filter-modal {
+  z-index: 100;
 }
 
-@keyframes panel-slide-down {
+.filter-modal-backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  animation: filter-modal-backdrop-fade 0.2s ease-out;
+}
+
+@keyframes filter-modal-backdrop-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.filter-modal-content {
+  background: var(--color-bg-surface);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: filter-modal-slide-up 0.25s ease-out;
+  overflow: hidden;
+}
+
+@keyframes filter-modal-slide-up {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.95);
+    transform: translateY(20px) scale(0.95);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.filter-modal-header {
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.filter-modal-header h3 {
+  color: var(--color-text-primary);
+}
+
+.filter-modal-body {
+  background: var(--color-bg-surface);
+}
+
+.filter-modal-footer {
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border-primary);
 }
 
 /* Status Chips in Filter Panel */
@@ -4265,16 +4318,6 @@ html[data-theme="dark"] .card {
     font-size: 0.8125rem;
   }
 
-  .unified-filter-panel {
-    position: fixed;
-    left: 1rem;
-    right: 1rem;
-    width: auto;
-    max-width: none;
-    top: auto;
-    bottom: 5rem;
-  }
-
   .fab-new-goal {
     bottom: 1.5rem;
     right: 1.5rem;
@@ -4285,24 +4328,24 @@ html[data-theme="dark"] .card {
   }
 }
 
-/* Ensure proper z-index stacking */
-.unified-filter-panel {
-  z-index: 9999 !important;
-}
-
-#unified-filter-btn.active #unified-filter-chevron {
-  transform: rotate(180deg);
-}
-
 /* Dark mode adjustments for new components */
 [data-theme="dark"] .control-bar-compact {
   background: var(--color-bg-secondary);
   border-color: var(--color-border-primary);
 }
 
-[data-theme="dark"] .unified-filter-panel {
+[data-theme="dark"] .filter-modal-content {
   background: var(--color-bg-secondary);
+}
+
+[data-theme="dark"] .filter-modal-header,
+[data-theme="dark"] .filter-modal-footer {
+  background: var(--color-bg-tertiary);
   border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .filter-modal-backdrop {
+  background: rgba(0, 0, 0, 0.7);
 }
 
 [data-theme="dark"] .status-chip {
@@ -4927,6 +4970,28 @@ html[data-theme="dark"] .card {
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
+/* Let's Goal! - Branded CTA badge for 0% progress */
+.progress-percentage-badge.badge-lets-goal {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
+  color: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  animation: pulse-subtle 2s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+.progress-percentage-badge.badge-lets-goal:hover {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  transform: translateY(-1px);
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
 /* Task count display */
 .task-count-display {
   display: flex;
@@ -5458,6 +5523,12 @@ html[data-theme="dark"] .card {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
   color: #34d399;
   border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .progress-percentage-badge.badge-lets-goal {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 50%, #3b82f6 100%);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
 }
 
 [data-theme="dark"] .subgoal-checkbox-enhanced {
