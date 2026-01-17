@@ -9,7 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Custom styles -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
     
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -158,7 +158,7 @@
         </div>
     </div>
 
-    <script src="js/auth.js"></script>
+    <script src="/js/auth.js"></script>
     
     <script>
         // Theme management system
@@ -241,18 +241,75 @@
             loginForm.classList.add('hidden');
         });
 
+        // Determine the correct API base path based on how the page was accessed
+        // If accessed via /auth/login (admin), use /auth; otherwise use /api/auth
+        const isAdminAuth = window.location.pathname.startsWith('/auth');
+        const authBasePath = isAdminAuth ? '/auth' : '/api/auth';
+        const redirectTarget = isAdminAuth ? '/admin' : '/dashboard';
+
+        // Override auth.js endpoints for admin login
+        if (isAdminAuth) {
+            // Override the login form handler
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    const username = document.getElementById('login-username').value;
+                    const password = document.getElementById('login-password').value;
+                    const remember = document.getElementById('remember-me').checked;
+
+                    if (!username || !password) {
+                        showErrorMessage('Please fill in all fields!');
+                        return;
+                    }
+
+                    showLoadingSpinner();
+
+                    try {
+                        const response = await fetch(authBasePath + '/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password, remember }),
+                            credentials: 'include'
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            showSuccessMessage('Welcome back, ' + data.user.username + '!');
+                            // Get the 'next' parameter if present
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const nextUrl = urlParams.get('next') || redirectTarget;
+                            setTimeout(() => { window.location.href = nextUrl; }, 1500);
+                        } else {
+                            showErrorMessage(data.error || 'Login failed. Please try again!');
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        showErrorMessage('Connection error. Please check your internet!');
+                    } finally {
+                        hideLoadingSpinner();
+                    }
+                }, true);
+            }
+        }
+
         // Initialize theme on page load
         window.addEventListener('load', async function() {
             // Initialize theme system first
             initializeTheme();
-            
+
             // Check if user is already logged in
             try {
-                const response = await fetch('/api/auth/check');
+                const response = await fetch(authBasePath + '/check');
                 const data = await response.json();
-                
+
                 if (data.authenticated) {
-                    window.location.href = '/dashboard';
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const nextUrl = urlParams.get('next') || redirectTarget;
+                    window.location.href = nextUrl;
                 }
             } catch (error) {
                 console.log('Not authenticated');

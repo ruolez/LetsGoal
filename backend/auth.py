@@ -60,8 +60,18 @@ def register():
         db.session.rollback()
         return jsonify({'error': 'Registration failed'}), 500
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
+    # GET request - serve login page
+    if request.method == 'GET':
+        from flask import send_from_directory, redirect, url_for
+        if current_user.is_authenticated:
+            # If already logged in, redirect to the next page or admin
+            next_page = request.args.get('next', '/admin')
+            return redirect(next_page)
+        return send_from_directory('../frontend', 'login.html')
+
+    # POST request - handle login API
     data = request.get_json()
     
     if not data or not data.get('username') or not data.get('password'):
