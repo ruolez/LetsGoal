@@ -168,14 +168,14 @@ body {
 /* Grid and Layout Styles */
 .goals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Optimized min width for content display */
-  grid-auto-rows: minmax(350px, auto);
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(var(--density-min-card-width, 280px), 1fr));
+  grid-auto-rows: auto; /* Let content determine row height */
+  gap: var(--density-card-gap, 0.875rem);
   padding: 12px;
   align-items: start;
   z-index: 1;
-  transition: grid-template-columns 0.3s ease; /* Smooth transitions for grid changes */
-  --dynamic-columns: 4; /* CSS custom property for JavaScript control */
+  transition: grid-template-columns 0.3s ease, gap 0.3s ease;
+  --dynamic-columns: 4;
 }
 
 .goals-grid .goal-card-grid {
@@ -2466,33 +2466,21 @@ body.modal-open {
    MODERN CARD HEADER REDESIGN STYLES
    ================================================ */
 
-/* Card Header Section - Fixed height for perfect alignment */
+/* Card Header Section - Auto height for compact density system */
 .card-header-section {
   padding: 4px 0;
-  height: 180px; /* Increased to accommodate description + enhanced progress section */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
 }
 
-/* Description container - always reserve space for 1 line */
+/* Description container - no longer reserves fixed space with density system */
 .description-container {
-  min-height: 1.12rem; /* Exactly 1 line: 0.8rem * 1.4 = 1.12rem */
-  max-height: 1.12rem; /* Enforce max height to prevent overflow */
   display: flex;
   align-items: flex-start;
-  margin-top: 8px;
   width: 100%;
-  max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  overflow: hidden; /* Ensure content doesn't overflow */
-}
-
-/* Empty description placeholder */
-.description-placeholder {
-  height: 1.12rem;
-  margin-top: 8px;
+  overflow: hidden;
 }
 
 /* Modern Goal Title */
@@ -6978,4 +6966,379 @@ html[data-theme="dark"] .card {
     width: 1.75rem;
     height: 1.75rem;
   }
+}
+
+/* ==============================================
+   DENSITY SYSTEM - COMPACT/NORMAL/SPACIOUS
+   ============================================== */
+
+:root {
+  /* Default: Normal density */
+  --density-card-padding: 0.5rem;
+  --density-card-gap: 0.875rem;
+  --density-min-card-width: 280px;
+  --density-title-size: 0.95rem;
+  --density-text-size: 0.8125rem;
+  --density-small-text: 0.7rem;
+  --density-line-height: 1.25;
+  --density-subgoal-padding: 0.125rem 0;
+}
+
+/* Compact density */
+[data-density="compact"] {
+  --density-card-padding: 0.375rem;
+  --density-card-gap: 0.625rem;
+  --density-min-card-width: 260px;
+  --density-title-size: 0.875rem;
+  --density-text-size: 0.75rem;
+  --density-small-text: 0.65rem;
+  --density-line-height: 1.2;
+  --density-subgoal-padding: 0.0625rem 0;
+}
+
+/* Spacious density */
+[data-density="spacious"] {
+  --density-card-padding: 0.75rem;
+  --density-card-gap: 1rem;
+  --density-min-card-width: 320px;
+  --density-title-size: 1.0625rem;
+  --density-text-size: 0.875rem;
+  --density-small-text: 0.75rem;
+  --density-line-height: 1.35;
+  --density-subgoal-padding: 0.1875rem 0;
+}
+
+/* Apply density variables to grid */
+.goals-grid {
+  grid-template-columns: repeat(auto-fill, minmax(var(--density-min-card-width), 1fr));
+  gap: var(--density-card-gap);
+}
+
+/* Apply density to cards */
+.expandable-goal-card {
+  padding: var(--density-card-padding);
+}
+
+/* Apply density to typography */
+.goal-title-option-b {
+  font-size: var(--density-title-size);
+  line-height: var(--density-line-height);
+}
+
+.subgoal-item {
+  padding: var(--density-subgoal-padding);
+}
+
+.subgoal-text-enhanced {
+  font-size: var(--density-text-size);
+}
+
+/* Density toggle button */
+.density-toggle-group {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-tertiary);
+  border-radius: 0.5rem;
+  padding: 0.125rem;
+  border: 1px solid var(--color-border-primary);
+}
+
+.density-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.density-toggle-btn:hover {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+}
+
+.density-toggle-btn.active {
+  background: var(--color-bg-surface);
+  color: var(--color-interactive-primary);
+  box-shadow: 0 1px 3px var(--color-shadow-sm);
+}
+
+/* ==============================================
+   COMPACT INLINE PROGRESS INDICATOR
+   ============================================== */
+
+.progress-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-bg-tertiary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border-primary);
+  margin: 0.125rem 0;
+  font-size: var(--density-small-text);
+}
+
+.progress-inline-dot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--progress-color, var(--color-interactive-primary)) calc(var(--progress, 0) * 3.6deg),
+    var(--color-border-primary) 0
+  );
+  flex-shrink: 0;
+  position: relative;
+}
+
+.progress-inline-dot::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: var(--color-bg-surface);
+  border-radius: 50%;
+}
+
+/* Progress colors based on percentage */
+.progress-inline[data-progress="low"] { --progress-color: #ef4444; }
+.progress-inline[data-progress="medium"] { --progress-color: #f59e0b; }
+.progress-inline[data-progress="high"] { --progress-color: #3b82f6; }
+.progress-inline[data-progress="complete"] { --progress-color: #10b981; }
+
+.progress-inline-percentage {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  min-width: 2rem;
+}
+
+.progress-inline-separator {
+  color: var(--color-text-muted);
+  font-size: 0.5rem;
+}
+
+.progress-inline-tasks {
+  color: var(--color-text-secondary);
+}
+
+.progress-inline-date {
+  color: var(--color-text-secondary);
+}
+
+.progress-inline-urgency {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.625rem;
+}
+
+.progress-inline-urgency.urgency-safe {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.progress-inline-urgency.urgency-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+
+.progress-inline-urgency.urgency-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.progress-inline-urgency.urgency-overdue {
+  background: rgba(239, 68, 68, 0.2);
+  color: #dc2626;
+}
+
+/* Let's Goal button in progress inline */
+.progress-inline .lets-goal-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.5rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #3b82f6 100%);
+  color: #ffffff;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.625rem;
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.25);
+  animation: pulse-subtle 2s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+/* ==============================================
+   HIDDEN DESCRIPTION - SHOW ON HOVER
+   ============================================== */
+
+.card-description {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease, margin 0.3s ease, padding 0.3s ease;
+  margin: 0;
+  padding: 0;
+  font-size: var(--density-text-size);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.goal-card-grid.sticky-hover .card-description,
+.goal-card-grid:hover .card-description {
+  max-height: 3rem;
+  opacity: 1;
+  margin-bottom: 0.375rem;
+  padding-top: 0.25rem;
+}
+
+/* Compact density hides description completely */
+[data-density="compact"] .card-description {
+  display: none;
+}
+
+/* Remove gap when no description - tighter header section */
+.card-header-section {
+  margin-bottom: 0;
+}
+
+.card-header-section .flex.items-start {
+  margin-bottom: 0.25rem;
+}
+
+/* ==============================================
+   HIDDEN QUICK ADD INPUT - SHOW ON HOVER
+   ============================================== */
+
+.quick-add-wrapper {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.25s ease;
+  margin: 0;
+}
+
+.goal-card-grid.sticky-hover .quick-add-wrapper,
+.goal-card-grid:hover .quick-add-wrapper {
+  max-height: 2.5rem;
+  opacity: 1;
+  margin-bottom: 0.375rem;
+}
+
+/* Quick add hint - always hidden (input shows directly on hover) */
+.quick-add-hint {
+  display: none;
+}
+
+/* ==============================================
+   CONSISTENT CARD HEIGHTS
+   ============================================== */
+
+/* Cards align to top - prevents all cards expanding on hover */
+.goals-grid {
+  grid-auto-rows: auto;
+  align-items: start;
+}
+
+.expandable-goal-card {
+  min-height: auto;
+}
+
+/* Card sections spacing - minimal */
+.card-header-section {
+  margin-bottom: 0;
+}
+
+.subgoals-section {
+  margin-top: 0.25rem;
+  padding-top: 0;
+}
+
+/* ==============================================
+   TIGHTER TYPOGRAPHY & SPACING
+   ============================================== */
+
+/* Goal title */
+.goal-title-option-b {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: var(--density-line-height);
+}
+
+/* Status dot smaller */
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Tag badges tighter */
+.tag-badge-inline {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.625rem;
+}
+
+/* Subgoal items tighter */
+.subgoal-item .flex {
+  padding: 0.125rem 0.25rem;
+}
+
+.subgoal-checkbox-enhanced {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Progress section reduced margin */
+.progress-section-enhanced {
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0;
+}
+
+/* ==============================================
+   DARK MODE ADJUSTMENTS FOR NEW STYLES
+   ============================================== */
+
+[data-theme="dark"] .progress-inline {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .progress-inline-dot::after {
+  background: var(--color-bg-surface);
+}
+
+[data-theme="dark"] .progress-inline-urgency.urgency-safe {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+[data-theme="dark"] .progress-inline-urgency.urgency-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .progress-inline-urgency.urgency-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+[data-theme="dark"] .density-toggle-group {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border-primary);
+}
+
+[data-theme="dark"] .density-toggle-btn.active {
+  background: var(--color-bg-surface);
 }

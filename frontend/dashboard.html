@@ -119,6 +119,19 @@
                     <span id="active-filter-count" class="filter-count-badge hidden">0</span>
                 </button>
 
+                <!-- Density Toggle -->
+                <div class="density-toggle-group" title="Card density">
+                    <button id="density-compact-btn" onclick="setDensity('compact')" class="density-toggle-btn" title="Compact">
+                        <span>S</span>
+                    </button>
+                    <button id="density-normal-btn" onclick="setDensity('normal')" class="density-toggle-btn active" title="Normal">
+                        <span>M</span>
+                    </button>
+                    <button id="density-spacious-btn" onclick="setDensity('spacious')" class="density-toggle-btn" title="Spacious">
+                        <span>L</span>
+                    </button>
+                </div>
+
                 <!-- View Toggle -->
                 <div class="view-toggle-group">
                     <button id="grid-view-btn" onclick="setViewMode('grid')" class="view-toggle-btn active" title="Grid view">

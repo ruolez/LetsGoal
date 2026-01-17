@@ -23,8 +23,14 @@ function calculateOptimalColumns(containerWidth) {
     if (containerWidth <= 768) {
         return 1; // Force single column on mobile
     }
-    
-    const minCardWidth = 320; // Optimized width for content display
+
+    // Get density-based min card width
+    const densityWidths = {
+        'compact': 260,
+        'normal': 280,
+        'spacious': 320
+    };
+    const minCardWidth = densityWidths[currentDensity] || 280;
     const maxColumns = 6; // Prevent too many narrow columns on ultra-wide screens
     const minColumns = 1;
     
@@ -171,6 +177,7 @@ let currentViewMode = 'grid';
 let currentFilter = 'all';
 let currentSort = 'recent';
 let currentTagFilter = null; // null means show all tags
+let currentDensity = 'normal'; // 'compact', 'normal', 'spacious'
 let selectedTagIds = [];
 let currentPage = 0;
 const goalsPerPage = 12;
@@ -285,9 +292,10 @@ function saveUserSettings() {
             sort: currentSort,
             tagFilter: currentTagFilter,
             page: currentPage,
-            searchTerm: searchTerm
+            searchTerm: searchTerm,
+            density: currentDensity
         };
-        
+
         localStorage.setItem('letsgoal_user_settings', JSON.stringify(settings));
         console.log('💾 User settings saved:', settings);
     } catch (error) {
@@ -309,6 +317,10 @@ function loadUserSettings() {
             currentSort = settings.sort || DEFAULT_SETTINGS.sort;
             currentTagFilter = settings.tagFilter || DEFAULT_SETTINGS.tagFilter;
             currentPage = settings.page || DEFAULT_SETTINGS.page;
+            currentDensity = settings.density || 'normal';
+
+            // Apply density to document
+            document.documentElement.setAttribute('data-density', currentDensity);
             
             // Apply search term
             const searchInput = document.getElementById('goal-search');
@@ -330,6 +342,8 @@ function loadUserSettings() {
         currentSort = DEFAULT_SETTINGS.sort;
         currentTagFilter = DEFAULT_SETTINGS.tagFilter;
         currentPage = DEFAULT_SETTINGS.page;
+        currentDensity = 'normal';
+        document.documentElement.setAttribute('data-density', 'normal');
         return false;
     }
 }
@@ -394,7 +408,10 @@ function applySettingsToUI() {
             tagFilterLabel.textContent = 'All Tags';
         }
     }
-    
+
+    // Initialize density toggle UI
+    initializeDensityToggle();
+
     console.log('✅ Settings applied to UI');
 }
 
@@ -2487,9 +2504,13 @@ function setupStickyHover() {
         // Clean animation on mouse leave
         card.addEventListener('mouseleave', function() {
             clearTimeout(expandTimeout);
-            if (!isInteracting) {
-                collapseTimeout = setTimeout(collapseCard, 250); // Generous delay before collapse
-            }
+            // Reset isInteracting on mouse leave to prevent stuck states
+            setTimeout(() => {
+                if (!card.matches(':hover')) {
+                    isInteracting = false;
+                    collapseCard();
+                }
+            }, 300);
         });
         
         // Handle interactions
@@ -2497,15 +2518,22 @@ function setupStickyHover() {
             isInteracting = true;
             expandCard();
         };
-        
+
         const endInteraction = () => {
             isInteracting = false;
-            // Check if we should collapse
+            // Always collapse after interaction ends, unless mouse is still over card
             setTimeout(() => {
-                if (!card.matches(':hover') && !isInteracting) {
+                // Re-check hover state using mouse position
+                const rect = card.getBoundingClientRect();
+                const isMouseOver = document.elementsFromPoint(
+                    rect.left + rect.width / 2,
+                    rect.top + rect.height / 2
+                ).includes(card);
+
+                if (!isMouseOver && !isInteracting) {
                     collapseCard();
                 }
-            }, 300);
+            }, 200);
         };
         
         // Checkbox interactions
@@ -2558,11 +2586,11 @@ function renderGoalCardGrid(goal) {
 
             <!-- Modern Header with Integrated Status -->
             <div class="card-header-section">
-                <div class="flex items-start justify-between gap-3 mb-2">
+                <div class="flex items-start justify-between gap-2">
                     <div class="flex items-center gap-2 flex-1 min-w-0">
                         <div class="status-dot ${getStatusDotClass(goal.status)}"
                              title="${goal.status.replace('_', ' ').toUpperCase()}"></div>
-                        <h3 class="goal-title-option-b truncate">${goal.title}</h3>
+                        <h3 class="goal-title-option-b line-clamp-2">${goal.title}</h3>
                         ${goal.tags && goal.tags.length > 0 ? renderInlineTagBadge(goal.tags[0]) : ''}
                         ${goal.is_owner === false ? `
                             <div class="shared-by-hover-container">
@@ -2633,49 +2661,41 @@ function renderGoalCardGrid(goal) {
 
                 <!-- Tags: Now inline with title (condensed layout) -->
 
-                <!-- Description -->
+                <!-- Description - Hidden by default, shows on hover -->
                 ${goal.description ? `
-                    <p class="text-sm text-gray-600 mb-3 line-clamp-2" id="desc-${goal.id}">${goal.description}</p>
+                    <p class="card-description line-clamp-2" id="desc-${goal.id}">${goal.description}</p>
                 ` : ''}
 
-                <!-- OPTION B: Enhanced Progress Section -->
-                <div class="progress-section-enhanced">
-                    <!-- Progress Bar with percentage badge -->
-                    <div class="flex items-center gap-3 mb-2">
-                        <span class="progress-percentage-badge ${progressBadgeClass}">${goal.progress === 0 ? '<i class="fas fa-play text-xs mr-1"></i>Let\'s Goal!' : Math.round(goal.progress) + '%'}</span>
-                        <div class="flex-1 progress-bar-option-b">
-                            <div class="progress-fill-enhanced ${progressFillClassB}"
-                                 style="width: ${goal.progress}%;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Stats row: tasks done + deadline -->
-                    <div class="flex items-center justify-between">
-                        <div class="task-count-display">
-                            <span class="count-done">${completedSubgoals}</span>
-                            <span>/</span>
-                            <span>${totalSubgoals}</span>
-                            <span class="ml-1">tasks</span>
-                        </div>
-
-                        ${goal.target_date ? `
-                            <div class="deadline-display-enhanced">
-                                <span class="date-text">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
-                                ${urgencyBadgeHTML}
-                            </div>
-                        ` : ''}
-                    </div>
+                <!-- Compact Inline Progress Indicator -->
+                <div class="progress-inline" data-progress="${getProgressLevel(goal.progress)}" style="--progress: ${goal.progress}">
+                    ${goal.progress === 0 ? `
+                        <span class="lets-goal-inline"><i class="fas fa-play"></i> Let's Goal!</span>
+                    ` : `
+                        <div class="progress-inline-dot"></div>
+                        <span class="progress-inline-percentage">${Math.round(goal.progress)}%</span>
+                    `}
+                    <span class="progress-inline-separator">·</span>
+                    <span class="progress-inline-tasks">${completedSubgoals}/${totalSubgoals} tasks</span>
+                    ${goal.target_date ? `
+                        <span class="progress-inline-separator">·</span>
+                        <span class="progress-inline-date">${new Date(goal.target_date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'})}</span>
+                        ${getInlineUrgencyBadge(goal.target_date, goal.status, goal.progress)}
+                    ` : ''}
                 </div>
             </div>
 
             <!-- Flexible content area -->
-            <div class="flex flex-col flex-1 mt-3">
-                <!-- Quick Add Subgoal Input -->
+            <div class="flex flex-col flex-1 mt-2">
+                <!-- Quick Add - Hidden by default, shows on hover -->
                 ${goal.status !== 'completed' ? `
-                    <div class="mb-2 px-1">
+                    <div class="quick-add-hint" onclick="focusQuickAdd(${goal.id}); event.stopPropagation();">
+                        <i class="fas fa-plus"></i>
+                        <span>Add task</span>
+                    </div>
+                    <div class="quick-add-wrapper px-1">
                         <input type="text"
                                id="quick-subgoal-${goal.id}"
-                               class="quick-subgoal-input w-full text-xs px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all duration-200"
+                               class="quick-subgoal-input w-full text-xs px-3 py-1.5 border border-gray-200 rounded-lg focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all duration-200"
                                placeholder="+ Add quick sub-goal..."
                                onkeypress="handleQuickSubgoalKeypress(event, ${goal.id})"
                                onclick="event.stopPropagation();"
@@ -2726,13 +2746,7 @@ function renderGoalCardGrid(goal) {
 
                         </div>
                     </div>
-                ` : `
-                    <div class="pt-1 mt-auto subgoals-section relative" style="min-height: 40px;">
-                        <div class="flex items-center justify-center h-full">
-                            <span class="text-xs text-gray-400">No sub-goals yet</span>
-                        </div>
-                    </div>
-                `}
+                ` : ''}
             </div>
 
             </div><!-- /.expandable-goal-card -->
@@ -2755,6 +2769,68 @@ function getProgressBadgeClass(progress) {
     if (progress >= 25) return 'badge-medium';
     if (progress > 0) return 'badge-low';
     return 'badge-lets-goal';  // 0% gets branded CTA
+}
+
+// Get progress level for inline indicator
+function getProgressLevel(progress) {
+    if (progress >= 100) return 'complete';
+    if (progress >= 75) return 'high';
+    if (progress >= 25) return 'medium';
+    return 'low';
+}
+
+// Get inline urgency badge HTML for compact progress indicator
+// Only shows for items due within 14 days to reduce visual noise
+function getInlineUrgencyBadge(targetDate, status, progress) {
+    if (!targetDate || status === 'completed' || progress >= 100) {
+        return '';
+    }
+
+    const daysLeft = getDaysUntilDeadline(targetDate);
+    if (daysLeft === null) return '';
+
+    // Don't show badge for items with plenty of time (> 14 days)
+    if (daysLeft > 14) {
+        return '';
+    }
+
+    let badgeClass = 'progress-inline-urgency ';
+    let text = '';
+
+    if (daysLeft < 0) {
+        badgeClass += 'urgency-overdue';
+        text = `-${Math.abs(daysLeft)}d`;
+    } else if (daysLeft === 0) {
+        badgeClass += 'urgency-danger';
+        text = 'Today';
+    } else if (daysLeft <= 3) {
+        badgeClass += 'urgency-danger';
+        text = `${daysLeft}d`;
+    } else if (daysLeft <= 7) {
+        badgeClass += 'urgency-warning';
+        text = `${daysLeft}d`;
+    } else {
+        // 8-14 days - show subtle reminder
+        badgeClass += 'urgency-safe';
+        text = `${daysLeft}d`;
+    }
+
+    return `<span class="${badgeClass}">${text}</span>`;
+}
+
+// Focus quick add input when clicking hint
+window.focusQuickAdd = function(goalId) {
+    const card = document.querySelector(`[data-goal-id="${goalId}"]`);
+    if (card) {
+        card.classList.add('sticky-hover');
+        stickyHoverStates.set(goalId.toString(), true);
+    }
+    setTimeout(() => {
+        const input = document.getElementById(`quick-subgoal-${goalId}`);
+        if (input) {
+            input.focus();
+        }
+    }, 100);
 }
 
 // Get urgency badge HTML for deadline
@@ -5279,6 +5355,56 @@ window.setViewMode = function(mode) {
 
     renderGoals();
     saveUserSettings();
+}
+
+// Density toggle management
+window.setDensity = function(density) {
+    currentDensity = density;
+
+    // Apply to document
+    document.documentElement.setAttribute('data-density', density);
+
+    // Update button states
+    const compactBtn = document.getElementById('density-compact-btn');
+    const normalBtn = document.getElementById('density-normal-btn');
+    const spaciousBtn = document.getElementById('density-spacious-btn');
+
+    [compactBtn, normalBtn, spaciousBtn].forEach(btn => {
+        if (btn) btn.classList.remove('active');
+    });
+
+    if (density === 'compact' && compactBtn) compactBtn.classList.add('active');
+    if (density === 'normal' && normalBtn) normalBtn.classList.add('active');
+    if (density === 'spacious' && spaciousBtn) spaciousBtn.classList.add('active');
+
+    // Recalculate grid columns based on new density
+    if (gridContainer) {
+        const containerWidth = gridContainer.offsetWidth;
+        if (containerWidth > 768) {
+            currentGridColumns = 0; // Force recalculation
+            const optimalColumns = calculateOptimalColumns(containerWidth);
+            applyDynamicGrid(optimalColumns);
+        }
+    }
+
+    renderGoals();
+    saveUserSettings();
+}
+
+// Initialize density toggle UI
+function initializeDensityToggle() {
+    const compactBtn = document.getElementById('density-compact-btn');
+    const normalBtn = document.getElementById('density-normal-btn');
+    const spaciousBtn = document.getElementById('density-spacious-btn');
+
+    // Set initial active state based on currentDensity
+    [compactBtn, normalBtn, spaciousBtn].forEach(btn => {
+        if (btn) btn.classList.remove('active');
+    });
+
+    if (currentDensity === 'compact' && compactBtn) compactBtn.classList.add('active');
+    if (currentDensity === 'normal' && normalBtn) normalBtn.classList.add('active');
+    if (currentDensity === 'spacious' && spaciousBtn) spaciousBtn.classList.add('active');
 }
 
 // Tag filter functions
