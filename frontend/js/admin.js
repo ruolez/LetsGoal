@@ -813,10 +813,35 @@ function editUser(userId) {
     showNotification('User editing functionality coming soon');
 }
 
-function deleteUser(userId) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        console.log('Deleting user:', userId);
-        showNotification('User deletion functionality coming soon');
+async function deleteUser(userId) {
+    // Find user info from the table
+    const confirmed = confirm(
+        `⚠️ DELETE USER\n\n` +
+        `Are you sure you want to delete this user?\n\n` +
+        `This will permanently delete:\n` +
+        `• The user account\n` +
+        `• All their goals and subgoals\n` +
+        `• All their tags\n` +
+        `• All their activity history\n\n` +
+        `This action cannot be undone!`
+    );
+
+    if (!confirmed) return;
+
+    try {
+        showLoading(true);
+
+        const result = await apiCall(`/users/${userId}`, 'DELETE');
+        showNotification(result.message || 'User deleted successfully', 'success');
+
+        // Refresh the users list
+        loadUsersData();
+
+    } catch (error) {
+        console.error('Failed to delete user:', error);
+        showNotification('Failed to delete user: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
     }
 }
 

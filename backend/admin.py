@@ -245,6 +245,84 @@ def get_user_activity(user_id):
     except Exception as e:
         return jsonify({'error': f'Failed to fetch user activity: {str(e)}'}), 500
 
+@admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@admin_required
+def delete_user(user_id):
+    """Delete a user and all their associated data"""
+    try:
+        user = User.query.get_or_404(user_id)
+
+        # Prevent deleting yourself
+        if user.id == current_user.id:
+            return jsonify({
+                'error': 'Cannot delete your own account'
+            }), 400
+
+        # Prevent deleting the last admin
+        if user.role == 'admin':
+            admin_count = User.query.filter_by(role='admin').count()
+            if admin_count <= 1:
+                return jsonify({
+                    'error': 'Cannot delete the last admin user'
+                }), 400
+
+        username = user.username
+
+        # Delete all associated data (cascade)
+        # 1. Delete user sessions
+        UserSession.query.filter_by(user_id=user_id).delete()
+
+        # 2. Delete events
+        Event.query.filter_by(user_id=user_id).delete()
+
+        # 3. Delete tags
+        Tag.query.filter_by(user_id=user_id).delete()
+
+        # 4. Get all goals owned by user
+        user_goals = Goal.query.filter(
+            (Goal.user_id == user_id) | (Goal.owner_id == user_id)
+        ).all()
+
+        for goal in user_goals:
+            # Delete subgoals
+            Subgoal.query.filter_by(goal_id=goal.id).delete()
+            # Delete progress entries if they exist
+            try:
+                from backend.models import ProgressEntry
+                ProgressEntry.query.filter_by(goal_id=goal.id).delete()
+            except:
+                pass
+            # Delete goal shares if they exist
+            try:
+                from backend.models import GoalShare
+                GoalShare.query.filter_by(goal_id=goal.id).delete()
+            except:
+                pass
+
+        # 5. Delete goals
+        Goal.query.filter(
+            (Goal.user_id == user_id) | (Goal.owner_id == user_id)
+        ).delete(synchronize_session='fetch')
+
+        # 6. Delete subscriptions and related data if they exist
+        try:
+            Subscription.query.filter_by(user_id=user_id).delete()
+            StripeCustomer.query.filter_by(user_id=user_id).delete()
+        except:
+            pass
+
+        # 7. Delete the user
+        db.session.delete(user)
+        db.session.commit()
+
+        return jsonify({
+            'message': f'User "{username}" and all associated data deleted successfully'
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Failed to delete user: {str(e)}'}), 500
+
 # System Statistics Endpoints
 @admin_bp.route('/stats/overview', methods=['GET'])
 @admin_required
@@ -702,6 +780,7 @@ def cleanup_orphaned_records():
 @admin_required
 def upload_and_restore_backup():
     """Upload a backup file and restore from it"""
+    import os
     import shutil
     import tempfile
     import sqlite3
