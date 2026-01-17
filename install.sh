@@ -703,13 +703,16 @@ try:
             admin_user = User(
                 username='admin',
                 email='admin@letsgoal.com',
-                password_hash=generate_password_hash('admin123'),
-                is_admin=True,
-                is_active=True
+                role='admin'
             )
+            admin_user.set_password('admin123')
             db.session.add(admin_user)
             db.session.commit()
             print('Default admin user created')
+        elif admin_user.role != 'admin':
+            admin_user.role = 'admin'
+            db.session.commit()
+            print('Updated admin user role')
 except Exception as e:
     print(f'Admin setup: {e}')
 " >> "$LOG_FILE" 2>&1 || true
