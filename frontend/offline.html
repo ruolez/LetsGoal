@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Let's Goal</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#3b82f6">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .icon {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 32px;
+            opacity: 0.9;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .retry-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .retry-btn:active {
+            transform: translateY(0);
+        }
+
+        .tips {
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tips h3 {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            margin-bottom: 16px;
+        }
+
+        .tips ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .tips li {
+            font-size: 14px;
+            padding: 8px 0;
+            opacity: 0.85;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .tips li::before {
+            content: '\2713';
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .status {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .status.online {
+            background: rgba(16, 185, 129, 0.8);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Lotus SVG Icon */
+        .lotus-icon {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Lotus Icon -->
+        <svg class="lotus-icon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="offlineGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgba(255,255,255,0.9)"/>
+                    <stop offset="100%" style="stop-color:rgba(255,255,255,0.6)"/>
+                </linearGradient>
+            </defs>
+
+            <!-- Center circle -->
+            <circle cx="60" cy="60" r="15" fill="url(#offlineGrad1)" opacity="0.9"/>
+            <circle cx="60" cy="60" r="10" fill="rgba(255,255,255,0.4)"/>
+            <circle cx="60" cy="60" r="5" fill="rgba(255,255,255,0.8)"/>
+
+            <!-- Top petal -->
+            <ellipse cx="60" cy="35" rx="12" ry="22" fill="url(#offlineGrad1)" opacity="0.7"/>
+
+            <!-- Bottom left petal -->
+            <ellipse cx="42" cy="75" rx="12" ry="22" fill="url(#offlineGrad1)" opacity="0.7" transform="rotate(-30 42 75)"/>
+
+            <!-- Bottom right petal -->
+            <ellipse cx="78" cy="75" rx="12" ry="22" fill="url(#offlineGrad1)" opacity="0.7" transform="rotate(30 78 75)"/>
+
+            <!-- Left petal -->
+            <ellipse cx="30" cy="55" rx="10" ry="18" fill="url(#offlineGrad1)" opacity="0.5" transform="rotate(-60 30 55)"/>
+
+            <!-- Right petal -->
+            <ellipse cx="90" cy="55" rx="10" ry="18" fill="url(#offlineGrad1)" opacity="0.5" transform="rotate(60 90 55)"/>
+        </svg>
+
+        <h1>You're Offline</h1>
+
+        <p>
+            It looks like you've lost your internet connection.
+            Don't worry - your goals are still here waiting for you!
+        </p>
+
+        <button class="retry-btn" onclick="retryConnection()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 4v6h6"></path>
+                <path d="M23 20v-6h-6"></path>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+            </svg>
+            Try Again
+        </button>
+
+        <div class="tips">
+            <h3>While you wait</h3>
+            <ul>
+                <li>Check your WiFi or mobile data connection</li>
+                <li>Try moving to an area with better signal</li>
+                <li>The page will reload automatically when you're back online</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="status" id="status">
+        <span class="pulse">Waiting for connection...</span>
+    </div>
+
+    <script>
+        // Check connection status
+        function checkConnection() {
+            const status = document.getElementById('status');
+
+            if (navigator.onLine) {
+                status.className = 'status online';
+                status.innerHTML = 'Back online! Reloading...';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        }
+
+        // Manual retry
+        function retryConnection() {
+            window.location.reload();
+        }
+
+        // Listen for online event
+        window.addEventListener('online', checkConnection);
+
+        // Check periodically
+        setInterval(checkConnection, 5000);
+
+        // Initial check
+        checkConnection();
+    </script>
+</body>
+</html>

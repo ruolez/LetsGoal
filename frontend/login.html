@@ -4,7 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Let's Goal</title>
-    
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Let's Goal">
+    <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="Track and achieve your goals with subgoal management and progress tracking">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -316,5 +328,8 @@
             }
         });
     </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script src="/js/sw-register.js"></script>
 </body>
 </html>
