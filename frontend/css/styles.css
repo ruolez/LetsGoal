@@ -2885,19 +2885,19 @@ body.modal-open {
   transform: scale(0.95);
 }
 
-/* Dropdown Menu */
+/* Dropdown Menu - Compact Design */
 .card-dropdown-menu {
   position: absolute;
   top: 100%;
-  right: -8px;
+  right: -4px;
   z-index: 50;
-  min-width: 120px;
+  min-width: 100px;
   background: var(--color-bg-surface) !important;
   border: 1px solid var(--color-border-primary) !important;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px var(--color-shadow-lg), 0 4px 6px var(--color-shadow-md);
-  padding: 4px 0;
-  margin-top: 4px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px var(--color-shadow-md);
+  padding: 3px 0;
+  margin-top: 2px;
 }
 
 /* Ensure dropdown menu border is always visible with maximum specificity */
@@ -2920,22 +2920,22 @@ div[id^="card-menu-"].card-dropdown-menu,
   display: none;
 }
 
-/* Menu Items */
+/* Menu Items - Compact */
 .card-menu-item {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 4px 8px;
   border: none;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 400;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
-  line-height: 1.4;
+  line-height: 1.2;
 }
 
 .card-menu-item:hover {
@@ -2944,8 +2944,8 @@ div[id^="card-menu-"].card-dropdown-menu,
 }
 
 .card-menu-item i {
-  width: 16px;
-  font-size: 0.875rem;
+  width: 12px;
+  font-size: 0.7rem;
   color: var(--color-text-tertiary);
   transition: color 0.15s ease;
 }
@@ -2976,7 +2976,7 @@ div[id^="card-menu-"].card-dropdown-menu,
 .card-menu-divider {
   height: 1px;
   background-color: var(--color-border-primary);
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 /* Animation for dropdown */
@@ -2995,16 +2995,27 @@ div[id^="card-menu-"].card-dropdown-menu,
   }
 }
 
-/* Responsive adjustments */
+/* Allow dropdown menu to overflow card when open */
+.expandable-goal-card:has(.card-dropdown-menu:not(.hidden)) {
+  overflow: visible !important;
+}
+
+/* Ensure menu container doesn't clip dropdown */
+.card-menu-container {
+  position: relative;
+  overflow: visible;
+}
+
+/* Responsive adjustments - slightly larger touch targets on mobile */
 @media (max-width: 768px) {
   .card-dropdown-menu {
-    min-width: 140px;
+    min-width: 110px;
     right: -4px;
   }
-  
+
   .card-menu-item {
-    padding: 10px 12px;
-    font-size: 0.8rem;
+    padding: 6px 10px;
+    font-size: 0.75rem;
   }
 }
 
