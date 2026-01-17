@@ -726,6 +726,83 @@ function refreshBackups() {
     loadBackupsData();
 }
 
+function triggerUploadRestore() {
+    const fileInput = document.getElementById('backup-upload-input');
+    if (fileInput) {
+        fileInput.click();
+    }
+}
+
+async function handleBackupUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file extension
+    if (!file.name.endsWith('.db')) {
+        showNotification('Invalid file type. Please select a .db file.', 'error');
+        event.target.value = '';
+        return;
+    }
+
+    // Confirm with user
+    const confirmed = confirm(
+        `⚠️ WARNING: Upload & Restore\n\n` +
+        `You are about to restore the database from:\n"${file.name}"\n\n` +
+        `This will:\n` +
+        `• Create a backup of your current database\n` +
+        `• Replace ALL current data with the uploaded file\n` +
+        `• You will be logged out after restore\n\n` +
+        `Are you absolutely sure you want to proceed?`
+    );
+
+    if (!confirmed) {
+        event.target.value = '';
+        return;
+    }
+
+    try {
+        showLoading(true);
+
+        // Create form data
+        const formData = new FormData();
+        formData.append('backup_file', file);
+
+        // Upload and restore
+        const response = await fetch('/api/admin/backup/upload-restore', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Upload failed');
+        }
+
+        showNotification(
+            `Database restored successfully from "${file.name}"!\n` +
+            `Pre-restore backup saved. Reloading page...`,
+            'success'
+        );
+
+        // Reset file input
+        event.target.value = '';
+
+        // Reload page after short delay to apply changes
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+
+    } catch (error) {
+        console.error('Failed to upload and restore backup:', error);
+        showNotification('Failed to restore: ' + error.message, 'error');
+        event.target.value = '';
+    } finally {
+        showLoading(false);
+    }
+}
+
 async function loadSettingsData() {
     console.log('Loading settings data...');
 }
@@ -761,4 +838,6 @@ window.downloadBackup = downloadBackup;
 window.deleteBackup = deleteBackup;
 window.cleanupOldBackups = cleanupOldBackups;
 window.cleanupOrphanedBackups = cleanupOrphanedBackups;
+window.triggerUploadRestore = triggerUploadRestore;
+window.handleBackupUpload = handleBackupUpload;
 window.refreshBackups = refreshBackups;

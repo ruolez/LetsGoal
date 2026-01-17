@@ -698,6 +698,119 @@ def cleanup_orphaned_records():
     except Exception as e:
         return jsonify({'error': f'Failed to cleanup orphaned records: {str(e)}'}), 500
 
+@admin_bp.route('/backup/upload-restore', methods=['POST'])
+@admin_required
+def upload_and_restore_backup():
+    """Upload a backup file and restore from it"""
+    import shutil
+    import tempfile
+    import sqlite3
+
+    try:
+        # Check if file was uploaded
+        if 'backup_file' not in request.files:
+            return jsonify({'error': 'No backup file provided'}), 400
+
+        file = request.files['backup_file']
+
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Validate file extension
+        if not file.filename.endswith('.db'):
+            return jsonify({'error': 'Invalid file type. Only .db files are allowed'}), 400
+
+        # Save uploaded file to temp location
+        temp_dir = tempfile.mkdtemp()
+        temp_path = os.path.join(temp_dir, 'uploaded_backup.db')
+        file.save(temp_path)
+
+        # Validate it's a valid SQLite database
+        try:
+            conn = sqlite3.connect(temp_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+            conn.close()
+
+            # Check for expected tables
+            table_names = [t[0] for t in tables]
+            required_tables = ['users', 'goals']
+            missing_tables = [t for t in required_tables if t not in table_names]
+
+            if missing_tables:
+                shutil.rmtree(temp_dir)
+                return jsonify({
+                    'error': f'Invalid backup file. Missing required tables: {", ".join(missing_tables)}'
+                }), 400
+
+        except sqlite3.Error as e:
+            shutil.rmtree(temp_dir)
+            return jsonify({'error': f'Invalid SQLite database file: {str(e)}'}), 400
+
+        # Get current database path
+        db_url = os.environ.get('DATABASE_URL', 'sqlite:///letsgoal.db')
+        if db_url.startswith('sqlite:////'):
+            current_db_path = db_url[10:]
+        elif db_url.startswith('sqlite:///'):
+            current_db_path = db_url[10:]
+        else:
+            shutil.rmtree(temp_dir)
+            return jsonify({'error': 'Only SQLite databases are supported'}), 400
+
+        # Create a backup of the current database before restoring
+        backup_dir = os.path.dirname(current_db_path)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        pre_restore_backup = os.path.join(backup_dir, f'pre_restore_backup_{timestamp}.db')
+
+        try:
+            shutil.copy2(current_db_path, pre_restore_backup)
+        except Exception as e:
+            shutil.rmtree(temp_dir)
+            return jsonify({'error': f'Failed to create pre-restore backup: {str(e)}'}), 500
+
+        # Close all database connections
+        db.session.remove()
+        db.engine.dispose()
+
+        # Replace current database with uploaded backup
+        try:
+            shutil.copy2(temp_path, current_db_path)
+        except Exception as e:
+            # Try to restore the pre-restore backup
+            shutil.copy2(pre_restore_backup, current_db_path)
+            shutil.rmtree(temp_dir)
+            return jsonify({'error': f'Failed to restore backup: {str(e)}'}), 500
+
+        # Clean up temp directory
+        shutil.rmtree(temp_dir)
+
+        # Record the restore in the new database
+        try:
+            # Create a new backup record for the pre-restore backup
+            backup_size = os.path.getsize(pre_restore_backup)
+            pre_restore_record = SystemBackup(
+                backup_name=f'pre_restore_backup_{timestamp}',
+                backup_type='pre_restore',
+                file_path=pre_restore_backup,
+                backup_size=backup_size,
+                status='completed',
+                created_by_user_id=current_user.id
+            )
+            db.session.add(pre_restore_record)
+            db.session.commit()
+        except Exception:
+            pass  # Don't fail if recording fails
+
+        return jsonify({
+            'message': 'Database restored successfully from uploaded file',
+            'pre_restore_backup': pre_restore_backup,
+            'uploaded_filename': file.filename
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'Failed to upload and restore backup: {str(e)}'}), 500
+
 # Admin Settings Endpoints
 @admin_bp.route('/settings', methods=['GET'])
 @admin_required
