@@ -7230,8 +7230,9 @@ html[data-theme="dark"] .card {
   margin: 0;
 }
 
-.goal-card-grid.sticky-hover .quick-add-wrapper,
-.goal-card-grid:hover .quick-add-wrapper {
+/* Show quick-add only on hover or when input is focused */
+.goal-card-grid:hover .quick-add-wrapper,
+.goal-card-grid:focus-within .quick-add-wrapper {
   max-height: 2.5rem;
   opacity: 1;
   margin-bottom: 0.375rem;

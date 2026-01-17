@@ -2563,7 +2563,7 @@ function setupStickyHover() {
 
 // Render goal card for grid view
 function renderGoalCardGrid(goal) {
-    const hasHiddenSubgoals = goal.subgoals.length > 2;  // Condensed: was > 3
+    const hasHiddenSubgoals = goal.subgoals.length > 1;  // Show only 1 subgoal by default
 
     // Visual hierarchy enhancement classes
     const urgencyClass = getUrgencyClass(goal.target_date, goal.status, goal.progress);
@@ -2710,7 +2710,7 @@ function renderGoalCardGrid(goal) {
                         <div class="subgoals-list space-y-1">
                             ${(() => {
                                 const sortedSubgoals = sortSubgoalsForDisplay(goal.subgoals);
-                                const visibleSlots = 2;  // Condensed: was 3
+                                const visibleSlots = 1;  // Show only 1 subgoal by default
                                 let output = '';
 
                                 sortedSubgoals.slice(0, visibleSlots).forEach((subgoal, index) => {
@@ -4365,8 +4365,29 @@ function checkForStuckExpansions() {
     });
 }
 
-// Run stuck expansion check every 2 seconds
-setInterval(checkForStuckExpansions, 2000);
+// Run stuck expansion check every 1 second for faster cleanup
+setInterval(checkForStuckExpansions, 1000);
+
+// Clear all sticky states when mouse leaves goals grid entirely
+document.addEventListener('DOMContentLoaded', () => {
+    const goalsGrid = document.getElementById('goals-container');
+    if (goalsGrid) {
+        goalsGrid.addEventListener('mouseleave', () => {
+            // Force clear all sticky hover states when leaving the grid
+            stickyHoverStates.forEach((isExpanded, goalId) => {
+                if (isExpanded) {
+                    const card = document.querySelector(`[data-goal-id="${goalId}"]`);
+                    if (card) {
+                        card.classList.remove('sticky-hover', 'hover-exit');
+                        const hiddenSubgoals = card.querySelectorAll('.hidden-subgoal');
+                        hiddenSubgoals.forEach(subgoal => subgoal.remove());
+                    }
+                    stickyHoverStates.set(goalId, false);
+                }
+            });
+        });
+    }
+});
 
 // Quick add subgoal function
 async function quickAddSubgoal(goalId) {
