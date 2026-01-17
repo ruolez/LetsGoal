@@ -9,16 +9,16 @@ from functools import wraps
 auth_bp = Blueprint('auth', __name__)
 
 def admin_required(f):
-    """Decorator to require admin role for access"""
+    """Decorator to require admin role for access - returns JSON instead of redirect"""
     @wraps(f)
-    @login_required
     def decorated_function(*args, **kwargs):
+        # Check authentication without using @login_required (which redirects)
         if not current_user.is_authenticated:
             return jsonify({'error': 'Authentication required'}), 401
-        
+
         if current_user.role != 'admin':
             return jsonify({'error': 'Admin access required'}), 403
-        
+
         return f(*args, **kwargs)
     return decorated_function
 
